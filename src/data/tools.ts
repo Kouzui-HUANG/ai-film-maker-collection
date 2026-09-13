@@ -60,7 +60,9 @@ export const TOOLS: ToolDef[] = [
   /* ── 剪輯・後製 ────────────────────────────────────────── */
   { slug: 'davinci-resolve', label: 'DaVinci Resolve', category: 'edit', vendor: 'Blackmagic Design', note: '剪輯與調色軟體，AI 生成素材的統一調色與最終成片多在此完成。' },
   { slug: 'premiere-pro', label: 'Premiere Pro', category: 'edit', vendor: 'Adobe', note: '剪輯軟體，與 After Effects 合成搭配，處理 AI 素材的節奏與轉場。' },
+  { slug: 'final-cut-pro', label: 'Final Cut Pro', category: 'edit', vendor: 'Apple', note: '剪輯軟體，磁性時間軸對大量短鏡頭的排列與換位快，AI 生成素材逐鏡拼接的成片常在此收尾。' },
   { slug: 'after-effects', label: 'After Effects', category: 'edit', vendor: 'Adobe', note: '合成與動態設計，用於修補 AI 生成畫面的瑕疵、加字卡與特效層。' },
+  { slug: 'photoshop', label: 'Photoshop', category: 'edit', vendor: 'Adobe', note: '影像編修軟體，用於修掉 AI 生成關鍵影格的手指、文字與穿幫細節，再送進影片模型。' },
   { slug: 'capcut', label: 'CapCut', category: 'edit', vendor: 'ByteDance', note: '輕量剪輯工具，短影音與社群版本的快速輸出常用。' },
   { slug: 'topaz-video', label: 'Topaz Video AI', category: 'edit', vendor: 'Topaz Labs', note: 'AI 放大與補幀，把生成影片拉到放映規格的常見最後一步。' },
 
