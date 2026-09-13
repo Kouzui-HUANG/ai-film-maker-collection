@@ -41,6 +41,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'pika', label: 'Pika', category: 'video', vendor: 'Pika Labs', note: '以特效與風格化見長的影片生成工具，適合 MV 與廣告的視覺實驗。' },
   { slug: 'wan', label: 'Wan', category: 'video', vendor: '阿里巴巴', note: '開源影片生成模型，可本機部署與微調，控制力高，進階創作者常用。' },
   { slug: 'hunyuan-video', label: 'Hunyuan Video', category: 'video', vendor: '騰訊', note: '開源影片生成模型，與 ComfyUI 工作流搭配，適合需要客製控制的作品。' },
+  { slug: 'seedance', label: 'Seedance', category: 'video', vendor: '字節跳動', note: '影片生成模型，支援多圖參考與 3D 動態參考輸入，角色一致性佳，連載型 AI 短劇常用。' },
 
   /* ── 圖像生成 ─────────────────────────────────────────── */
   { slug: 'midjourney', label: 'Midjourney', category: 'image', vendor: 'Midjourney', note: '概念圖、角色設定與劇照級關鍵影格的主力工具，多數作品的視覺起點。' },
@@ -48,6 +49,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'flux', label: 'FLUX', category: 'image', vendor: 'Black Forest Labs', note: '文字渲染與寫實度強的開源圖像模型，常做角色參考圖與場景關鍵影格。' },
   { slug: 'nano-banana', label: 'Nano Banana', category: 'image', vendor: 'Google', note: 'Gemini 影像編輯模型，角色一致性與局部修改快，適合多鏡頭參考圖批次產出。' },
   { slug: 'comfyui', label: 'ComfyUI', category: 'image', note: '節點式工作流介面，串接圖像與影片模型的自訂管線，進階創作者的控制中樞。' },
+  { slug: 'gpt-image', label: 'GPT Image', category: 'image', vendor: 'OpenAI', note: 'ChatGPT 內建的影像生成與編輯模型，指令理解力強，適合角色設定、場景美術與封面設計的批次產出。' },
 
   /* ── 聲音・配樂 ────────────────────────────────────────── */
   { slug: 'suno', label: 'Suno', category: 'audio', vendor: 'Suno', note: 'AI 音樂生成，MV 與短片配樂常用，可指定曲風與歌詞。' },
