@@ -25,7 +25,7 @@ export const SITE = {
   url: SITE_URL,
   locale: 'zh-Hant',
   /** 編輯部聯絡信箱（contact 頁與 Organization schema） */
-  email: 'hello@example.com',
+  email: 'ai_video@hallucination28.com',
   /** 編輯部社群（有就填，沒有留空字串；Organization.sameAs 只收非空值） */
   social: {
     youtube: '',

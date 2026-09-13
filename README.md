@@ -177,5 +177,5 @@ push 之後到 **Settings → Pages → Build and deployment → Source** 選 **
 | GA4 Measurement ID | `src/data/site.ts` → `SITE.gaId` | 留空時 production build 不載入 gtag；填入後自動輸出 `outbound_click` / `cta_click` / `scroll_depth` / `video_play` 事件 |
 | 作品按讚 API | `src/data/site.ts` → `SITE.likesApiUrl` | Google Apps Script Web App 端點；留空則按讚按鈕隱藏、分享功能照常 |
 | 正式網域 | `site.config.mjs` 預設值 + Actions Variables `SITE_ORIGIN` + `public/CNAME` | 決定後三處一起改，並更新 `SITE.name` / og 圖 |
-| 聯絡信箱 | `src/data/site.ts` → `SITE.email`（目前 `hello@example.com`） | 用於聯絡頁與 Organization schema |
+| ~~聯絡信箱~~ | 已設為 `ai_video@hallucination28.com`（`src/data/site.ts` → `SITE.email`） | 用於聯絡頁、關於頁、隱私權頁的寄信連結與 Organization schema |
 | 收錄準則、作品授權、退出機制 | 設計文件 §9 | 需要一份公開的收錄準則頁（`/about/`）與創作者要求下架時的處理流程 |
