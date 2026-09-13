@@ -22,7 +22,7 @@
 | `src/components/Analytics.astro` | GA4（`SITE.gaId` 空則不載） |
 | `src/components/ShareLike.astro` | 按讚＋分享：`<ShareLike slug="work:<slug>" title={..} url={absUrl} location="work_footer" />` |
 | `src/pages/robots.txt.ts` | robots 端點 |
-| `src/content/**` | 6 位創作者、14 部作品、5 篇文章、6 個活動的**示範資料**與佔位圖（已 build 通過） |
+| `src/content/**` | 實際收錄的創作者與作品（示範資料已於 2026-09-13 移除）；posts 與 events 目前為空 |
 
 ## 1. 不可違反的規則
 

@@ -158,9 +158,17 @@ push 之後到 **Settings → Pages → Build and deployment → Source** 選 **
 
 ⚠ GitHub 會在 public repo **60 天沒有任何 commit** 後自動停用排程並寄通知。收到「scheduled workflow disabled」時，到 **Actions → Deploy to GitHub Pages → Enable workflow** 重新啟用（或推一個小 commit）。
 
-## 示範資料聲明
+## 內容現況
 
-目前 `src/content/` 內的六位創作者、十四部作品、五篇文章與六個活動皆為**示範資料**，人名、頻道、社群連結與活動主辦單位均為虛構（連結指向 example.com）；肖像、縮圖與封面為 `scripts/gen-placeholders.mjs` 產生的佔位圖；作品所嵌入的影片為 Blender 基金會的開放電影（Big Buck Bunny、Sintel、Tears of Steel、Caminandes 等，CC-BY；示範用的影片 ID 未逐一核對，點擊播放時可能顯示「無法播放」），僅供版型與 schema 驗證。**正式上線前請整份替換**，並把 `src/content/*/README.md` 內的示範說明一併更新。示範資料的 `portraitAlt` / `thumbAlt` / `coverAlt` 描述的是「預期的成品照片」而不是佔位圖——**換圖時請一併改寫 alt**，讓它描述實際圖片內容。
+建站時的示範資料（六位虛構創作者、十四部作品、五篇文章、六個活動）已於 2026-09-13 全數移除，需要時可從 git 歷史取回（commit `af23822` 之前）。
+
+目前 `src/content/` 只有實際收錄的創作者與作品；`posts/`（訪談與教學）與 `events/`（活動與比賽）為空，對應頁面會顯示「收錄中」空狀態，首頁的活動區塊則整區不渲染。
+
+新增條目請照〈內容維護流程〉的步驟，並注意：
+
+- **編號連續**：`no` 必須是 1..N 連續，新收錄接在現有最大號之後。
+- **首頁焦點**：`spotlight: true` 全站同時只能一位；都沒設時首頁自動取最近收錄的一位。
+- **alt 要描述實際圖片**：`portraitAlt` / `thumbAlt` / `coverAlt` 換圖時一併改寫。
 
 ## 待決事項
 

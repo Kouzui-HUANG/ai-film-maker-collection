@@ -201,9 +201,13 @@ const breadcrumbs = [
               <dd class="data-grid__value">
                 {genres.length ? (
                   <ul class="chips">
-                    {genres.map((g) => (
-                      <li><a class="chip" href={routes.genre(g)}>{genreLabel(g)}</a></li>
-                    ))}
+                    {genres.map((g) =>
+                      (d.genreCounts.get(g) ?? 0) > 0 ? (
+                        <li><a class="chip" href={routes.genre(g)}>{genreLabel(g)}</a></li>
+                      ) : (
+                        <li><span class="chip chip--plain">{genreLabel(g)}</span></li>
+                      ),
+                    )}
                   </ul>
                 ) : (
                   '—'

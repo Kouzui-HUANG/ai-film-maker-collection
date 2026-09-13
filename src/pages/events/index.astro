@@ -91,7 +91,8 @@ const collectionSchema = {
         <p class="events-note">活動狀態依台北時間每日重新計算（本次計算日 {fmtDate(d.today)}）。</p>
       </header>
 
-      <!-- kind 篩選（純前端） -->
+      <!-- kind 篩選（純前端）：完全沒有活動時整區不渲染 -->
+      {d.events.length > 0 && (
       <div class="filter" role="group" aria-labelledby="filter-label">
         <span class="filter__label" id="filter-label">活動種類</span>
         <ul class="chips" role="list">
@@ -115,6 +116,7 @@ const collectionSchema = {
           ))}
         </ul>
       </div>
+      )}
 
       <!-- ── Upcoming ─────────────────────────────────── -->
       <section class="events-section" aria-labelledby="upcoming-heading">
@@ -135,7 +137,7 @@ const collectionSchema = {
             <p class="coming__kanji">暫無</p>
             <p class="coming__lead">
               目前沒有即將舉行的活動。<br />
-              過往活動可在下方展開查閱；若有應收錄的比賽或活動，歡迎<a href={routes.contact()}>告知編輯部</a>。
+              {nPast > 0 && <>過往活動可在下方展開查閱；</>}若有應收錄的比賽或活動，歡迎<a href={routes.contact()}>告知編輯部</a>。
             </p>
           </div>
         )}

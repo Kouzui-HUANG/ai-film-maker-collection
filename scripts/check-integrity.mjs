@@ -399,6 +399,24 @@ for (const [key, ids] of videoSeen) {
   if (ids.length > 1) warn('works', `同一支影片（${key}）出現在多部作品：${ids.join('、')}`);
 }
 
+/* 創作者標了某個類型、但站上該類型 0 部作品 → /genre/<slug>/ 不會建頁
+   （創作者頁的該 chip 會退成不可點；這裡提醒編輯補作品或拿掉標記） */
+{
+  const genreWorkCount = new Map();
+  for (const w of works.filter((x) => !x.draft)) {
+    const g = w.data.genre;
+    if (g) genreWorkCount.set(g, (genreWorkCount.get(g) ?? 0) + 1);
+  }
+  for (const [id, c] of creators) {
+    if (c.draft) continue;
+    for (const g of Array.isArray(c.data.genres) ? c.data.genres : []) {
+      if (GENRES.has(g) && (genreWorkCount.get(g) ?? 0) === 0) {
+        warn(`creators/${id}/index.md`, `標了類型「${g}」但站上該類型 0 部作品，/genre/${g}/ 不會建頁`);
+      }
+    }
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    posts
    ═══════════════════════════════════════════════════════════════ */

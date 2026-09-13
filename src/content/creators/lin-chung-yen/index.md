@@ -1,5 +1,5 @@
 ---
-no: 7
+no: 1
 name: "林仲彥"
 nameEn: "Lin Chung-yen"
 slug: "lin-chung-yen"

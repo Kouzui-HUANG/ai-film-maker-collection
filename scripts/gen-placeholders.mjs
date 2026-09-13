@@ -15,6 +15,10 @@
  *   node scripts/gen-placeholders.mjs --force                  # 列出會被覆寫的檔案，但不動手
  *   node scripts/gen-placeholders.mjs --force --yes            # 真的重產（正式素材也會被蓋掉！）
  *   node scripts/gen-placeholders.mjs --force --yes --include-public   # 連 public/logo.png、og-default.png 一起
+ *   node scripts/gen-placeholders.mjs --force --yes --only-public      # 只重產 public/ 品牌資產，不碰 src/content
+ *
+ * ⚠️ --force --yes 會覆寫既有檔案，包含已換成真實素材的肖像與縮圖。
+ *    只要重產品牌資產時，請用 --only-public。
  */
 import { readdirSync, readFileSync, existsSync, statSync, mkdirSync } from 'fs';
 import { join, dirname, sep } from 'path';
@@ -26,7 +30,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT = join(ROOT, 'src', 'content');
 const FORCE = process.argv.includes('--force');
 const YES = process.argv.includes('--yes');
-const INCLUDE_PUBLIC = process.argv.includes('--include-public');
+const INCLUDE_PUBLIC = process.argv.includes('--include-public') || process.argv.includes('--only-public');
+/** --only-public：只重產 public/ 的品牌資產，完全不碰 src/content（避免覆寫真實肖像與縮圖） */
+const ONLY_PUBLIC = process.argv.includes('--only-public');
 /** --force 但沒 --yes 時，只列出將被覆寫的檔案 */
 const wouldOverwrite = [];
 
@@ -60,7 +66,7 @@ function svg({ w, h, from, to, label, sub, kind }) {
   <rect x="${ratio * 0.6}" y="${ratio * 0.6}" width="${w - ratio * 1.2}" height="${h - ratio * 1.2}" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="3"/>
   <text x="50%" y="${h / 2 - ratio * 0.2}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="${ratio * 1.6}" fill="rgba(255,255,255,0.92)" letter-spacing="4">${label}</text>
   <text x="50%" y="${h / 2 + ratio * 1.1}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${ratio * 0.6}" fill="rgba(255,255,255,0.7)" letter-spacing="6">${sub}</text>
-  <text x="${w - ratio * 0.9}" y="${h - ratio * 0.9}" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="${ratio * 0.45}" fill="rgba(255,255,255,0.5)" letter-spacing="3">${kind} · PLACEHOLDER</text>
+  ${kind ? `<text x="${w - ratio * 0.9}" y="${h - ratio * 0.9}" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="${ratio * 0.45}" fill="rgba(255,255,255,0.5)" letter-spacing="3">${kind} · PLACEHOLDER</text>` : ''}
 </svg>`;
 }
 
@@ -86,7 +92,7 @@ let made = 0;
 
 /* creators */
 const cdir = join(CONTENT, 'creators');
-if (existsSync(cdir)) {
+if (!ONLY_PUBLIC && existsSync(cdir)) {
   for (const [i, folder] of readdirSync(cdir).filter((n) => !n.startsWith('.') && !n.startsWith('_')).entries()) {
     const idx = join(cdir, folder, 'index.md');
     if (!existsSync(idx) || !statSync(join(cdir, folder)).isDirectory()) continue;
@@ -100,7 +106,7 @@ if (existsSync(cdir)) {
 
 /* works */
 const wdir = join(CONTENT, 'works');
-if (existsSync(wdir)) {
+if (!ONLY_PUBLIC && existsSync(wdir)) {
   for (const [i, f] of readdirSync(wdir).filter((n) => n.endsWith('.md') && !n.startsWith('_') && n !== 'README.md').entries()) {
     const data = fm(readFileSync(join(wdir, f), 'utf-8'));
     const rel = String(data.thumb ?? `./thumbs/${f.replace(/\.md$/, '')}.jpg`).replace(/^\.\//, '');
@@ -111,7 +117,7 @@ if (existsSync(wdir)) {
 
 /* posts */
 const pdir = join(CONTENT, 'posts');
-if (existsSync(pdir)) {
+if (!ONLY_PUBLIC && existsSync(pdir)) {
   for (const [i, folder] of readdirSync(pdir).filter((n) => !n.startsWith('.') && !n.startsWith('_')).entries()) {
     const idx = join(pdir, folder, 'index.md');
     if (!existsSync(idx)) continue;
@@ -125,7 +131,7 @@ if (existsSync(pdir)) {
 
 /* events */
 const edir = join(CONTENT, 'events');
-if (existsSync(edir)) {
+if (!ONLY_PUBLIC && existsSync(edir)) {
   for (const [i, f] of readdirSync(edir).filter((n) => n.endsWith('.md') && !n.startsWith('_') && n !== 'README.md').entries()) {
     const data = fm(readFileSync(join(edir, f), 'utf-8'));
     const rel = String(data.cover ?? `./covers/${f.replace(/\.md$/, '')}.jpg`).replace(/^\.\//, '');
@@ -135,8 +141,8 @@ if (existsSync(edir)) {
 }
 
 /* public: logo + og */
-if (await write(join(ROOT, 'public', 'logo.png'), { w: 512, h: 512, from: '#1b1714', to: '#5168b4', label: 'AI', sub: 'FILMMAKERS', kind: 'LOGO' }, 'png')) made++;
-if (await write(join(ROOT, 'public', 'og-default.png'), { w: 1200, h: 630, from: '#1b1714', to: '#5168b4', label: 'TAIWAN AI FILMMAKERS', sub: 'ANNUAL DIRECTORY', kind: 'OG' }, 'png')) made++;
+if (await write(join(ROOT, 'public', 'logo.png'), { w: 512, h: 512, from: '#1b1714', to: '#5168b4', label: 'AI', sub: 'FILMMAKERS', kind: '' }, 'png')) made++;
+if (await write(join(ROOT, 'public', 'og-default.png'), { w: 1200, h: 630, from: '#1b1714', to: '#5168b4', label: 'TAIWAN AI FILMMAKERS', sub: 'ANNUAL DIRECTORY', kind: '' }, 'png')) made++;
 
 if (FORCE && !YES && wouldOverwrite.length) {
   console.log(`\x1b[33m!\x1b[0m --force 會覆寫以下 ${wouldOverwrite.length} 個既有檔案（含可能已換成正式素材的圖），確認後加 --yes 再跑：`);
