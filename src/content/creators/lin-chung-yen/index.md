@@ -7,7 +7,7 @@ tagline: "把 3D 動態餵給 AI 的台灣民俗短劇導演"
 bio: "3D 與數位影像出身、自述十三年資歷的 AI 影像創作者，網路上以「粽子」「漫步深淵」行走，作品掛在自己的 5Y Studio 之下。工作流核心是「3D 模型混合 AI 影片」：先用輕量 3D 把鏡頭運動與角色動態搭出來，再當成 Seedance 的動態參考，角色設定與場景美術交給 GPT Image，配樂用 Suno。2025 年以《五元有緣》入圍 Artiver AI Art Awards 決賽，2026 年以《粽乩：豬母夜哭》入圍 AI London Film Festival，同年在 GMI Cloud 與 Wan 合辦的限時創作大賽以《間合》拿下第二名。另一條線是《中華一番》二創系列「AI 拍片現場」，單片觀看數破十萬，是台灣 AI 短片少見的規模化流量。"
 seoTitle: "林仲彥（粽子x漫步深淵）｜台灣 AI 短劇導演・5Y Studio"
 portrait: "./portrait.jpg"
-portraitAlt: "圖鑑佔位圖：深褐色漸層底上印著收錄編號，尚未取得本人肖像照"
+portraitAlt: "本人 YouTube 頻道頭像：Q 版鎧甲武士單膝蹲踞、背負長劍並披著藍色披風，身旁一隻戴紅領巾的黃狗仰頭長嚎，襯在深褐色底上"
 tools: ["seedance", "gpt-image", "suno", "wan"]
 genres: ["short-film", "commercial", "music-video"]
 region: "台北"
