@@ -43,6 +43,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'hunyuan-video', label: 'Hunyuan Video', category: 'video', vendor: '騰訊', note: '開源影片生成模型，與 ComfyUI 工作流搭配，適合需要客製控制的作品。' },
   { slug: 'seedance', label: 'Seedance', category: 'video', vendor: '字節跳動', note: '影片生成模型，支援多圖參考與 3D 動態參考輸入，角色一致性佳，連載型 AI 短劇常用。' },
   { slug: 'vidu', label: 'Vidu', category: 'video', vendor: '生數科技', note: '影片生成模型，參考圖轉影片的角色一致性強，二次元與動漫風格的 MV、OP 片頭常用。' },
+  { slug: 'pixverse', label: 'PixVerse', category: 'video', vendor: 'PixVerse', note: '影片生成模型，對嘴（lip sync）可直接吃整段影片而非單張圖，在鏡頭運動中仍能對上口型，AI MV 的歌唱段落常用。' },
 
   /* ── 圖像生成 ─────────────────────────────────────────── */
   { slug: 'midjourney', label: 'Midjourney', category: 'image', vendor: 'Midjourney', note: '概念圖、角色設定與劇照級關鍵影格的主力工具，多數作品的視覺起點。' },
@@ -51,6 +52,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'nano-banana', label: 'Nano Banana', category: 'image', vendor: 'Google', note: 'Gemini 影像編輯模型，角色一致性與局部修改快，適合多鏡頭參考圖批次產出。' },
   { slug: 'comfyui', label: 'ComfyUI', category: 'image', note: '節點式工作流介面，串接圖像與影片模型的自訂管線，進階創作者的控制中樞。' },
   { slug: 'gpt-image', label: 'GPT Image', category: 'image', vendor: 'OpenAI', note: 'ChatGPT 內建的影像生成與編輯模型，指令理解力強，適合角色設定、場景美術與封面設計的批次產出。' },
+  { slug: 'seedream', label: 'Seedream', category: 'image', vendor: '字節跳動', note: '圖像生成模型，與同門的 Seedance 影片模型同一套素材語彙，常用於產角色卡、場景與道具的參考圖再送進影片生成。' },
 
   /* ── 聲音・配樂 ────────────────────────────────────────── */
   { slug: 'suno', label: 'Suno', category: 'audio', vendor: 'Suno', note: 'AI 音樂生成，MV 與短片配樂常用，可指定曲風與歌詞。' },
