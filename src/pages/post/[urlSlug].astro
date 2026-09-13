@@ -457,16 +457,16 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     gap: 16px;
     height: 100%;
     padding: 16px;
-    background: var(--paper-white);
+    background: var(--paper-raised);
     color: var(--ink);
     border: 1px solid var(--ink);
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: 3px 3px 0 var(--shadow);
     transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
   }
   .creator-card:hover {
     color: var(--ink);
     transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--ink);
+    box-shadow: 4px 4px 0 var(--shadow);
   }
   .creator-card__portrait {
     width: 80px;

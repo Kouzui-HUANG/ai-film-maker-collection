@@ -1,26 +1,30 @@
 /* ──────────────────────────────────────────────────────────────
    台灣AI影視創作者圖鑑 — design tokens
-   繼承 JP¥ ONLINE 的報紙骨架（米白紙感 + 細罫線 + 明朝體），
-   換掉色彩層：朱色印章紅 → 冷調「電影青」，避免與全彩劇照互搶。
+   繼承 JP¥ ONLINE 的報紙骨架（細罫線 + 明朝體 + 零圓角 + 硬陰影），
+   色彩層走「片基褐」：膠卷片基與暗房安全燈的暖調深色，
+   讓全彩劇照掛在深底上最跳，識別色改用靛藍亮版。
    ────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Palette ─ 紙本感為主（沿用 JP¥ ONLINE） */
-  --paper: #f6f3ec;          /* 米白（主背景） */
-  --paper-alt: #ebe7dc;      /* 次層紙色 */
-  --paper-white: #ffffff;    /* 純白卡底 */
-  --ink: #141414;            /* 墨黑（主文字 / 標題） */
-  --ink-soft: #3a3a3a;       /* 次級文字 */
-  --muted: #6b6563;          /* caption / byline（在 paper 上 5.2:1，AA） */
-  --rule: #1a1a1a;           /* 分隔線 */
-  --rule-soft: #b8b0a2;      /* 次級分隔線（米灰） */
+  /* Palette ─ 片基褐 Film Base（暖調深色；括號內為 L* 與對 --paper 的對比） */
+  --paper: #1b1714;          /* 片基褐（主背景）L* 8.1 */
+  --paper-alt: #120f0d;      /* 次層／凹陷（表格 hover、chip 底）L* 4.5 */
+  --paper-raised: #241e18;   /* 卡片／浮起（取代舊的純白卡底）L* 11.8 */
+  --ink: #ece6dd;            /* 暖白（主文字 / 標題）14.36:1 */
+  --ink-soft: #c7bfb3;       /* 次級文字 9.78:1 */
+  --muted: #9a9188;          /* caption / byline 5.75:1，AA */
+  --rule: #efe9e0;           /* 分隔線（深底上罫線反轉成亮線） */
+  --rule-soft: #3e352c;      /* 次級分隔線（暖褐） */
+  --shadow: #52463a;         /* 硬陰影 3px 3px 0：深底上不能再用 ink，會過亮 */
 
-  /* ★ 本站識別色：電影青（deep teal）
-     在 --paper #F6F3EC 上對比 5.6:1（WCAG AA，含 16px 內文）；
-     冷調不與作品縮圖的全彩互搶。每 viewport 出現 ≤ 3 處。 */
-  --accent: #0f6b78;
-  --accent-ink: #0a4b54;     /* 加深版，按壓態 / 連結 */
-  --accent-wash: rgba(15, 107, 120, 0.09);  /* 極淡底色（表格斑馬紋、強調底） */
+  /* ★ 本站識別色：靛藍亮版（cyanotype indigo, lifted）
+     在 --paper #1B1714 上對比 7.7:1；藍晒是數位之前保存影像的工藝，
+     壓在片基褐上就是藍晒印在深褐相紙。每 viewport 出現 ≤ 3 處（不含連結）。 */
+  --accent: #94a9e6;
+  --accent-ink: #5168b4;     /* 深版：框線 / 陰影（對底 3.4:1） */
+  --accent-lift: #b7c5ef;    /* 亮版：hover（深底上 hover 要更亮，不是更深） */
+  --link: #94a9e6;           /* 連結色：從 accent 獨立出來，不佔「≤ 3 處」額度 */
+  --accent-wash: rgba(148, 169, 230, 0.10);  /* 極淡底色（表格斑馬紋、強調底） */
 
   /* Typography */
   --font-serif:
@@ -88,11 +92,11 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* 細緻紙紋（極淡）— 純 CSS，不載圖 */
+  /* 細緻片基顆粒（極淡）— 純 CSS，不載圖 */
   background-image:
     repeating-linear-gradient(
       0deg,
-      rgba(20, 20, 20, 0.012) 0 1px,
+      rgba(236, 230, 221, 0.018) 0 1px,
       transparent 1px 3px
     );
 }
@@ -267,7 +271,7 @@ ul, ol {
 
 .page-title {
   font-family: var(--font-serif);
-  font-weight: 900;
+  font-weight: 800;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   line-height: 1.25;
   letter-spacing: 0.01em;
@@ -420,7 +424,7 @@ a.chip:hover,
 button.chip:hover {
   color: var(--accent);
   border-color: var(--accent);
-  background: var(--paper-white);
+  background: var(--paper-raised);
 }
 
 /* 篩選用 chip（<button class="chip">）：目前選中的用墨色反白 */
@@ -607,11 +611,11 @@ a:hover .frame--post img {
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: var(--paper-white);
+  background: var(--paper-raised);
   color: var(--ink);
   border: 1px solid var(--ink);
   border-radius: 0;
-  box-shadow: 3px 3px 0 var(--ink);
+  box-shadow: 3px 3px 0 var(--shadow);
   font-family: var(--font-serif);
   font-weight: 700;
   font-size: var(--fs-sm);
@@ -624,24 +628,24 @@ a:hover .frame--post img {
   color: var(--ink);
   background: var(--paper);
   transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 var(--ink);
+  box-shadow: 4px 4px 0 var(--shadow);
 }
 
 .btn:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--ink);
+  box-shadow: 1px 1px 0 var(--shadow);
 }
 
 .btn--accent {
   background: var(--accent);
-  color: var(--paper-white);
+  color: var(--paper-raised);
   border-color: var(--accent-ink);
   box-shadow: 3px 3px 0 var(--accent-ink);
 }
 
 .btn--accent:hover {
-  color: var(--paper-white);
-  background: var(--accent-ink);
+  color: var(--paper);
+  background: var(--accent-lift);
   box-shadow: 4px 4px 0 var(--accent-ink);
 }
 
@@ -662,8 +666,8 @@ a:hover .frame--post img {
   font-family: var(--font-serif);
   font-size: var(--fs-sm);
   color: var(--ink);
-  background-color: var(--paper-white);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23141414' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-color: var(--paper-raised);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ece6dd' stroke-width='1.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   border: 1px solid var(--rule);
@@ -706,7 +710,7 @@ a:hover .frame--post img {
 
 .coming__kanji {
   font-family: var(--font-serif);
-  font-weight: 900;
+  font-weight: 800;
   font-size: clamp(2rem, 6vw, 3.4rem);
   letter-spacing: 0.2em;
   color: var(--ink);
@@ -721,7 +725,7 @@ a:hover .frame--post img {
 }
 
 .coming__lead a {
-  color: var(--accent-ink);
+  color: var(--link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -828,7 +832,7 @@ a:hover .frame--post img {
 }
 
 .prose a {
-  color: var(--accent-ink);
+  color: var(--link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -850,8 +854,8 @@ a:hover .frame--post img {
   overflow-x: auto;
   padding: 16px 20px;
   margin: 0 0 24px;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--paper-alt);
+  color: var(--ink);
   font-size: 0.85em;
   line-height: 1.7;
   border: 1px solid var(--rule);

@@ -31,10 +31,10 @@ const INCLUDE_PUBLIC = process.argv.includes('--include-public');
 const wouldOverwrite = [];
 
 const PALETTES = {
-  portrait: [['#3a3a3a', '#7a7472'], ['#2f3d3f', '#6b7a7c'], ['#4a4238', '#8a7d6b']],
+  portrait: [['#2e2620', '#6b5f52'], ['#26211c', '#5e564c'], ['#332b22', '#7a6a58']],
   work: [['#0f6b78', '#e9b44c'], ['#6a1b9a', '#ff7043'], ['#1b4d89', '#4fc3f7'], ['#b71c1c', '#ffb300'], ['#004d40', '#80cbc4'], ['#37474f', '#ff8a65']],
-  post: [['#3a3a3a', '#0f6b78'], ['#2b2b2b', '#5a6b6e']],
-  event: [['#0a4b54', '#0f6b78'], ['#141414', '#0f6b78']],
+  post: [['#241e18', '#5168b4'], ['#1b1714', '#4a5568']],
+  event: [['#1b1714', '#5168b4'], ['#241e18', '#94a9e6']],
 };
 
 function fm(md) {
@@ -135,8 +135,8 @@ if (existsSync(edir)) {
 }
 
 /* public: logo + og */
-if (await write(join(ROOT, 'public', 'logo.png'), { w: 512, h: 512, from: '#141414', to: '#0f6b78', label: 'AI', sub: 'FILMMAKERS', kind: 'LOGO' }, 'png')) made++;
-if (await write(join(ROOT, 'public', 'og-default.png'), { w: 1200, h: 630, from: '#141414', to: '#0f6b78', label: 'TAIWAN AI FILMMAKERS', sub: 'ANNUAL DIRECTORY', kind: 'OG' }, 'png')) made++;
+if (await write(join(ROOT, 'public', 'logo.png'), { w: 512, h: 512, from: '#1b1714', to: '#5168b4', label: 'AI', sub: 'FILMMAKERS', kind: 'LOGO' }, 'png')) made++;
+if (await write(join(ROOT, 'public', 'og-default.png'), { w: 1200, h: 630, from: '#1b1714', to: '#5168b4', label: 'TAIWAN AI FILMMAKERS', sub: 'ANNUAL DIRECTORY', kind: 'OG' }, 'png')) made++;
 
 if (FORCE && !YES && wouldOverwrite.length) {
   console.log(`\x1b[33m!\x1b[0m --force 會覆寫以下 ${wouldOverwrite.length} 個既有檔案（含可能已換成正式素材的圖），確認後加 --yes 再跑：`);

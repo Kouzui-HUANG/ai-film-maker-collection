@@ -168,7 +168,7 @@ const navIsActive = (navHref: string) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={pageDesc} />
     <meta name="robots" content={noindex ? 'noindex, follow' : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
-    <meta name="theme-color" content="#141414" />
+    <meta name="theme-color" content="#1b1714" />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.name} RSS`} href={href('/rss.xml')} />
@@ -384,7 +384,7 @@ const navIsActive = (navHref: string) => {
       .nameplate__logo-main {
         display: block;
         font-family: var(--font-serif);
-        font-weight: 900;
+        font-weight: 800;
         font-size: clamp(1.7rem, 4.6vw, 3.4rem);
         letter-spacing: 0.08em;
         color: var(--ink);
@@ -530,7 +530,7 @@ const navIsActive = (navHref: string) => {
         display: block;
         position: fixed;
         inset: 0;
-        background: rgba(20, 20, 20, 0.45);
+        background: rgba(0, 0, 0, 0.62);
         z-index: 200;
         opacity: 0;
         pointer-events: none;
@@ -547,8 +547,8 @@ const navIsActive = (navHref: string) => {
         width: 280px;
         max-width: 85vw;
         height: 100dvh;
-        background: var(--ink);
-        color: var(--paper);
+        background: var(--paper-raised);
+        color: var(--ink);
         z-index: 201;
         transform: translateX(100%);
         visibility: hidden;

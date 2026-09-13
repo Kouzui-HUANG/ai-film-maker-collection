@@ -174,9 +174,9 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
     max-width: 46em;
     margin: 28px 0 8px;
     padding: 14px 18px 12px;
-    background: var(--paper-white);
+    background: var(--paper-raised);
     border: 1px solid var(--ink);
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: 3px 3px 0 var(--shadow);
   }
 
   .sharelike__row {
@@ -214,12 +214,12 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
   }
   .sharelike__like.is-liked {
     background: var(--accent);
-    color: #fff;
-    border-color: var(--accent-ink);
+    color: var(--paper);
+    border-color: var(--link);
   }
   .sharelike__like.is-liked:hover {
-    background: var(--accent-ink);
-    color: #fff;
+    background: var(--accent-lift);
+    color: var(--paper);
   }
   .sharelike__like[disabled] {
     cursor: default;
@@ -304,7 +304,7 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
   .sharelike__share-btn:hover {
     color: var(--accent);
     border-color: var(--accent);
-    background: var(--paper-white);
+    background: var(--paper-raised);
   }
   .sharelike__share-btn svg {
     width: 14px;
@@ -320,7 +320,7 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
     letter-spacing: 0.1em;
-    color: var(--accent-ink);
+    color: var(--link);
   }
   .sharelike__toast[hidden] {
     display: none;

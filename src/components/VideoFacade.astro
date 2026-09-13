@@ -129,7 +129,7 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     position: relative;
     aspect-ratio: 16 / 9;
     border: 1px solid var(--rule);
-    background: var(--ink);
+    background: var(--paper-alt);
     overflow: hidden;
   }
 
@@ -160,25 +160,25 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     margin: -38px 0 0 -38px;
     padding: 0 0 0 4px;
     color: var(--ink);
-    background: var(--paper-white);
+    background: var(--paper-raised);
     border: 1px solid var(--ink);
     border-radius: 0;
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: 3px 3px 0 var(--shadow);
     transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out),
       background 140ms var(--ease-out), color 140ms var(--ease-out);
   }
 
   .facade__play:hover,
   .facade__play:focus-visible {
-    color: var(--paper-white);
+    color: var(--paper-raised);
     background: var(--accent);
     transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--ink);
+    box-shadow: 4px 4px 0 var(--shadow);
   }
 
   .facade__play:active {
     transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--ink);
+    box-shadow: 1px 1px 0 var(--shadow);
   }
 
   .facade__play svg {
@@ -193,7 +193,7 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     width: 100%;
     height: 100%;
     border: 0;
-    background: var(--ink);
+    background: var(--paper-alt);
   }
 
   /* 無法嵌入：縮圖 + 外站連結 */
