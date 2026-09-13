@@ -56,7 +56,9 @@ const breadcrumbs = [
   { name: title, item: pageUrl },
 ];
 
-const seoTitle = `${title}｜${primary.name}的 AI ${gLabel}（${tools.slice(0, 2).map(toolLabel).join('・')}）`;
+/* 合作作品要列出全部創作者，只掛第一位會漏掉共同創作 */
+const creditLine = creators.map((c) => c.name).join('、');
+const seoTitle = `${title}｜${creditLine}的 AI ${gLabel}（${tools.slice(0, 2).map(toolLabel).join('・')}）`;
 const description = synopsis.length > 150 ? `${synopsis.slice(0, 150)}…` : synopsis;
 
 /* thumb.src 已含 base（Astro 圖片）；absAsset() 只補 origin，BASE_PATH 為 '/' 時亦正確 */
@@ -218,10 +220,15 @@ const videoSchema = {
         <section class="work__related" aria-labelledby="work-siblings">
           <div class="section-head">
             <h2 id="work-siblings" class="section-eyebrow">More・同創作者其他作品</h2>
-            <a class="section-all" href={routes.creator(primary.slug)}>{primary.name}的全部作品 →</a>
+            {creators.length === 1 ? (
+              <a class="section-all" href={routes.creator(primary.slug)}>{primary.name}的全部作品 →</a>
+            ) : (
+              <a class="section-all" href={routes.works()}>全部作品 →</a>
+            )}
           </div>
           <div class="work__cards">
-            {siblings.map((w) => <WorkCard work={w} showCreators={false} />)}
+            {/* 合作作品的 siblings 橫跨多位創作者，要標出各自作者才分得清 */}
+            {siblings.map((w) => <WorkCard work={w} showCreators={creators.length > 1} />)}
           </div>
         </section>
       )}

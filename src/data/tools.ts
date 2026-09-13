@@ -42,6 +42,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'wan', label: 'Wan', category: 'video', vendor: '阿里巴巴', note: '開源影片生成模型，可本機部署與微調，控制力高，進階創作者常用。' },
   { slug: 'hunyuan-video', label: 'Hunyuan Video', category: 'video', vendor: '騰訊', note: '開源影片生成模型，與 ComfyUI 工作流搭配，適合需要客製控制的作品。' },
   { slug: 'seedance', label: 'Seedance', category: 'video', vendor: '字節跳動', note: '影片生成模型，支援多圖參考與 3D 動態參考輸入，角色一致性佳，連載型 AI 短劇常用。' },
+  { slug: 'vidu', label: 'Vidu', category: 'video', vendor: '生數科技', note: '影片生成模型，參考圖轉影片的角色一致性強，二次元與動漫風格的 MV、OP 片頭常用。' },
 
   /* ── 圖像生成 ─────────────────────────────────────────── */
   { slug: 'midjourney', label: 'Midjourney', category: 'image', vendor: 'Midjourney', note: '概念圖、角色設定與劇照級關鍵影格的主力工具，多數作品的視覺起點。' },
