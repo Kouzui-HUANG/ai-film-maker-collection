@@ -1,0 +1,316 @@
+---
+/**
+ * EventCard — 活動卡片（CONTRACT §4）
+ *
+ *   <EventCard event={SiteEvent} variant="row" | "compact" />
+ *
+ *   row     ：左封面 .frame--event（全彩 16:9，220px；≤640 堆疊）
+ *             右：kind badge ＋ 狀態（進行中 → .badge--outline「ONGOING」；即將舉行 → 右端倒數；已結束 → 灰）
+ *             → 標題（明朝體）→ 日期範圍│地點│主辦 → 截止文案 → summary（2 行截）
+ *   compact ：無封面，一列式：日期（MM.DD 等寬）│ kind badge │ 標題 │ 倒數（首頁「近期活動」用）
+ *
+ * 選用 props（不影響契約簽名）：
+ *   dense   ：row 的緊湊版（封面 160px、不放 summary），/events/ 過往區用
+ *   loading ：封面 <Image> 的 loading；首屏第一張可傳 "eager"
+ *
+ * 前端篩選 hook：根元素帶 data-event-card / data-kind / data-status，
+ * /events/ 的 kind 篩選只切 [hidden]（global.css 已保證 [hidden] 必贏），不重排 DOM。
+ * 整張卡是一個 <a href={routes.event(slug)}>；卡內不再放其他連結。
+ */
+import { Image } from 'astro:assets';
+import { routes } from '../data/site';
+import { EVENT_KIND_LABEL } from '../data/genres';
+import { fmtDate, fmtRange, countdownLabel, deadlineLabel } from '../data/events';
+import type { SiteEvent } from '../data/queries';
+
+interface Props {
+  event: SiteEvent;
+  variant?: 'row' | 'compact';
+  dense?: boolean;
+  loading?: 'lazy' | 'eager';
+}
+
+const { event, variant = 'row', dense = false, loading = 'lazy' } = Astro.props;
+const { title, slug, kind, startDate, endDate, deadline, location, isOnline, organizer, cover, coverAlt, summary } =
+  event.data;
+const t = event.timing;
+
+const url = routes.event(slug);
+const kindLabel = EVENT_KIND_LABEL[kind] ?? kind;
+const place = isOnline ? '線上' : location;
+const range = fmtRange(startDate, endDate);
+
+/* row 右端狀態文案：
+   upcoming → 倒數；ongoing → 已有 ONGOING 章，改標示展期至何時；past → 已結束 */
+const rowStatus =
+  t.status === 'ongoing' ? (t.lastDay !== startDate ? `至 ${fmtDate(t.lastDay)}` : '今日舉行') : countdownLabel(t);
+
+/* compact 右端：倒數／進行中／已結束（helper 原文） */
+const compactStatus = countdownLabel(t);
+
+const deadlineText = deadlineLabel(t, deadline);
+
+/* compact：MM.DD（datetime 屬性保留完整日期） */
+const shortDate = startDate.slice(5).replace('-', '.');
+---
+
+{variant === 'compact' ? (
+  <article class="ecard ecard--compact" data-event-card data-kind={kind} data-status={t.status}>
+    <a class="ecard__link" href={url}>
+      <time class="ecard__date no" datetime={startDate}>{shortDate}</time>
+      <span class="badge badge--outline ecard__kind">{kindLabel}</span>
+      <span class="ecard__ctitle" title={title}>{title}</span>
+      <span class:list={['listed-chip', 'ecard__status', `ecard__status--${t.status}`]}>{compactStatus}</span>
+    </a>
+  </article>
+) : (
+  <article
+    class:list={['ecard', 'ecard--row', dense && 'ecard--dense']}
+    data-event-card
+    data-kind={kind}
+    data-status={t.status}
+  >
+    <a class="ecard__link" href={url}>
+      <figure class="frame frame--event ecard__figure">
+        <Image
+          src={cover}
+          alt={coverAlt}
+          width={880}
+          height={495}
+          widths={[440, 660, 880]}
+          sizes="(max-width: 640px) calc(100vw - 32px), 220px"
+          loading={loading}
+          fetchpriority={loading === 'eager' ? 'high' : undefined}
+          decoding="async"
+        />
+      </figure>
+
+      <div class="ecard__body">
+        <div class="ecard__meta">
+          <span class="badge">{kindLabel}</span>
+          {t.status === 'ongoing' && <span class="badge badge--outline">ONGOING</span>}
+          <span class:list={['listed-chip', 'ecard__status', `ecard__status--${t.status}`]}>{rowStatus}</span>
+        </div>
+
+        <h3 class="ecard__title">{title}</h3>
+
+        <p class="ecard__facts">
+          <time datetime={startDate}>{range}</time>
+          <span class="ecard__sep" aria-hidden="true">│</span>
+          <span>{place}</span>
+          <span class="ecard__sep" aria-hidden="true">│</span>
+          <span>{organizer}</span>
+        </p>
+
+        {deadlineText && (
+          <p class:list={['ecard__deadline', t.deadlinePassed && 'ecard__deadline--passed']}>{deadlineText}</p>
+        )}
+
+        <p class="ecard__summary">{summary}</p>
+      </div>
+    </a>
+  </article>
+)}
+
+<style>
+  .ecard {
+    padding: 24px 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .ecard:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .ecard__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .ecard__link:hover {
+    color: inherit;
+  }
+
+  /* ── row ─────────────────────────────────────────── */
+  .ecard--row .ecard__link {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .ecard__figure {
+    align-self: start;
+    min-width: 0;
+  }
+  .ecard__figure img {
+    transition: transform 500ms var(--ease-out);
+  }
+  .ecard__link:hover .ecard__figure img {
+    transform: scale(1.03);
+  }
+
+  .ecard__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .ecard__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ecard__meta .ecard__status {
+    margin-left: auto;
+  }
+
+  .ecard__status--upcoming {
+    color: var(--ink-soft);
+  }
+  .ecard__status--ongoing {
+    color: var(--ink);
+  }
+  .ecard__status--past {
+    color: var(--muted);
+  }
+
+  .ecard__title {
+    font-size: var(--fs-lg);
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    transition: color 160ms var(--ease-out);
+  }
+  .ecard__link:hover .ecard__title,
+  .ecard__link:focus-visible .ecard__title {
+    color: var(--accent);
+  }
+
+  .ecard__facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .ecard__sep {
+    color: var(--rule-soft);
+  }
+
+  .ecard__deadline {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .ecard__deadline--passed {
+    color: var(--muted);
+  }
+
+  .ecard__summary {
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+    color: var(--ink-soft);
+    max-width: 46em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* dense：過往區用（封面縮小、不放 summary） */
+  .ecard--dense {
+    padding: 16px 0;
+  }
+  .ecard--dense .ecard__link {
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .ecard--dense .ecard__body {
+    gap: 6px;
+  }
+  .ecard--dense .ecard__title {
+    font-size: var(--fs-md);
+  }
+  .ecard--dense .ecard__summary {
+    display: none;
+  }
+
+  /* ── compact ─────────────────────────────────────── */
+  .ecard--compact {
+    padding: 12px 0;
+  }
+  .ecard--compact .ecard__link {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-areas: 'date kind title status';
+    align-items: center;
+    gap: 12px;
+  }
+  .ecard__date {
+    grid-area: date;
+    color: var(--ink);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    min-width: 3.4em;
+  }
+  .ecard__kind {
+    grid-area: kind;
+  }
+  .ecard__ctitle {
+    grid-area: title;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-base);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 160ms var(--ease-out);
+  }
+  .ecard__link:hover .ecard__ctitle,
+  .ecard__link:focus-visible .ecard__ctitle {
+    color: var(--accent);
+  }
+  .ecard--compact .ecard__status {
+    grid-area: status;
+    text-align: right;
+  }
+
+  @media (max-width: 640px) {
+    .ecard {
+      padding: 20px 0;
+    }
+    .ecard--row .ecard__link,
+    .ecard--dense .ecard__link {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+    .ecard--dense {
+      padding: 14px 0;
+    }
+    .ecard--dense .ecard__figure {
+      max-width: 220px;
+    }
+    .ecard__title {
+      font-size: var(--fs-md);
+    }
+    .ecard--compact .ecard__link {
+      grid-template-columns: auto auto minmax(0, 1fr);
+      grid-template-areas:
+        'date kind status'
+        'title title title';
+      gap: 8px 12px;
+    }
+    .ecard__ctitle {
+      white-space: normal;
+    }
+  }
+</style>

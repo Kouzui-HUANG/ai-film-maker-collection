@@ -1,0 +1,244 @@
+---
+/**
+ * /tool/<slug>/ — 工具棧索引（設計文件 §3-1 ②：要 index，不 noindex）
+ *
+ * 只為達 MIN_TOOL_WORKS 門檻的工具建頁（toolHasPage）。
+ * 麵包屑掛在「作品」之下（工具沒有總覽頁）：首頁 › 作品 › <工具>。
+ *
+ *   Creators・使用 <工具> 的創作者 → creatorsByTool（CreatorCard row）
+ *   Works・作品                    → worksByTool（WorkCard 3 欄）
+ *   Read・相關教學                 → postsByTool（PostCard row；沒有就不渲染）
+ *   其他工具 chips                 → 其餘 toolHasPage 的工具，依作品數排序
+ *
+ * schema：CollectionPage + ItemList（作品）+ about: SoftwareApplication
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CreatorCard from '../../components/CreatorCard.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getSiteData, creatorsByTool, worksByTool, postsByTool } from '../../data/queries';
+import { TOOLS, TOOL_CATEGORY_LABEL, toolHasPage, type ToolDef } from '../../data/tools';
+import { SITE, routes, absRoutes } from '../../data/site';
+
+export async function getStaticPaths() {
+  const d = await getSiteData();
+  return TOOLS.filter((t) => toolHasPage(d.toolCounts, t.slug)).map((tool) => ({
+    params: { slug: tool.slug },
+    props: { tool },
+  }));
+}
+
+const { tool } = Astro.props as { tool: ToolDef };
+const d = await getSiteData();
+
+const creators = creatorsByTool(d, tool.slug);
+const works = worksByTool(d, tool.slug);
+const posts = postsByTool(d, tool.slug);
+const tutorials = posts.filter((p) => p.data.type === 'tutorial');
+
+const otherTools = TOOLS.filter((t) => t.slug !== tool.slug && toolHasPage(d.toolCounts, t.slug))
+  .map((t) => ({ ...t, count: d.toolCounts.get(t.slug) ?? 0 }))
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+const categoryLabel = TOOL_CATEGORY_LABEL[tool.category];
+const title = `${tool.label} 台灣創作者與作品`;
+const seoTitle = `使用 ${tool.label} 的台灣創作者與作品`;
+const description = `使用 ${tool.label} 的台灣 AI 影視創作者 ${creators.length} 位、作品 ${works.length} 部，工具索引頁。${tool.note}`;
+
+const metaParts = [
+  tool.vendor ? `開發商 ${tool.vendor}` : null,
+  `${creators.length} 位創作者`,
+  `${works.length} 部作品`,
+  `${tutorials.length} 篇教學`,
+].filter(Boolean);
+
+const pageUrl = absRoutes.tool(tool.slug);
+const breadcrumbs = [
+  { name: '作品', item: absRoutes.works() },
+  { name: tool.label, item: pageUrl },
+];
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': pageUrl,
+  url: pageUrl,
+  name: `${seoTitle}｜${SITE.name}`,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  about: {
+    '@type': 'SoftwareApplication',
+    name: tool.label,
+    applicationCategory: 'MultimediaApplication',
+    ...(tool.vendor ? { publisher: { '@type': 'Organization', name: tool.vendor } } : {}),
+  },
+  mainEntity: {
+    '@type': 'ItemList',
+    name: `${tool.label} 相關作品`,
+    numberOfItems: works.length,
+    itemListElement: works.map((w, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absRoutes.work(w.data.slug),
+      name: w.data.title,
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={seoTitle}
+  description={description}
+  schemas={[collectionSchema]}
+  breadcrumbs={breadcrumbs}
+>
+  <section class="page">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <a href={routes.works()}>作品</a><span aria-hidden="true">／</span>
+        <span aria-current="page">{tool.label}</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Tool・{categoryLabel}</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">{tool.note}</p>
+        <p class="page-meta">{metaParts.join('・')}</p>
+      </header>
+
+      {creators.length > 0 && (
+        <section class="idx-block" aria-labelledby="tool-creators-label">
+          <header class="section-head">
+            <h2 id="tool-creators-label" class="section-eyebrow">Creators・使用 {tool.label} 的創作者</h2>
+            <a href={`${routes.creators()}?tool=${tool.slug}`} class="section-all">在總表篩選 →</a>
+          </header>
+          <div class="rule-hair"></div>
+          <div class="idx-rows">
+            {creators.map((c) => <CreatorCard creator={c} variant="row" />)}
+          </div>
+        </section>
+      )}
+
+      {works.length > 0 ? (
+        <section class="idx-block" aria-labelledby="tool-works-label">
+          <header class="section-head">
+            <h2 id="tool-works-label" class="section-eyebrow">Works・作品</h2>
+            <a href={routes.works()} class="section-all">全部作品 →</a>
+          </header>
+          <div class="rule-hair"></div>
+          <div class="idx-grid">
+            {works.map((w, i) => <WorkCard work={w} loading={i < 3 ? 'eager' : 'lazy'} />)}
+          </div>
+        </section>
+      ) : (
+        <div class="coming">
+          <p class="coming__kanji">收錄中</p>
+          <p class="coming__lead">使用 {tool.label} 的作品整理中。</p>
+        </div>
+      )}
+
+      {posts.length > 0 && (
+        <section class="idx-block" aria-labelledby="tool-read-label">
+          <header class="section-head">
+            <h2 id="tool-read-label" class="section-eyebrow">Read・相關教學</h2>
+            <a href={`${routes.posts()}?type=tutorial`} class="section-all">全部教學 →</a>
+          </header>
+          <div class="rule-hair"></div>
+          <div class="idx-rows">
+            {posts.map((p) => <PostCard post={p} variant="row" />)}
+          </div>
+        </section>
+      )}
+
+      {otherTools.length > 0 && (
+        <nav class="idx-more" aria-labelledby="tool-others-label">
+          <span id="tool-others-label" class="idx-more__label">其他工具</span>
+          <ul class="chips">
+            {otherTools.map((t) => (
+              <li>
+                <a class="chip" href={routes.tool(t.slug)}>
+                  {t.label}<span class="idx-more__count">{t.count}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      <p class="back"><a href={routes.works()}>← 回全部作品</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .idx-block {
+    margin-top: 48px;
+  }
+  .idx-block:first-of-type {
+    margin-top: 32px;
+  }
+
+  /* row 型卡片（CreatorCard row / PostCard row）自帶分隔線，直接堆疊 */
+  .idx-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* WorkCard 3 欄 */
+  .idx-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 24px;
+    margin-top: 24px;
+  }
+
+  /* 其他工具 chips：細線夾住 */
+  .idx-more {
+    display: grid;
+    grid-template-columns: 5em minmax(0, 1fr);
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 56px;
+    padding: 16px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .idx-more__label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.24em;
+    color: var(--muted);
+  }
+  .idx-more__count {
+    margin-left: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 900px) {
+    .idx-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .idx-block {
+      margin-top: 36px;
+    }
+    .idx-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+    .idx-more {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin-top: 44px;
+    }
+  }
+</style>

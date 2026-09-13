@@ -1,0 +1,514 @@
+---
+/**
+ * / — 首頁（設計文件 §6-1）
+ *
+ *   SPOTLIGHT・本期焦點  → d.spotlight：代表作劇照（全彩 16:9）+ 肖像 + 認證章 + 名字 + tagline + 工具 chips
+ *   NEW・最新收錄        → creatorsByListedAt 前 5 位（CreatorCard tile）
+ *   WORKS・最新作品      → d.works 前 6 部（WorkCard 3 欄）
+ *   READ・訪談與教學     → d.posts 前 5 篇（PostCard row）
+ *   EVENTS・近期活動     → d.upcomingEvents 最多 3 筆（EventCard compact）；為空整區不渲染（過期自動消失）
+ *   ABOUT・關於圖鑑      → 兩三句定位 + 收錄準則 / 推薦創作者
+ *
+ * BaseLayout 不傳 title：<title> 落成「站名｜tagline」。Organization / WebSite 由 BaseLayout 輸出，
+ * 這裡只加一份「最新收錄」的 ItemList of Person。
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CreatorCard from '../components/CreatorCard.astro';
+import WorkCard from '../components/WorkCard.astro';
+import PostCard from '../components/PostCard.astro';
+import EventCard from '../components/EventCard.astro';
+import { getSiteData, creatorsByListedAt } from '../data/queries';
+import { SITE, routes, absRoutes } from '../data/site';
+import { toolLabel } from '../data/tools';
+import { fmtDate } from '../data/events';
+
+const d = await getSiteData();
+
+const spotlight = d.spotlight;
+const spotWork = spotlight?.latestWork ?? null;
+const newest = creatorsByListedAt(d).slice(0, 5);
+const latestWorks = d.works.slice(0, 6);
+const latestPosts = d.posts.slice(0, 5);
+const upcoming = d.upcomingEvents.slice(0, 3);
+
+const noLabel = (n: number) => `No.${String(n).padStart(3, '0')}`;
+const spotTools = spotlight ? spotlight.tools.slice(0, 5) : [];
+const spotMeta = spotlight
+  ? [...(spotlight.role ?? []), spotlight.region].filter(Boolean).join('・')
+  : '';
+
+/* 最新收錄 ItemList of Person（可選 schema） */
+const newListedSchema =
+  newest.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        '@id': `${absRoutes.home()}#new-listed`,
+        name: '最新收錄創作者',
+        numberOfItems: newest.length,
+        itemListOrder: 'https://schema.org/ItemListOrderDescending',
+        itemListElement: newest.map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'Person',
+            '@id': absRoutes.creatorId(c.slug),
+            name: c.name,
+            ...(c.nameEn ? { alternateName: c.nameEn } : {}),
+            url: absRoutes.creator(c.slug),
+          },
+        })),
+      }
+    : null;
+---
+
+<BaseLayout description={SITE.description} schemas={newListedSchema ? [newListedSchema] : []}>
+  <div class="home container">
+    <!-- ── SPOTLIGHT・本期焦點 ───────────────────────────── -->
+    <section class="spot" aria-labelledby="spot-label">
+      <header class="section-head">
+        <p id="spot-label" class="section-eyebrow">Spotlight・本期焦點</p>
+        {spotlight && (
+          <span class="listed-chip">收錄 {fmtDate(spotlight.listedAt)}</span>
+        )}
+      </header>
+      <div class="rule-hair"></div>
+
+      {spotlight ? (
+        <a class="spot__link" href={routes.creator(spotlight.slug)}>
+          {spotWork ? (
+            <figure class="frame frame--work spot__figure">
+              <Image
+                src={spotWork.data.thumb}
+                alt={spotWork.data.thumbAlt}
+                width={1280}
+                height={720}
+                widths={[640, 960, 1280]}
+                sizes="(max-width: 1240px) calc(100vw - 32px), 1192px"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+              />
+              <span class="spot__badge">
+                <span class="spot__badge-label">SPOTLIGHT・本期焦點</span>
+                <span class="spot__badge-sub">《{spotWork.data.title}》{spotWork.data.year}</span>
+              </span>
+            </figure>
+          ) : (
+            <figure class="frame frame--portrait spot__figure spot__figure--portrait">
+              <Image
+                src={spotlight.portrait}
+                alt={spotlight.portraitAlt}
+                width={800}
+                height={1000}
+                widths={[400, 600, 800]}
+                sizes="(max-width: 640px) calc(100vw - 32px), 480px"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+              />
+              <span class="spot__badge">
+                <span class="spot__badge-label">SPOTLIGHT・本期焦點</span>
+              </span>
+            </figure>
+          )}
+
+          <div class="spot__body">
+            {spotWork && (
+              <figure class="frame frame--portrait spot__portrait">
+                <Image
+                  src={spotlight.portrait}
+                  alt={spotlight.portraitAlt}
+                  width={112}
+                  height={112}
+                  widths={[56, 112, 168]}
+                  sizes="56px"
+                  loading="eager"
+                  decoding="async"
+                />
+              </figure>
+            )}
+            <div class="spot__text">
+              <span class="chop">收錄 <span class="chop__no">{noLabel(spotlight.no)}</span></span>
+              <h1 class="spot__name">
+                {spotlight.name}
+                {spotlight.nameEn && <span class="spot__name-en">{spotlight.nameEn}</span>}
+              </h1>
+              <p class="spot__tagline">{spotlight.tagline}</p>
+              {spotTools.length > 0 && (
+                <ul class="chips spot__chips" aria-label="主力工具">
+                  {spotTools.map((t) => (
+                    <li><span class="chip">{toolLabel(t)}</span></li>
+                  ))}
+                  {spotlight.tools.length > spotTools.length && (
+                    <li><span class="chip chip--plain">+{spotlight.tools.length - spotTools.length}</span></li>
+                  )}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <div class="spot__foot">
+            <span class="byline">{spotMeta}{spotMeta && spotlight.workCount > 0 ? '・' : ''}{spotlight.workCount > 0 ? `${spotlight.workCount} 部作品` : ''}</span>
+            <span class="spot__more">進入圖鑑頁 →</span>
+          </div>
+        </a>
+      ) : (
+        <div class="coming">
+          <p class="coming__kanji">收錄中</p>
+          <p class="coming__lead">
+            首批收錄名單整理中。<br />
+            收錄準則見 <a href={routes.about()}>關於圖鑑</a>；歡迎 <a href={routes.contact()}>推薦創作者</a>。
+          </p>
+        </div>
+      )}
+    </section>
+
+    <!-- ── NEW・最新收錄 ────────────────────────────────── -->
+    {newest.length > 0 && (
+      <section class="home-block" aria-labelledby="new-label">
+        <header class="section-head">
+          <h2 id="new-label" class="section-eyebrow">New・最新收錄</h2>
+          <a href={routes.creators()} class="section-all">圖鑑總表 →</a>
+        </header>
+        <div class="rule-hair"></div>
+        <div class="new-grid">
+          {newest.map((c) => <CreatorCard creator={c} variant="tile" />)}
+        </div>
+      </section>
+    )}
+
+    <!-- ── WORKS・最新作品 ──────────────────────────────── -->
+    {latestWorks.length > 0 && (
+      <section class="home-block" aria-labelledby="works-label">
+        <header class="section-head">
+          <h2 id="works-label" class="section-eyebrow">Works・最新作品</h2>
+          <a href={routes.works()} class="section-all">全部作品 →</a>
+        </header>
+        <div class="rule-hair"></div>
+        <div class="works-grid">
+          {latestWorks.map((w) => <WorkCard work={w} />)}
+        </div>
+      </section>
+    )}
+
+    <!-- ── READ・訪談與教學 ─────────────────────────────── -->
+    {latestPosts.length > 0 && (
+      <section class="home-block" aria-labelledby="read-label">
+        <header class="section-head">
+          <h2 id="read-label" class="section-eyebrow">Read・訪談與教學</h2>
+          <a href={routes.posts()} class="section-all">全部文章 →</a>
+        </header>
+        <div class="rule-hair"></div>
+        <div class="read-list">
+          {latestPosts.map((p) => <PostCard post={p} variant="row" />)}
+        </div>
+      </section>
+    )}
+
+    <!-- ── EVENTS・近期活動（為空整區不渲染） ───────────── -->
+    {upcoming.length > 0 && (
+      <section class="home-block" aria-labelledby="events-label">
+        <header class="section-head">
+          <h2 id="events-label" class="section-eyebrow">Events・近期活動</h2>
+          <a href={routes.events()} class="section-all">全部活動 →</a>
+        </header>
+        <div class="rule-hair"></div>
+        <div class="events-list">
+          {upcoming.map((e) => <EventCard event={e} variant="compact" />)}
+        </div>
+      </section>
+    )}
+
+    <!-- ── ABOUT・關於圖鑑 ──────────────────────────────── -->
+    <section class="home-block about-blk" aria-labelledby="about-label">
+      <header class="section-head">
+        <h2 id="about-label" class="section-eyebrow">About・關於圖鑑</h2>
+      </header>
+      <div class="rule-hair"></div>
+      <div class="about-blk__grid">
+        <div class="about-blk__text">
+          <p class="about-blk__lead">
+            {SITE.name}是一份年鑑式的索引：以人為主體，記錄每位創作者的定位、工具棧、作品與得獎紀錄，並整理相關訪談、教學與活動。
+            收錄名單由編輯部依公開準則審定；工具與類型皆為人工標註的受控詞彙，影片一律外連原始平台。
+          </p>
+          <p class="page-meta">
+            目前收錄 {d.creators.length} 位創作者・{d.works.length} 部作品・{d.posts.length} 篇文章
+          </p>
+        </div>
+        <div class="about-blk__actions">
+          <a class="btn" href={routes.about()}>收錄準則 →</a>
+          <a class="btn btn--ghost" href={routes.contact()}>推薦創作者 →</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .home {
+    padding: 40px var(--gutter) 24px;
+  }
+
+  .home-block {
+    margin-top: 56px;
+  }
+
+  /* ── Spotlight ─────────────────────────────────────── */
+  .spot__link {
+    display: block;
+    color: inherit;
+    margin-top: 20px;
+  }
+  .spot__link:hover {
+    color: inherit;
+  }
+
+  .spot__figure {
+    margin: 0 0 24px;
+  }
+  .spot__figure :global(img) {
+    transition: transform 600ms var(--ease-out);
+  }
+  .spot__link:hover .spot__figure :global(img) {
+    transform: scale(1.02);
+  }
+  .spot__figure--portrait {
+    max-width: 480px;
+  }
+
+  /* 圖左下角的焦點章：墨底 + accent 標籤段 + 代表作段 */
+  .spot__badge {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    align-items: stretch;
+    max-width: 100%;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-caps);
+    letter-spacing: 0.2em;
+    pointer-events: none;
+  }
+  .spot__badge-label {
+    padding: 10px 14px;
+    background: var(--accent);
+    font-weight: 700;
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+  .spot__badge-sub {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 14px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--paper);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .spot__body {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .spot__portrait {
+    width: 56px;
+    margin-top: 6px;
+  }
+  .spot__portrait :global(img) {
+    aspect-ratio: 1 / 1;
+  }
+
+  .spot__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+  }
+  .spot__text .chop {
+    margin-bottom: 2px;
+  }
+
+  .spot__name {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(1.9rem, 3.8vw, var(--fs-hero));
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    transition: color 160ms var(--ease-out);
+  }
+  .spot__link:hover .spot__name {
+    color: var(--accent);
+  }
+  .spot__name-en {
+    display: inline-block;
+    margin-left: 14px;
+    font-family: var(--font-caps);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    vertical-align: 0.35em;
+    white-space: nowrap;
+  }
+
+  .spot__tagline {
+    font-family: var(--font-serif);
+    font-size: var(--fs-lg);
+    line-height: 1.7;
+    color: var(--ink-soft);
+    max-width: 30em;
+  }
+
+  .spot__chips {
+    margin-top: 4px;
+  }
+
+  .spot__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .spot__more {
+    font-family: var(--font-caps);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    transition: color 160ms var(--ease-out);
+  }
+  .spot__link:hover .spot__more {
+    color: var(--accent);
+  }
+
+  /* ── New・最新收錄：5 格 tile ─────────────────────── */
+  .new-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 28px 24px;
+    margin-top: 24px;
+  }
+
+  /* ── Works・最新作品：3 欄 ────────────────────────── */
+  .works-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 24px;
+    margin-top: 24px;
+  }
+
+  /* ── Read・訪談與教學：row 直接堆疊 ──────────────── */
+  .read-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Events・近期活動：compact 直接堆疊 ──────────── */
+  .events-list {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+  }
+
+  /* ── About・關於圖鑑 ──────────────────────────────── */
+  .about-blk__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px 48px;
+    align-items: end;
+    padding-top: 24px;
+  }
+  .about-blk__lead {
+    font-family: var(--font-serif);
+    font-size: var(--fs-md);
+    line-height: 1.95;
+    color: var(--ink-soft);
+    max-width: 46em;
+    margin-bottom: 14px;
+  }
+  .about-blk__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-bottom: 6px;
+  }
+
+  @media (max-width: 900px) {
+    .new-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .works-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .about-blk__grid {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .home {
+      padding-top: 28px;
+    }
+    .home-block {
+      margin-top: 44px;
+    }
+    .spot__figure {
+      margin-bottom: 18px;
+    }
+    .spot__badge-label {
+      padding: 8px 10px;
+      letter-spacing: 0.14em;
+    }
+    .spot__badge-sub {
+      display: none;
+    }
+    .spot__body {
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 14px;
+    }
+    .spot__portrait {
+      width: 48px;
+      margin-top: 4px;
+    }
+    .spot__name-en {
+      display: block;
+      margin: 8px 0 0;
+      vertical-align: baseline;
+    }
+    .spot__tagline {
+      font-size: var(--fs-md);
+    }
+    .spot__foot {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .new-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px 16px;
+    }
+    .works-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+    .about-blk__actions {
+      gap: 12px;
+    }
+  }
+</style>

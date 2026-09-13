@@ -1,0 +1,314 @@
+---
+/**
+ * /contact/ — 聯絡／推薦收錄
+ *
+ * 兩個用途：推薦收錄（讀者推薦／創作者自薦）與更正／下架。
+ * 不做表單（設計文件 §10）；一律 mailto 到 SITE.email。
+ * schema：ContactPage。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, routes, absUrl } from '../data/site';
+
+const pageUrl = absUrl('/contact/');
+const title = '聯絡／推薦收錄';
+const description =
+  '推薦台灣 AI 影視創作者進入圖鑑，或申請條目更正與下架。來信請附姓名／團隊名、社群連結、三部公開作品連結、使用工具與所在地。';
+
+const contactSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  '@id': `${pageUrl}#contactpage`,
+  name: title,
+  url: pageUrl,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  about: { '@id': `${SITE.url}/#organization` },
+};
+
+const breadcrumbs = [{ name: '聯絡／推薦收錄', item: pageUrl }];
+
+/* 兩種來信各帶預填主旨，方便編輯部分流 */
+const mailtoRecommend = `mailto:${SITE.email}?subject=${encodeURIComponent('【推薦收錄】創作者姓名／團隊名')}`;
+const mailtoCorrect = `mailto:${SITE.email}?subject=${encodeURIComponent('【更正／下架】創作者姓名（收錄編號）')}`;
+
+/* 編輯部社群：只列非空值 */
+const SOCIAL_LABEL: Record<string, string> = {
+  youtube: 'YouTube',
+  instagram: 'Instagram',
+  threads: 'Threads',
+  x: 'X',
+  facebook: 'Facebook',
+};
+const socials = Object.entries(SITE.social)
+  .filter(([, url]) => !!url)
+  .map(([key, url]) => ({ key, url: url as string, label: SOCIAL_LABEL[key] ?? key }));
+---
+
+<BaseLayout title={title} seoTitle="聯絡・推薦收錄・更正與下架" description={description} schemas={[contactSchema]} breadcrumbs={breadcrumbs}>
+  <div class="page container">
+    <div class="page-inner">
+
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a>
+        <span aria-hidden="true">／</span>
+        <span aria-current="page">聯絡／推薦收錄</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Contact・聯絡／推薦收錄</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">
+          本站不設表單、不設會員。推薦收錄與更正／下架都以電子郵件處理，
+          一般於七個工作日內回覆。收錄與否依 <a href={routes.about()}>收錄準則</a> 審閱，不收費、不接受付費收錄。
+        </p>
+      </header>
+
+      <div class="contact-grid">
+
+        <!-- ① 推薦收錄 -->
+        <section class="contact-card" aria-labelledby="recommend-title">
+          <p class="section-eyebrow">Recommend・推薦收錄</p>
+          <h2 id="recommend-title" class="contact-card__title">推薦一位創作者，或推薦您自己</h2>
+          <p class="contact-card__lead">
+            讀者推薦與創作者自薦走同一條路。來信請附下列資料，編輯部依收錄準則審閱後回覆；
+            進入圖鑑前，條目文字會先交由創作者本人確認。
+          </p>
+          <ol class="checklist">
+            <li><strong>姓名／團隊名</strong><span>中文為主，另附英文名或藝名（若有）。</span></li>
+            <li><strong>社群連結</strong><span>YouTube、Instagram、X、Threads、Vimeo 或個人網站，至少一個。</span></li>
+            <li><strong>三部公開作品連結</strong><span>YouTube 或 Vimeo 網址，需開放嵌入播放。</span></li>
+            <li><strong>使用工具</strong><span>每部作品的主要 AI 工具，含影片、圖像與聲音生成。</span></li>
+            <li><strong>所在地</strong><span>台北／台中／高雄等縣市；旅居海外請註明國家。</span></li>
+          </ol>
+          <p class="contact-card__actions">
+            <a
+              href={mailtoRecommend}
+              class="btn btn--accent"
+              data-ga-cta="contact_email"
+              data-ga-location="contact_recommend"
+            >
+              寫信推薦收錄
+              <span aria-hidden="true">→</span>
+            </a>
+          </p>
+        </section>
+
+        <!-- ② 更正／下架 -->
+        <section class="contact-card" aria-labelledby="correct-title">
+          <p class="section-eyebrow">Correct・更正／下架</p>
+          <h2 id="correct-title" class="contact-card__title">資料有誤，或想退出圖鑑</h2>
+          <p class="contact-card__lead">
+            已收錄的創作者可隨時要求更正條目、下架單一作品，或整份退出；退出不需說明理由。
+            整體下架後，原網址不再提供內容（回應 404，不轉址），並自 sitemap 與 llms.txt 移除。
+          </p>
+          <ol class="checklist">
+            <li><strong>姓名與收錄編號</strong><span>例如「No.007」，見創作者頁的收錄章。</span></li>
+            <li><strong>請求類型</strong><span>更正、下架單一作品，或整體退出。</span></li>
+            <li><strong>更正內容</strong><span>錯誤欄位與正確資料；下架請指明作品名稱。</span></li>
+            <li><strong>身分確認</strong><span>請以條目所列社群帳號，或收錄時使用的信箱來信。</span></li>
+          </ol>
+          <p class="contact-card__actions">
+            <a
+              href={mailtoCorrect}
+              class="btn"
+              data-ga-cta="contact_email"
+              data-ga-location="contact_correct"
+            >
+              寫信申請更正／下架
+              <span aria-hidden="true">→</span>
+            </a>
+          </p>
+        </section>
+
+      </div>
+
+      <div class="rule-hair"></div>
+
+      <!-- 信箱與社群 -->
+      <section class="contact-direct" aria-labelledby="direct-title">
+        <h2 id="direct-title" class="contact-direct__title">編輯部信箱</h2>
+        <p class="contact-direct__mail">
+          <a href={`mailto:${SITE.email}`} data-ga-cta="contact_email" data-ga-location="contact_direct">{SITE.email}</a>
+        </p>
+        <p class="contact-direct__note">
+          媒體引用、影展合作與其他洽詢也請寄同一信箱。來信資料只用於處理該請求，不用於行銷、不轉交第三方，
+          詳見 <a href={routes.privacy()}>隱私權政策</a>。
+        </p>
+        {socials.length > 0 && (
+          <ul class="chips contact-social" aria-label="編輯部社群">
+            {socials.map((s) => (
+              <li>
+                <a class="chip" href={s.url} target="_blank" rel="noopener noreferrer">{s.label} ↗</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <div class="rule-double bottom-rule"></div>
+      <p class="back">
+        <a href={routes.home()}>← 返回首頁</a>
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-lead a {
+    color: var(--accent-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 兩用途並排卡片（手機疊放） */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 8px;
+  }
+
+  .contact-card {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    background: var(--paper-white);
+    border: 1px solid var(--rule);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .contact-card__title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: var(--fs-lg);
+    line-height: 1.4;
+    margin: 12px 0 10px;
+  }
+
+  .contact-card__lead {
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    line-height: 1.85;
+    margin-bottom: 16px;
+  }
+
+  /* 來信請附的資料：細線清單，01–05 編號 */
+  .checklist {
+    counter-reset: item;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 20px;
+  }
+
+  .checklist li {
+    counter-increment: item;
+    display: grid;
+    grid-template-columns: 2.4em 1fr;
+    gap: 2px 10px;
+    padding: 10px 0;
+    border-top: 1px dashed var(--rule-soft);
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+  }
+
+  .checklist li:first-child {
+    border-top: 0;
+  }
+
+  .checklist li::before {
+    content: counter(item, decimal-leading-zero);
+    grid-row: 1 / span 2;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding-top: 0.25em;
+  }
+
+  .checklist strong {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .checklist span {
+    color: var(--ink-soft);
+    font-size: var(--fs-xs);
+    line-height: 1.7;
+  }
+
+  .contact-card__actions {
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
+  /* 直接聯絡 */
+  .rule-hair {
+    margin: 40px 0 28px;
+  }
+
+  .contact-direct__title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .contact-direct__mail {
+    font-family: var(--font-serif);
+    font-size: var(--fs-xl);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+
+  .contact-direct__mail a {
+    color: var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .contact-direct__mail a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .contact-direct__note {
+    max-width: 46em;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    line-height: 1.85;
+  }
+
+  .contact-direct__note a {
+    color: var(--accent-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .contact-social {
+    margin-top: 16px;
+  }
+
+  .bottom-rule {
+    margin-top: 64px;
+  }
+
+  @media (max-width: 760px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .contact-card {
+      padding: 20px 18px;
+    }
+
+    .contact-direct__mail {
+      font-size: var(--fs-lg);
+    }
+  }
+</style>

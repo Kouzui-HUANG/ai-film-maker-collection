@@ -1,0 +1,214 @@
+---
+/**
+ * /genre/<slug>/ — 作品類型索引（設計文件 §3-2）
+ *
+ * GENRES 中 genreCounts > 0 的都建頁；未達 MIN_GENRE_WORKS 的輸出 noindex, follow
+ * （chips 仍可連過來，只是不進索引）。
+ * 麵包屑：首頁 › 作品 › <類型>。
+ *
+ *   Works・作品      → worksByGenre（WorkCard 3 欄）
+ *   Creators・創作者 → creatorsByGenre（CreatorCard row）
+ *   其他類型 chips   → 其餘有作品的類型
+ *
+ * schema：CollectionPage + ItemList（作品）
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CreatorCard from '../../components/CreatorCard.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import { getSiteData, worksByGenre, creatorsByGenre } from '../../data/queries';
+import { GENRES, genreIsIndexable, type GenreDef } from '../../data/genres';
+import { SITE, routes, absRoutes } from '../../data/site';
+
+export async function getStaticPaths() {
+  const d = await getSiteData();
+  return GENRES.filter((g) => (d.genreCounts.get(g.slug) ?? 0) > 0).map((genre) => ({
+    params: { slug: genre.slug },
+    props: { genre },
+  }));
+}
+
+const { genre } = Astro.props as { genre: GenreDef };
+const d = await getSiteData();
+
+const works = worksByGenre(d, genre.slug);
+const creators = creatorsByGenre(d, genre.slug);
+const indexable = genreIsIndexable(d.genreCounts, genre.slug);
+
+const otherGenres = GENRES.filter((g) => g.slug !== genre.slug && (d.genreCounts.get(g.slug) ?? 0) > 0).map(
+  (g) => ({ ...g, count: d.genreCounts.get(g.slug) ?? 0 }),
+);
+
+const title = genre.label;
+const asciiLabel = /^[A-Za-z0-9 ]+$/.test(genre.label);
+const seoTitle = `台灣 AI ${genre.label}${asciiLabel ? ' ' : ''}作品與創作者一覽`;
+const description = `${genre.label}${asciiLabel ? ' ' : ''}類 AI 作品 ${works.length} 部、創作者 ${creators.length} 位，作品類型索引頁。${genre.note}`;
+
+const pageUrl = absRoutes.genre(genre.slug);
+const breadcrumbs = [
+  { name: '作品', item: absRoutes.works() },
+  { name: genre.label, item: pageUrl },
+];
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': pageUrl,
+  url: pageUrl,
+  name: `${seoTitle}｜${SITE.name}`,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    name: `${genre.label}作品`,
+    numberOfItems: works.length,
+    itemListElement: works.map((w, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absRoutes.work(w.data.slug),
+      name: w.data.title,
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={seoTitle}
+  description={description}
+  schemas={[collectionSchema]}
+  breadcrumbs={breadcrumbs}
+  noindex={!indexable}
+>
+  <section class="page">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <a href={routes.works()}>作品</a><span aria-hidden="true">／</span>
+        <span aria-current="page">{genre.label}</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Genre・{genre.label}</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">{genre.note}</p>
+        <p class="page-meta">{works.length} 部作品・{creators.length} 位創作者</p>
+      </header>
+
+      {works.length > 0 ? (
+        <section class="idx-block" aria-labelledby="genre-works-label">
+          <header class="section-head">
+            <h2 id="genre-works-label" class="section-eyebrow">Works・作品</h2>
+            <a href={routes.works()} class="section-all">全部作品 →</a>
+          </header>
+          <div class="rule-hair"></div>
+          <div class="idx-grid">
+            {works.map((w, i) => <WorkCard work={w} loading={i < 3 ? 'eager' : 'lazy'} />)}
+          </div>
+        </section>
+      ) : (
+        <div class="coming">
+          <p class="coming__kanji">收錄中</p>
+          <p class="coming__lead">{genre.label}作品整理中。</p>
+        </div>
+      )}
+
+      {creators.length > 0 && (
+        <section class="idx-block" aria-labelledby="genre-creators-label">
+          <header class="section-head">
+            <h2 id="genre-creators-label" class="section-eyebrow">Creators・創作者</h2>
+            <a href={`${routes.creators()}?genre=${genre.slug}`} class="section-all">在總表篩選 →</a>
+          </header>
+          <div class="rule-hair"></div>
+          <div class="idx-rows">
+            {creators.map((c) => <CreatorCard creator={c} variant="row" />)}
+          </div>
+        </section>
+      )}
+
+      {otherGenres.length > 0 && (
+        <nav class="idx-more" aria-labelledby="genre-others-label">
+          <span id="genre-others-label" class="idx-more__label">其他類型</span>
+          <ul class="chips">
+            {otherGenres.map((g) => (
+              <li>
+                <a class="chip" href={routes.genre(g.slug)}>
+                  {g.label}<span class="idx-more__count">{g.count}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      <p class="back"><a href={routes.works()}>← 回全部作品</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .idx-block {
+    margin-top: 48px;
+  }
+  .idx-block:first-of-type {
+    margin-top: 32px;
+  }
+
+  .idx-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .idx-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 24px;
+    margin-top: 24px;
+  }
+
+  .idx-more {
+    display: grid;
+    grid-template-columns: 5em minmax(0, 1fr);
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 56px;
+    padding: 16px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .idx-more__label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.24em;
+    color: var(--muted);
+  }
+  .idx-more__count {
+    margin-left: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 900px) {
+    .idx-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .idx-block {
+      margin-top: 36px;
+    }
+    .idx-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+    .idx-more {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin-top: 44px;
+    }
+  }
+</style>

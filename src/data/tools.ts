@@ -1,0 +1,90 @@
+/**
+ * AI 工具受控詞彙（工具棧索引軸的單一真相來源）。
+ *
+ * ⚠️ 工具標籤一律由編輯部人工填寫，不做自動推斷。
+ *    上稿前跑 `npm run check`：每個 tools 值都必須存在於此清單，
+ *    且該工具名稱在對應作品／創作者內文至少出現一次（防誤植）。
+ *
+ * slug＝英文 kebab-case（URL 用）；label＝顯示名稱；category＝在影視流程中的環節。
+ */
+
+export type ToolCategory = 'video' | 'image' | 'audio' | 'edit' | 'other';
+
+export interface ToolDef {
+  slug: string;
+  label: string;
+  category: ToolCategory;
+  vendor?: string;
+  /** 該工具在影視流程中的角色（工具索引頁的介紹文 + meta description） */
+  note: string;
+}
+
+/** 建立 /tool/<slug>/ 頁的最低作品數門檻；低於此的工具僅存於 frontmatter（不建頁、chip 不可點） */
+export const MIN_TOOL_WORKS = 2;
+
+export const TOOL_CATEGORY_LABEL: Record<ToolCategory, string> = {
+  video: '影片生成',
+  image: '圖像生成',
+  audio: '聲音・配樂',
+  edit: '剪輯・後製',
+  other: '其他',
+};
+
+export const TOOLS: ToolDef[] = [
+  /* ── 影片生成 ─────────────────────────────────────────── */
+  { slug: 'runway', label: 'Runway', category: 'video', vendor: 'Runway', note: 'Gen-3／Gen-4 系列影片生成模型，圖生影片與運鏡控制成熟，是台灣 AI 短片最常見的主力工具之一。' },
+  { slug: 'kling', label: 'Kling', category: 'video', vendor: '快手', note: '可靈 AI 影片生成，長鏡頭與人物動作連貫性強，常用於敘事型短片與 MV。' },
+  { slug: 'veo', label: 'Veo', category: 'video', vendor: 'Google', note: 'Google 的影片生成模型，原生支援聲音生成，適合對白與環境音同步的段落。' },
+  { slug: 'sora', label: 'Sora', category: 'video', vendor: 'OpenAI', note: 'OpenAI 影片生成模型，擅長長段落一致性與複雜場景調度。' },
+  { slug: 'luma', label: 'Luma Dream Machine', category: 'video', vendor: 'Luma AI', note: '快速迭代的影片生成工具，關鍵影格與循環鏡頭好用，常做動態分鏡草稿。' },
+  { slug: 'hailuo', label: 'Hailuo', category: 'video', vendor: 'MiniMax', note: '海螺 AI 影片生成，人物表演與鏡頭語言表現穩定，價格友善。' },
+  { slug: 'pika', label: 'Pika', category: 'video', vendor: 'Pika Labs', note: '以特效與風格化見長的影片生成工具，適合 MV 與廣告的視覺實驗。' },
+  { slug: 'wan', label: 'Wan', category: 'video', vendor: '阿里巴巴', note: '開源影片生成模型，可本機部署與微調，控制力高，進階創作者常用。' },
+  { slug: 'hunyuan-video', label: 'Hunyuan Video', category: 'video', vendor: '騰訊', note: '開源影片生成模型，與 ComfyUI 工作流搭配，適合需要客製控制的作品。' },
+
+  /* ── 圖像生成 ─────────────────────────────────────────── */
+  { slug: 'midjourney', label: 'Midjourney', category: 'image', vendor: 'Midjourney', note: '概念圖、角色設定與劇照級關鍵影格的主力工具，多數作品的視覺起點。' },
+  { slug: 'stable-diffusion', label: 'Stable Diffusion', category: 'image', vendor: 'Stability AI', note: '開源圖像生成模型，搭配 LoRA 與 ControlNet 可做角色一致性與精準構圖。' },
+  { slug: 'flux', label: 'FLUX', category: 'image', vendor: 'Black Forest Labs', note: '文字渲染與寫實度強的開源圖像模型，常做角色參考圖與場景關鍵影格。' },
+  { slug: 'nano-banana', label: 'Nano Banana', category: 'image', vendor: 'Google', note: 'Gemini 影像編輯模型，角色一致性與局部修改快，適合多鏡頭參考圖批次產出。' },
+  { slug: 'comfyui', label: 'ComfyUI', category: 'image', note: '節點式工作流介面，串接圖像與影片模型的自訂管線，進階創作者的控制中樞。' },
+
+  /* ── 聲音・配樂 ────────────────────────────────────────── */
+  { slug: 'suno', label: 'Suno', category: 'audio', vendor: 'Suno', note: 'AI 音樂生成，MV 與短片配樂常用，可指定曲風與歌詞。' },
+  { slug: 'udio', label: 'Udio', category: 'audio', vendor: 'Udio', note: 'AI 音樂生成，人聲與編曲品質高，適合完整歌曲的 MV 製作。' },
+  { slug: 'elevenlabs', label: 'ElevenLabs', category: 'audio', vendor: 'ElevenLabs', note: 'AI 配音與語音克隆，旁白、角色對白與多語配音的主力工具。' },
+
+  /* ── 剪輯・後製 ────────────────────────────────────────── */
+  { slug: 'davinci-resolve', label: 'DaVinci Resolve', category: 'edit', vendor: 'Blackmagic Design', note: '剪輯與調色軟體，AI 生成素材的統一調色與最終成片多在此完成。' },
+  { slug: 'premiere-pro', label: 'Premiere Pro', category: 'edit', vendor: 'Adobe', note: '剪輯軟體，與 After Effects 合成搭配，處理 AI 素材的節奏與轉場。' },
+  { slug: 'after-effects', label: 'After Effects', category: 'edit', vendor: 'Adobe', note: '合成與動態設計，用於修補 AI 生成畫面的瑕疵、加字卡與特效層。' },
+  { slug: 'capcut', label: 'CapCut', category: 'edit', vendor: 'ByteDance', note: '輕量剪輯工具，短影音與社群版本的快速輸出常用。' },
+  { slug: 'topaz-video', label: 'Topaz Video AI', category: 'edit', vendor: 'Topaz Labs', note: 'AI 放大與補幀，把生成影片拉到放映規格的常見最後一步。' },
+
+  /* ── 其他 ─────────────────────────────────────────────── */
+  { slug: 'blender', label: 'Blender', category: 'other', note: '開源 3D 軟體，用於建立場景參考、鏡頭預覽或與 AI 生成畫面合成。' },
+  { slug: 'unreal-engine', label: 'Unreal Engine', category: 'other', vendor: 'Epic Games', note: '即時渲染引擎，虛擬製作與 AI 生成素材混用的場景控制工具。' },
+];
+
+export const TOOL_BY_SLUG: Record<string, ToolDef> = Object.fromEntries(TOOLS.map((t) => [t.slug, t]));
+
+export function toolLabel(slug: string): string {
+  return TOOL_BY_SLUG[slug]?.label ?? slug;
+}
+
+/**
+ * 統計每個工具的作品數（用 works 而非 creators，因為門檻定義是「作品數」）。
+ * 回傳 Map<slug, count>。
+ */
+export function getToolWorkCounts(works: { tools: string[] }[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const w of works) {
+    for (const s of new Set(w.tools)) counts.set(s, (counts.get(s) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/** 該工具是否達到建頁門檻（chip 是否可點） */
+export function toolHasPage(counts: Map<string, number>, slug: string): boolean {
+  return !!TOOL_BY_SLUG[slug] && (counts.get(slug) ?? 0) >= MIN_TOOL_WORKS;
+}

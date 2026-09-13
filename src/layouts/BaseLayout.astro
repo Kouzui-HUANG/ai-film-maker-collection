@@ -1,0 +1,740 @@
+---
+import '../styles/global.css';
+import { SITE, PRIMARY_NAV, MOBILE_NAV, FOOTER_INDEX, FOOTER_ABOUT, href, absUrl } from '../data/site';
+import { TOOLS } from '../data/tools';
+import { GENRES } from '../data/genres';
+import Analytics from '../components/Analytics.astro';
+
+interface Props {
+  /** <h1> 用的標題（雙標題制：title 給 h1，seoTitle 給 <title>/og） */
+  title?: string;
+  seoTitle?: string;
+  description?: string;
+  /** 站內相對路徑（/og-default.png）或 Astro 圖片的 src（/_astro/...）或絕對 URL */
+  ogImage?: string;
+  ogType?: 'website' | 'article' | 'profile' | 'video.other';
+  /** 頁面自帶的 JSON-LD（Person / VideoObject / Article / Event / CollectionPage…） */
+  schemas?: object[];
+  /** 覆寫自動（依 URL path）生成的麵包屑：首頁之後的完整層級，需與頁面可見麵包屑一致 */
+  breadcrumbs?: { name: string; item: string }[];
+  /** ogType='article' 時輸出 article:* OG 標 */
+  article?: {
+    publishedTime: string;
+    modifiedTime?: string;
+    section?: string;
+    tags?: string[];
+    authorUrl?: string;
+  };
+  /** 工具頁 / 條目不足的類型頁 / 404：robots 輸出 noindex, follow */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  seoTitle,
+  description,
+  ogImage = '/og-default.png',
+  ogType = 'website',
+  schemas = [],
+  breadcrumbs,
+  article,
+  noindex = false,
+} = Astro.props;
+
+const metaTitle = seoTitle ?? title;
+const pageTitle = metaTitle ? `${metaTitle}｜${SITE.name}` : `${SITE.name}｜${SITE.tagline}`;
+const pageDesc = description ?? SITE.description;
+
+/* 去掉 base 之後的 path（canonical、麵包屑、nav 高亮共用） */
+const basePrefix = SITE.base === '/' ? '' : SITE.base;
+const pathNoBase = Astro.url.pathname.startsWith(basePrefix)
+  ? Astro.url.pathname.slice(basePrefix.length)
+  : Astro.url.pathname;
+const pathSegments = pathNoBase.replace(/\/$/, '').split('/').filter(Boolean);
+
+/* Astro.url.pathname 已含 base（build 時以 site+base 組出），直接接 origin。
+   404 頁實際輸出為 /404.html（GitHub Pages 以此檔回應所有不存在的網址），/404/ 這個網址並不存在 */
+const canonicalUrl = /^\/404(\/|\.html)?$/.test(pathNoBase)
+  ? absUrl('/404.html')
+  : new URL(Astro.url.pathname, SITE.origin).toString();
+const ogImageUrl = /^https?:/.test(ogImage)
+  ? ogImage
+  : ogImage.startsWith(SITE.base) && SITE.base !== '/'
+    ? `${SITE.origin}${ogImage}`               // Astro 圖片 src 已含 base
+    : absUrl(ogImage);                          // public/ 相對路徑
+
+/* ── 全域 Organization schema（每頁輸出；供 publisher 以 @id 參照） ── */
+const orgSameAs = Object.values(SITE.social).filter(Boolean);
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': `${SITE.url}/#organization`,
+  name: SITE.name,
+  url: `${SITE.url}/`,
+  description: SITE.description,
+  logo: {
+    '@type': 'ImageObject',
+    '@id': `${SITE.url}/#logo`,
+    url: absUrl('/logo.png'),
+    contentUrl: absUrl('/logo.png'),
+    width: 512,
+    height: 512,
+    caption: SITE.name,
+  },
+  image: { '@id': `${SITE.url}/#logo` },
+  ...(SITE.email ? { email: SITE.email } : {}),
+  ...(orgSameAs.length ? { sameAs: orgSameAs } : {}),
+};
+
+/* ── 全域 WebSite schema（每頁輸出） ── */
+const webSiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${SITE.url}/#website`,
+  url: `${SITE.url}/`,
+  name: SITE.name,
+  description: SITE.description,
+  publisher: { '@id': `${SITE.url}/#organization` },
+  inLanguage: 'zh-Hant-TW',
+};
+
+/* ── BreadcrumbList：根據 URL path 自動生成（動態頁請自行傳 breadcrumbs） ── */
+const breadcrumbLabels: Record<string, string> = {
+  creators: '創作者',
+  creator: '創作者',
+  works: '作品',
+  work: '作品',
+  posts: '訪談與教學',
+  post: '訪談與教學',
+  events: '活動',
+  event: '活動',
+  tool: '工具',
+  genre: '類型',
+  about: '關於圖鑑',
+  contact: '聯絡／推薦收錄',
+  privacy: '隱私權政策',
+  sitemap: 'Sitemap',
+};
+for (const t of TOOLS) if (!(t.slug in breadcrumbLabels)) breadcrumbLabels[t.slug] = t.label;
+for (const g of GENRES) if (!(g.slug in breadcrumbLabels)) breadcrumbLabels[g.slug] = g.label;
+
+type BreadcrumbItem = { '@type': 'ListItem'; position: number; name: string; item: string };
+const breadcrumbItems: BreadcrumbItem[] = [
+  { '@type': 'ListItem', position: 1, name: '首頁', item: `${SITE.url}/` },
+];
+
+if (breadcrumbs) {
+  breadcrumbs.forEach((b, i) => {
+    breadcrumbItems.push({ '@type': 'ListItem', position: i + 2, name: b.name, item: b.item });
+  });
+} else {
+  let cumulativePath = '';
+  pathSegments.forEach((seg, i) => {
+    cumulativePath += `/${seg}`;
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: i + 2,
+      name: breadcrumbLabels[seg] ?? seg,
+      item: `${SITE.url}${cumulativePath}/`,
+    });
+  });
+}
+
+const breadcrumbSchema =
+  breadcrumbItems.length > 1
+    ? { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: breadcrumbItems }
+    : null;
+
+const allSchemas = [organizationSchema, webSiteSchema, ...(breadcrumbSchema ? [breadcrumbSchema] : []), ...schemas];
+
+const FONTS_CSS =
+  'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=Shippori+Mincho:wght@500;700;800&display=swap';
+
+// Footer 版權年：build 時取當下台北年份
+const currentYear = new Date(Date.now() + 8 * 3600 * 1000).getUTCFullYear();
+
+/* 目前所在的主分區（nav 高亮） */
+const currentSection = pathSegments[0] ?? '';
+const navIsActive = (navHref: string) => {
+  const seg = navHref.replace(/\//g, '');
+  return currentSection === seg || currentSection === seg.replace(/s$/, '');
+};
+---
+
+<!doctype html>
+<html lang={SITE.locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={pageDesc} />
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+    <meta name="theme-color" content="#141414" />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} RSS`} href={href('/rss.xml')} />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDesc} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:locale" content="zh_TW" />
+    {ogType === 'article' && article && (
+      <>
+        <meta property="article:published_time" content={article.publishedTime} />
+        {article.modifiedTime && <meta property="article:modified_time" content={article.modifiedTime} />}
+        {article.section && <meta property="article:section" content={article.section} />}
+        {(article.tags ?? []).map((t) => <meta property="article:tag" content={t} />)}
+        {article.authorUrl && <meta property="article:author" content={article.authorUrl} />}
+      </>
+    )}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDesc} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <!-- Non-blocking font loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={FONTS_CSS} media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href={FONTS_CSS} />
+    </noscript>
+
+    <!-- JSON-LD：Organization + WebSite + BreadcrumbList + 頁面自帶 schema -->
+    {allSchemas.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')} />
+    ))}
+
+    <!-- Google Analytics 4（僅 production build 且 SITE.gaId 非空時載入） -->
+    <Analytics />
+
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a href="#main" class="skip">跳至主要內容</a>
+
+    <header class="masthead">
+      <!-- 報頭 nameplate -->
+      <div class="nameplate container">
+        <p class="nameplate__edition" aria-hidden="true">
+          <span>{SITE.nameEn}</span>
+          <span class="nameplate__edition-sep">·</span>
+          <span>ANNUAL DIRECTORY</span>
+        </p>
+        <a href={href('/')} class="nameplate__logo" aria-label={SITE.name}>
+          <span class="nameplate__logo-main">{SITE.name}</span>
+          <span class="nameplate__logo-sub">{SITE.taglineSub}</span>
+        </a>
+        <!-- 手機選單按鈕 -->
+        <div class="nameplate__actions">
+          <button
+            class="mob-btn"
+            id="mob-btn"
+            aria-label="開啟選單"
+            aria-expanded="false"
+            aria-controls="mob-drawer"
+          >
+            <span class="mob-btn__dot"></span>
+            <span class="mob-btn__dot"></span>
+            <span class="mob-btn__dot"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="rule-double"></div>
+
+      <!-- 主 nav -->
+      <nav class="mainnav-wrap" aria-label="主選單">
+        <div class="mainnav container">
+          <ul class="mainnav__list">
+            {PRIMARY_NAV.map((item) => (
+              <li class="mainnav__item">
+                <a
+                  href={href(item.href)}
+                  class:list={['mainnav__link', navIsActive(item.href) && 'is-active']}
+                  aria-current={navIsActive(item.href) ? 'page' : undefined}
+                >
+                  <span class="mainnav__cn">{item.label}</span>
+                  <span class="mainnav__en">{item.labelEn}</span>
+                </a>
+              </li>
+            ))}
+            <li class="mainnav__item mainnav__item--about">
+              <a
+                href={href('/about/')}
+                class:list={['mainnav__link', currentSection === 'about' && 'is-active']}
+                aria-current={currentSection === 'about' ? 'page' : undefined}
+              >
+                <span class="mainnav__cn">關於圖鑑</span>
+                <span class="mainnav__en">ABOUT</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="rule-hair"></div>
+      </nav>
+    </header>
+
+    <!-- ── 手機版側滑抽屜 ──────────────────────────── -->
+    <div class="mob-backdrop" id="mob-backdrop" aria-hidden="true"></div>
+    <nav class="mob-drawer" id="mob-drawer" aria-label="手機選單" aria-hidden="true">
+      <div class="mob-drawer__head">
+        <span class="mob-drawer__title">{SITE.name}</span>
+        <button class="mob-drawer__close" id="mob-close" aria-label="關閉選單">✕</button>
+      </div>
+      <ul class="mob-drawer__list">
+        {MOBILE_NAV.map((item) => (
+          <li class="mob-drawer__item">
+            <a
+              href={href(item.href)}
+              class="mob-drawer__link"
+              {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >
+              <span class="mob-drawer__cn">{item.label}</span>
+              <span class="mob-drawer__en">{item.labelEn}</span>
+              <span class="mob-drawer__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="footer">
+      <div class="rule-double"></div>
+      <div class="container footer__inner">
+        <div class="footer__col">
+          <p class="footer__title">{SITE.name}</p>
+          <p class="footer__text">{SITE.tagline}。{SITE.taglineSub}。</p>
+          <p class="footer__text footer__text--muted">
+            內容由圖鑑編輯部整理；影片皆外連 YouTube／Vimeo，版權屬各創作者所有。
+          </p>
+        </div>
+        <div class="footer__col">
+          <p class="footer__title">索引</p>
+          <ul class="footer__list">
+            {FOOTER_INDEX.map((n) => (
+              <li><a href={href(n.href)}>{n.label}</a></li>
+            ))}
+          </ul>
+        </div>
+        <div class="footer__col">
+          <p class="footer__title">關於</p>
+          <ul class="footer__list">
+            {FOOTER_ABOUT.map((n) => (
+              <li><a href={href(n.href)}>{n.label}</a></li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div class="container footer__copy">
+        <small>© {currentYear} {SITE.name}</small>
+      </div>
+    </footer>
+
+    <style>
+      .skip {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+      }
+      .skip:focus {
+        left: 12px;
+        top: 12px;
+        background: var(--ink);
+        color: var(--paper);
+        padding: 8px 12px;
+        z-index: 100;
+      }
+
+      /* ── Nameplate ──────────────────────────── */
+      .nameplate {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        padding: 24px var(--gutter) 22px;
+      }
+      .nameplate__edition {
+        display: flex;
+        gap: 10px;
+        font-family: var(--font-caps);
+        font-size: 0.68rem;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .nameplate__edition-sep {
+        color: var(--muted);
+      }
+      .nameplate__logo {
+        text-align: center;
+        line-height: 1;
+      }
+      .nameplate__logo-main {
+        display: block;
+        font-family: var(--font-serif);
+        font-weight: 900;
+        font-size: clamp(1.7rem, 4.6vw, 3.4rem);
+        letter-spacing: 0.08em;
+        color: var(--ink);
+      }
+      .nameplate__logo-sub {
+        display: block;
+        margin-top: 10px;
+        font-family: var(--font-serif);
+        font-size: var(--fs-sm);
+        color: var(--ink-soft);
+        letter-spacing: 0.3em;
+      }
+
+      /* ── Main nav ───────────────────────────── */
+      .mainnav {
+        padding: 4px var(--gutter);
+      }
+      .mainnav__list {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px 28px;
+      }
+      .mainnav__link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 14px 6px;
+        gap: 2px;
+        border-bottom: 2px solid transparent;
+        transition: border-color 160ms var(--ease-out);
+      }
+      .mainnav__link:hover {
+        border-bottom-color: var(--accent);
+        color: var(--ink);
+      }
+      /* 目前分區用墨色底線（accent 名額留給內容區，§5-3 每 viewport ≤ 3 處） */
+      .mainnav__link.is-active {
+        border-bottom-color: var(--ink);
+        color: var(--ink);
+      }
+      .mainnav__cn {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: var(--fs-md);
+      }
+      .mainnav__en {
+        font-family: var(--font-caps);
+        font-size: 0.7rem;
+        letter-spacing: 0.22em;
+        color: var(--muted);
+      }
+      .mainnav__item {
+        display: flex;
+        align-items: center;
+      }
+      .mainnav__item--about {
+        display: none;
+      }
+
+      /* ── Footer ─────────────────────────────── */
+      .footer {
+        margin-top: 64px;
+        background: var(--paper);
+        padding-bottom: 24px;
+      }
+      .footer__inner {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr;
+        gap: 40px;
+        padding: 40px var(--gutter);
+      }
+      .footer__title {
+        font-family: var(--font-serif);
+        font-size: var(--fs-md);
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .footer__text {
+        color: var(--ink-soft);
+        font-size: var(--fs-sm);
+        line-height: 1.8;
+      }
+      .footer__text--muted {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: var(--fs-xs);
+      }
+      .footer__list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: var(--fs-sm);
+      }
+      .footer__copy {
+        padding: 16px var(--gutter);
+        border-top: 1px solid var(--rule-soft);
+        color: var(--muted);
+        font-family: var(--font-caps);
+        letter-spacing: 0.08em;
+        font-size: var(--fs-xs);
+      }
+
+      /* ── 選單按鈕（釘在報頭右緣） ─────────────── */
+      .nameplate__actions {
+        position: absolute;
+        right: var(--gutter);
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .mob-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px 14px;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 0;
+        transition: background 160ms var(--ease-out);
+      }
+      .mob-btn:hover {
+        background: var(--rule-soft);
+      }
+      .mob-btn__dot {
+        display: block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--ink);
+      }
+
+      /* ── 側滑抽屜 ───────────────────────────── */
+      .mob-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(20, 20, 20, 0.45);
+        z-index: 200;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 240ms var(--ease-out);
+      }
+      .mob-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .mob-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 280px;
+        max-width: 85vw;
+        height: 100dvh;
+        background: var(--ink);
+        color: var(--paper);
+        z-index: 201;
+        transform: translateX(100%);
+        visibility: hidden;
+        transition:
+          transform 280ms cubic-bezier(0.4, 0, 0.2, 1),
+          visibility 0s linear 280ms;
+        display: flex;
+        flex-direction: column;
+      }
+      .mob-drawer.is-open {
+        transform: translateX(0);
+        visibility: visible;
+        transition-delay: 0s;
+      }
+      .mob-drawer :focus-visible {
+        outline-color: var(--paper);
+      }
+      .mob-drawer__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 20px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .mob-drawer__title {
+        font-family: var(--font-serif);
+        font-weight: 900;
+        font-size: var(--fs-md);
+        letter-spacing: 0.05em;
+        color: var(--paper);
+      }
+      .mob-drawer__close {
+        background: none;
+        border: none;
+        color: var(--paper);
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        min-width: 44px;
+        min-height: 44px;
+        opacity: 0.7;
+        transition: opacity 160ms;
+      }
+      .mob-drawer__close:hover {
+        opacity: 1;
+      }
+      .mob-drawer__list {
+        list-style: none;
+        padding: 12px 0;
+        flex: 1;
+        overflow-y: auto;
+      }
+      .mob-drawer__item + .mob-drawer__item {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .mob-drawer__link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 20px;
+        color: var(--paper);
+        transition: background 160ms var(--ease-out);
+      }
+      .mob-drawer__link:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--paper);
+      }
+      .mob-drawer__cn {
+        font-family: var(--font-serif);
+        font-size: var(--fs-md);
+        flex: 1;
+      }
+      .mob-drawer__en {
+        font-family: var(--font-caps);
+        font-size: 0.65rem;
+        letter-spacing: 0.18em;
+        color: rgba(255, 255, 255, 0.45);
+      }
+      .mob-drawer__arrow {
+        font-size: 0.85rem;
+        color: var(--accent);
+        margin-left: 2px;
+      }
+
+      /* ── Responsive ─────────────────────────── */
+      @media (min-width: 861px) {
+        .mainnav__item--about {
+          display: flex;
+        }
+      }
+      @media (max-width: 860px) {
+        .nameplate {
+          padding: 16px var(--gutter) 14px;
+          gap: 6px;
+        }
+        .nameplate__edition {
+          font-size: 0.6rem;
+          letter-spacing: 0.22em;
+        }
+        .nameplate__logo-sub {
+          font-size: var(--fs-xs);
+          letter-spacing: 0.2em;
+        }
+        .mainnav__list {
+          justify-content: flex-start;
+          overflow-x: auto;
+          flex-wrap: nowrap;
+          gap: 0 18px;
+          scrollbar-width: none;
+        }
+        .mainnav__list::-webkit-scrollbar {
+          display: none;
+        }
+        .mainnav__link {
+          white-space: nowrap;
+        }
+        .mainnav__item {
+          flex: 0 0 auto;
+        }
+        .footer__inner {
+          grid-template-columns: 1fr;
+          gap: 32px;
+        }
+      }
+      @media (max-width: 640px) {
+        .nameplate__actions {
+          right: 8px;
+        }
+        /* 十一字站名在 360–390px 寬要一行放得下：clamp 下限降到 1.45rem、左右留白縮到 32px */
+        .nameplate__logo {
+          padding: 0 32px;
+        }
+        .nameplate__logo-main {
+          font-size: clamp(1.45rem, 4.6vw, 3.4rem);
+        }
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById('mob-btn');
+        var drawer = document.getElementById('mob-drawer');
+        var backdrop = document.getElementById('mob-backdrop');
+        var closeBtn = document.getElementById('mob-close');
+
+        /* 抽屜開啟時把頁面其餘部分設為 inert（焦點與讀屏都鎖在抽屜內） */
+        var outside = [document.querySelector('.masthead'), document.getElementById('main'), document.querySelector('.footer')];
+        function setOutsideInert(on) {
+          outside.forEach(function (el) {
+            if (!el) return;
+            if (on) el.setAttribute('inert', '');
+            else el.removeAttribute('inert');
+          });
+        }
+        function isOpen() {
+          return !!drawer && drawer.classList.contains('is-open');
+        }
+        function openDrawer() {
+          if (!drawer || !backdrop || !btn) return;
+          drawer.classList.add('is-open');
+          backdrop.classList.add('is-open');
+          btn.setAttribute('aria-expanded', 'true');
+          drawer.setAttribute('aria-hidden', 'false');
+          backdrop.setAttribute('aria-hidden', 'false');
+          setOutsideInert(true);
+          if (closeBtn) closeBtn.focus();
+        }
+        function closeDrawer() {
+          if (!drawer || !backdrop || !btn) return;
+          if (!isOpen()) return;
+          drawer.classList.remove('is-open');
+          backdrop.classList.remove('is-open');
+          btn.setAttribute('aria-expanded', 'false');
+          drawer.setAttribute('aria-hidden', 'true');
+          backdrop.setAttribute('aria-hidden', 'true');
+          setOutsideInert(false);
+          btn.focus();
+        }
+
+        if (btn) btn.addEventListener('click', openDrawer);
+        if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+        if (backdrop) backdrop.addEventListener('click', closeDrawer);
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && isOpen()) closeDrawer();
+        });
+      })();
+    </script>
+  </body>
+</html>

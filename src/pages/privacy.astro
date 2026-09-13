@@ -1,0 +1,228 @@
+---
+/**
+ * /privacy/ — 隱私權政策
+ *
+ * 本站為 GitHub Pages 託管的靜態站：不設會員、不設表單、自身不設置 cookie。
+ * 需要揭露的第三方：GitHub Pages、Google Analytics（若啟用）、Google Fonts、
+ * YouTube／Vimeo 嵌入播放器、按讚計數用的 Google Apps Script。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, routes, absUrl } from '../data/site';
+import { fmtDate } from '../data/events';
+
+const updated = '2026-09-12';
+const pageUrl = absUrl('/privacy/');
+const title = '隱私權政策';
+const description =
+  '台灣AI影視創作者圖鑑隱私權政策：本站為靜態網站，不設會員、不蒐集帳號資料；說明 GitHub Pages 託管、Google Analytics、Google Fonts、YouTube／Vimeo 嵌入播放與匿名按讚計數涉及的資料處理。';
+
+const breadcrumbs = [{ name: '隱私權政策', item: pageUrl }];
+
+const gaEnabled = !!SITE.gaId;
+---
+
+<BaseLayout title={title} seoTitle={title} description={description} breadcrumbs={breadcrumbs}>
+  <div class="page container">
+    <div class="page-inner">
+
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a>
+        <span aria-hidden="true">／</span>
+        <span aria-current="page">隱私權政策</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Privacy Policy・隱私權政策</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-meta">最後更新：{fmtDate(updated)}</p>
+      </header>
+
+      <div class="prose">
+
+        <p>
+          歡迎使用<strong>{SITE.name}</strong>（以下簡稱「本站」，網址：{SITE.url}）。
+          本站是一份年鑑式的靜態網站，不設會員、不設留言與投稿表單，自身不設置 Cookie，也不蒐集帳號或聯絡資料。
+          本政策依中華民國《個人資料保護法》（下稱個資法）訂定，說明本站在託管、流量分析、字型載入、影片嵌入與按讚計數過程中，
+          可能涉及的資料處理方式。請於使用本站前詳閱；繼續使用本站即表示您已閱讀並同意本政策。
+        </p>
+
+        <h2>一、本站蒐集哪些資料</h2>
+        <p>本站本身不主動蒐集任何個人資料。以下三種情況會有資料產生：</p>
+        <ol>
+          <li>您瀏覽本站時，託管服務與流量分析工具自動記錄的技術性資料（IP 位址、瀏覽器類型、造訪頁面與時間），詳見第二、三條。</li>
+          <li>您以電子郵件與編輯部聯絡時，主動提供的姓名、信箱與來信內容，詳見第八條。</li>
+          <li>經創作者本人確認後刊出的圖鑑條目資料，詳見第九條。</li>
+        </ol>
+
+        <h2>二、託管服務（GitHub Pages）</h2>
+        <p>
+          本站以靜態檔案託管於 GitHub Pages。GitHub 為維護服務安全與穩定，可能記錄訪客的 IP 位址等連線資訊，
+          其處理方式受 GitHub 隱私權聲明約束；本站無法存取這些伺服器紀錄，也不會另行保存。
+        </p>
+
+        <h2>三、流量分析（Google Analytics 4）</h2>
+        <p>
+          本站{gaEnabled ? '使用' : '預留'} Google Analytics 4 進行匿名的流量統計，用於了解哪些創作者頁與作品頁被閱讀、讀者從何而來，
+          以及外部連結、播放按鈕與聯絡按鈕的點擊次數。
+          {gaEnabled
+            ? '這些資料以彙總方式呈現，本站不會據此識別特定個人。'
+            : '目前尚未啟用；啟用後本段自動生效，且不會據此識別特定個人。'}
+        </p>
+        <p>
+          Google Analytics 會在您的瀏覽器設置 Cookie 並將資料傳送至 Google 伺服器（可能位於境外）。
+          您可透過瀏覽器的 Cookie 設定、隱私瀏覽模式，或安裝 Google 提供的 Analytics 停用擴充功能來停止此項蒐集。
+        </p>
+
+        <h2>四、字型載入（Google Fonts）</h2>
+        <p>
+          本站的明朝體與黑體字型由 Google Fonts（fonts.googleapis.com、fonts.gstatic.com）提供。
+          瀏覽器載入字型時，會向 Google 送出您的 IP 位址與瀏覽器資訊；Google 表示不會將字型請求與其他 Google 服務的資料連結。
+          若您不希望連線至 Google，可在瀏覽器停用網頁字型，本站會以系統內建字型顯示。
+        </p>
+
+        <h2>五、影片嵌入（YouTube／Vimeo）</h2>
+        <p>
+          本站所有影片皆外連 YouTube 或 Vimeo，本站不代管影片檔。作品頁預設只顯示由本站提供的縮圖與播放鈕，
+          <strong>不會預先載入任何平台程式碼</strong>；只有在您點擊播放後，才會載入該平台的嵌入播放器
+          （YouTube 使用 youtube-nocookie.com 的隱私強化模式）。
+        </p>
+        <p>
+          播放開始後，YouTube（Google）或 Vimeo 可能依其隱私權政策設置第三方 Cookie 並記錄觀看行為，這部分不在本站控制範圍。
+          若您不點擊播放，就不會與這些平台產生任何連線。
+        </p>
+
+        <h2>六、按讚計數（Google Apps Script）</h2>
+        <p>
+          作品頁與文章頁的「按讚」以 Google Apps Script 建立的匿名計數服務實作。您按讚時，瀏覽器只會傳送該頁的識別碼與「加一」的請求，
+          <strong>不傳送任何可識別您身分的資料</strong>；本站也不記錄誰按了讚。
+        </p>
+        <p>
+          為避免重複計數，瀏覽器的 localStorage 會記錄「此頁已按過」的旗標。這個旗標只存在您的裝置上，不會傳回本站或任何伺服器，
+          您可隨時透過清除瀏覽器網站資料將其移除。若計數服務未啟用，按讚按鈕不會顯示。
+        </p>
+
+        <h2>七、Cookie 與本機儲存</h2>
+        <ul>
+          <li><strong>本站本身：</strong>不設置任何 Cookie；僅在您按讚時於 localStorage 寫入一個旗標（見第六條）。</li>
+          <li><strong>第三方：</strong>Google Analytics（若啟用）、YouTube／Vimeo 播放器（您點擊播放後）可能設置 Cookie，受其各自政策約束。</li>
+          <li>您可透過瀏覽器設定拒絕或刪除 Cookie 與網站資料；本站的閱讀功能不受影響。</li>
+        </ul>
+
+        <h2>八、與編輯部的電子郵件往來</h2>
+        <p>
+          本站不設聯絡表單。當您透過 <a href={routes.contact()}>聯絡／推薦收錄</a> 頁面的電子郵件與編輯部聯繫
+          （推薦收錄、更正、下架、合作洽詢），我們會取得您的姓名、電子郵件地址與來信內容。
+          這些資料只用於處理該次請求與後續必要的往來，不用於行銷、不轉交第三方；處理完畢後保留於編輯部信箱以備查驗，
+          您可隨時來信要求刪除。
+        </p>
+
+        <h2>九、圖鑑條目中的創作者資料</h2>
+        <p>
+          本站刊出的創作者資料（姓名、英文名、地區、角色、社群連結、作品與得獎紀錄）均為創作者已公開的資訊，
+          並於刊出前經創作者本人確認。這些資料以結構化資料（schema.org Person）形式輸出，供搜尋引擎建立實體。
+          創作者可隨時要求更正或整份下架，處理方式見 <a href={`${routes.about()}#exit`}>關於圖鑑・更正與退出機制</a>。
+        </p>
+
+        <h2>十、資料利用之期間、地區、對象及方式</h2>
+        <ul>
+          <li><strong>期間：</strong>來信資料於蒐集目的消滅或您要求刪除前保留，最長不超過三年；創作者條目資料於下架後即自公開頁面移除。</li>
+          <li><strong>地區：</strong>中華民國境內，以及第三方服務提供商所在地（GitHub、Google、Vimeo 之伺服器可能位於境外）。</li>
+          <li><strong>對象：</strong>本站編輯部，以及依法有調查權之機關。</li>
+          <li><strong>方式：</strong>電子檔案處理。本站不會將任何資料出售、出租或交換予第三方。</li>
+        </ul>
+
+        <h2>十一、當事人之權利</h2>
+        <p>依個資法第 3 條，您就本站保有之個人資料，得行使下列權利：</p>
+        <ol>
+          <li>查詢或請求閱覽。</li>
+          <li>請求製給複製本。</li>
+          <li>請求補充或更正。</li>
+          <li>請求停止蒐集、處理或利用。</li>
+          <li>請求刪除。</li>
+        </ol>
+        <p>如需行使上述權利，請以電子郵件與編輯部聯繫，本站將於收到請求後十五個工作日內回覆。</p>
+
+        <h2>十二、外部連結</h2>
+        <p>
+          本站含有大量指向外部網站的連結：創作者社群帳號、作品所在的影音平台、活動與比賽官網等。
+          這些網站各有其隱私權政策，本站不對其內容或資料處理負責，建議您於前往前自行閱覽。
+        </p>
+
+        <h2>十三、未成年人</h2>
+        <p>
+          本站內容以一般讀者為對象，不刻意蒐集未滿 18 歲者之個人資料。若您為未成年人，請在家長或監護人同意後使用本站。
+        </p>
+
+        <h2>十四、政策修訂</h2>
+        <p>
+          本站保留隨時修訂本政策之權利，修訂後將更新頁首的「最後更新」日期；涉及資料處理方式的重大變更，將於首頁公告。
+          繼續使用本站即視為同意修訂後之政策。
+        </p>
+
+        <h2>十五、聯絡我們</h2>
+        <p>
+          對本政策有任何疑問，請寫信至
+          <a href={`mailto:${SITE.email}`} data-ga-cta="contact_email" data-ga-location="privacy_contact">{SITE.email}</a>，
+          或前往 <a href={routes.contact()}>聯絡／推薦收錄</a> 頁面。
+        </p>
+
+      </div>
+
+      <div class="rule-double bottom-rule"></div>
+      <p class="back">
+        <a href={routes.home()}>← 返回首頁</a>
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* 法務文件：條文標題比訪談內文小一號，列表行距略緊 */
+  .prose h2 {
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    margin: 40px 0 14px;
+    padding-bottom: 8px;
+    border-bottom-width: 1px;
+  }
+
+  .prose p,
+  .prose li {
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    line-height: 1.9;
+    color: var(--ink-soft);
+  }
+
+  .prose p {
+    margin-bottom: 16px;
+  }
+
+  .prose li {
+    margin-bottom: 6px;
+  }
+
+  .prose strong {
+    background: none;
+    padding: 0;
+    font-weight: 700;
+  }
+
+  .bottom-rule {
+    margin-top: 64px;
+  }
+
+  @media (max-width: 640px) {
+    .prose h2 {
+      font-size: var(--fs-md);
+      margin: 28px 0 10px;
+    }
+
+    .prose p,
+    .prose li {
+      font-size: 0.9375rem;
+      line-height: 1.8;
+    }
+  }
+</style>

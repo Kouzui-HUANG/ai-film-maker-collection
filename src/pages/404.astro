@@ -1,0 +1,141 @@
+---
+/**
+ * /404 — 頁面不存在
+ *
+ * noindex（CONTRACT §7）。breadcrumbs 傳空陣列以抑制引擎依 path 自動生成的「404」麵包屑。
+ * 三個入口：圖鑑總表 / 全部作品 / 首頁。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { routes } from '../data/site';
+---
+
+<BaseLayout
+  title="404 — 不在圖鑑裡"
+  seoTitle="404・頁面不存在"
+  description="您所尋找的創作者或作品不在圖鑑裡：頁面可能已下架、更名或網址有誤。請回到圖鑑總表、全部作品或首頁。"
+  noindex
+  breadcrumbs={[]}
+>
+  <div class="error-page container">
+    <div class="error-inner">
+      <div class="rule-double"></div>
+
+      <p class="error-kicker">
+        <span class="error-kicker__label">Error</span>
+        <span class="error-kicker__dot" aria-hidden="true">·</span>
+        <span class="error-kicker__en">Not in the directory</span>
+      </p>
+
+      <h1 class="error-code" aria-label="404">404</h1>
+
+      <div class="rule-hair"></div>
+
+      <p class="error-headline">這位創作者或這部作品不在圖鑑裡</p>
+      <p class="error-body">
+        您所尋找的頁面可能已下架、更名，或網址有誤。<br />
+        若是創作者依退出機制要求下架，該條目已自圖鑑與索引中移除。
+      </p>
+
+      <div class="rule-hair"></div>
+
+      <nav class="error-actions" aria-label="回到圖鑑">
+        <a href={routes.creators()} class="btn btn--accent" data-ga-cta="404_creators" data-ga-location="404_action">圖鑑總表</a>
+        <a href={routes.works()} class="btn" data-ga-cta="404_works" data-ga-location="404_action">全部作品</a>
+        <a href={routes.home()} class="btn" data-ga-cta="404_home" data-ga-location="404_action">← 返回首頁</a>
+      </nav>
+
+      <div class="rule-double"></div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .error-page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 60vh;
+    padding-block: 4rem;
+  }
+
+  .error-inner {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  /* ─ kicker ─ */
+  .error-kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0 0.5rem;
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .error-kicker__dot {
+    color: var(--rule-soft);
+  }
+
+  .error-kicker__en {
+    color: var(--muted);
+  }
+
+  /* ─ 404 display ─ */
+  .error-code {
+    font-family: var(--font-serif);
+    font-size: clamp(5rem, 20vw, 9rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0.25rem 0 1.25rem;
+  }
+
+  .rule-hair {
+    margin-block: 1.5rem;
+  }
+
+  /* ─ text ─ */
+  .error-headline {
+    font-family: var(--font-serif);
+    font-size: var(--fs-xl);
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--ink);
+    margin: 0 0 0.75rem;
+  }
+
+  .error-body {
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    line-height: 1.85;
+    margin: 0;
+  }
+
+  /* ─ 三個入口 ─ */
+  .error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 0.25rem 0 2rem;
+  }
+
+  @media (max-width: 640px) {
+    .error-page {
+      padding-block: 2rem;
+    }
+
+    .error-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .error-actions .btn {
+      justify-content: center;
+    }
+  }
+</style>

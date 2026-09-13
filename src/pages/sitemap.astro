@@ -1,0 +1,616 @@
+---
+/**
+ * /sitemap/ — 人讀的全站索引
+ *
+ * 分區：01 主要頁面 / 02 創作者（依編號）/ 03 作品（依年份倒序）/ 04 訪談與教學 /
+ *       05 活動與比賽（upcoming / past）/ 06 工具索引（達門檻者）/ 07 類型索引 / 08 機器可讀索引
+ * 每項顯示中文 + 路徑小字（路徑即實際 href，含 base）。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, PRIMARY_NAV, href, routes, absUrl } from '../data/site';
+import { getSiteData, type Work } from '../data/queries';
+import { TOOLS, TOOL_CATEGORY_LABEL, toolHasPage, MIN_TOOL_WORKS } from '../data/tools';
+import { GENRES, genreIsIndexable, MIN_GENRE_WORKS, EVENT_KIND_LABEL, POST_TYPE_LABEL } from '../data/genres';
+import { fmtDate, fmtRange } from '../data/events';
+
+const d = await getSiteData();
+
+const pageUrl = absUrl('/sitemap/');
+const title = 'Sitemap';
+const description =
+  `${SITE.name}全站索引：主要頁面、${d.creators.length} 位創作者、${d.works.length} 部作品、訪談與教學、活動與比賽、工具與類型索引一覽。`;
+
+const breadcrumbs = [{ name: 'Sitemap', item: pageUrl }];
+
+/* 01 主要頁面 */
+const mainPages = [
+  { label: '首頁', labelEn: 'HOME', href: routes.home(), note: '本期焦點創作者、最新收錄、最新作品、近期活動' },
+  ...PRIMARY_NAV.map((n) => ({ label: n.label, labelEn: n.labelEn, href: href(n.href), note: n.note ?? '' })),
+  { label: '關於圖鑑・收錄準則', labelEn: 'ABOUT', href: routes.about(), note: '定位、收錄準則、資料整理方式、授權與退出機制' },
+  { label: '聯絡／推薦收錄', labelEn: 'CONTACT', href: routes.contact(), note: '推薦收錄、更正與下架的來信方式' },
+  { label: '隱私權政策', labelEn: 'PRIVACY', href: routes.privacy(), note: '託管、流量分析、嵌入播放與按讚計數的資料處理' },
+  { label: 'Sitemap', labelEn: 'SITEMAP', href: routes.sitemap(), note: '本頁' },
+];
+
+/* 03 作品：依年份分組（d.works 已依 sortDate 倒序） */
+const worksByYear = new Map<number, Work[]>();
+for (const w of d.works) {
+  const list = worksByYear.get(w.data.year) ?? [];
+  list.push(w);
+  worksByYear.set(w.data.year, list);
+}
+const years = [...worksByYear.keys()].sort((a, b) => b - a);
+
+/* 06 工具索引：達建頁門檻者，依作品數倒序 */
+const toolPages = TOOLS.filter((t) => toolHasPage(d.toolCounts, t.slug))
+  .map((t) => ({ ...t, count: d.toolCounts.get(t.slug) ?? 0 }))
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+/* 07 類型索引：有作品的類型（條目不足者標示） */
+const genrePages = GENRES.filter((g) => (d.genreCounts.get(g.slug) ?? 0) > 0)
+  .map((g) => ({ ...g, count: d.genreCounts.get(g.slug) ?? 0, indexable: genreIsIndexable(d.genreCounts, g.slug) }));
+
+/* 08 機器可讀索引 */
+const machinePages = [
+  { label: 'XML Sitemap', labelEn: 'SEO INDEX', href: href('/sitemap-index.xml') },
+  { label: 'RSS 訂閱', labelEn: 'RSS', href: routes.rss() },
+  { label: 'llms.txt（目錄）', labelEn: 'LLM TOC', href: href('/llms.txt') },
+  { label: 'llms-full.txt（全文）', labelEn: 'LLM FULL', href: href('/llms-full.txt') },
+  { label: 'llms-ctx.txt（XML 上下文）', labelEn: 'LLM CTX', href: href('/llms-ctx.txt') },
+  { label: 'robots.txt', labelEn: 'CRAWL POLICY', href: href('/robots.txt') },
+];
+
+const pad3 = (n: number) => String(n).padStart(3, '0');
+---
+
+<BaseLayout title={title} seoTitle="Sitemap・全站索引" description={description} breadcrumbs={breadcrumbs}>
+  <div class="page container">
+    <div class="page-inner">
+
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a>
+        <span aria-hidden="true">／</span>
+        <span aria-current="page">Sitemap</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Sitemap・全站索引</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">Sitemap</h1>
+        <p class="page-lead">
+          {SITE.name}全站頁面一覽。找特定創作者、作品或舊活動，從這裡逐區展開最快。
+        </p>
+        <p class="page-meta">
+          {d.creators.length} 位創作者・{d.works.length} 部作品・{d.posts.length} 篇訪談與教學・{d.events.length} 場活動・更新 {fmtDate(d.today)}
+        </p>
+      </header>
+
+      <!-- 01 主要頁面 ─────────────────────── -->
+      <section class="block" aria-labelledby="block-pages">
+        <h2 id="block-pages" class="block__title">
+          <span class="block__num">01</span>
+          <span class="block__cn">主要頁面</span>
+          <span class="block__en">Main Pages</span>
+        </h2>
+        <div class="rule-hair"></div>
+        <ul class="link-list">
+          {mainPages.map((p) => (
+            <li class="link-list__item">
+              <a class="link-list__link" href={p.href}>
+                <span class="link-list__cn">{p.label}</span>
+                <span class="link-list__en">{p.labelEn}</span>
+                <span class="link-list__path">{p.href}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <!-- 02 創作者 ───────────────────────── -->
+      <section class="block" aria-labelledby="block-creators">
+        <h2 id="block-creators" class="block__title">
+          <span class="block__num">02</span>
+          <span class="block__cn">創作者</span>
+          <span class="block__en">Creators</span>
+          <span class="block__count">{d.creators.length} 位・依編號</span>
+        </h2>
+        <div class="rule-hair"></div>
+        {d.creators.length > 0 ? (
+          <ol class="row-list">
+            {d.creators.map((c) => (
+              <li class="row-list__item">
+                <a class="row-list__link" href={routes.creator(c.slug)}>
+                  <span class="no row-list__key">No.{pad3(c.no)}</span>
+                  <span class="row-list__main">
+                    <span class="row-list__title">{c.name}{c.nameEn && <span class="row-list__sub"> {c.nameEn}</span>}</span>
+                    <span class="row-list__desc">{c.tagline}</span>
+                    <span class="row-list__path">{routes.creator(c.slug)}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p class="block__empty">尚無收錄創作者。</p>
+        )}
+      </section>
+
+      <!-- 03 作品 ─────────────────────────── -->
+      <section class="block" aria-labelledby="block-works">
+        <h2 id="block-works" class="block__title">
+          <span class="block__num">03</span>
+          <span class="block__cn">作品</span>
+          <span class="block__en">Works</span>
+          <span class="block__count">{d.works.length} 部・依年份倒序</span>
+        </h2>
+        <div class="rule-hair"></div>
+        {years.length > 0 ? (
+          years.map((year) => (
+            <section class="sub" aria-labelledby={`works-${year}`}>
+              <h3 id={`works-${year}`} class="sub__title">
+                <span class="sub__label">{year}</span>
+                <span class="sub__count">{worksByYear.get(year)!.length} 部</span>
+              </h3>
+              <ol class="row-list">
+                {worksByYear.get(year)!.map((w) => (
+                  <li class="row-list__item">
+                    <a class="row-list__link" href={routes.work(w.data.slug)}>
+                      <span class="row-list__key">{w.data.releasedAt ? fmtDate(w.data.releasedAt) : String(w.data.year)}</span>
+                      <span class="row-list__main">
+                        <span class="row-list__title">{w.data.title}</span>
+                        <span class="row-list__desc">{w.creators.map((c) => c.name).join('・')}</span>
+                        <span class="row-list__path">{routes.work(w.data.slug)}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))
+        ) : (
+          <p class="block__empty">尚無收錄作品。</p>
+        )}
+      </section>
+
+      <!-- 04 訪談與教學 ───────────────────── -->
+      <section class="block" aria-labelledby="block-posts">
+        <h2 id="block-posts" class="block__title">
+          <span class="block__num">04</span>
+          <span class="block__cn">訪談與教學</span>
+          <span class="block__en">Read</span>
+          <span class="block__count">{d.posts.length} 篇・依日期倒序</span>
+        </h2>
+        <div class="rule-hair"></div>
+        {d.posts.length > 0 ? (
+          <ol class="row-list">
+            {d.posts.map((p) => (
+              <li class="row-list__item">
+                <a class="row-list__link" href={routes.post(p.data.urlSlug)}>
+                  <span class="row-list__key">{fmtDate(p.data.date)}</span>
+                  <span class="row-list__main">
+                    <span class="row-list__title">
+                      <span class="badge badge--outline row-list__badge">{POST_TYPE_LABEL[p.data.type]?.label ?? p.data.type}</span>
+                      {p.data.title}
+                    </span>
+                    <span class="row-list__desc">{p.data.author}{p.creators.length > 0 && `・${p.creators.map((c) => c.name).join('、')}`}</span>
+                    <span class="row-list__path">{routes.post(p.data.urlSlug)}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p class="block__empty">尚無文章。</p>
+        )}
+      </section>
+
+      <!-- 05 活動與比賽 ───────────────────── -->
+      <section class="block" aria-labelledby="block-events">
+        <h2 id="block-events" class="block__title">
+          <span class="block__num">05</span>
+          <span class="block__cn">活動與比賽</span>
+          <span class="block__en">Events</span>
+          <span class="block__count">{d.events.length} 場</span>
+        </h2>
+        <div class="rule-hair"></div>
+
+        <section class="sub" aria-labelledby="events-upcoming">
+          <h3 id="events-upcoming" class="sub__title">
+            <span class="sub__label">Upcoming・即將舉行</span>
+            <span class="sub__count">{d.upcomingEvents.length} 場</span>
+          </h3>
+          {d.upcomingEvents.length > 0 ? (
+            <ol class="row-list">
+              {d.upcomingEvents.map((e) => (
+                <li class="row-list__item">
+                  <a class="row-list__link" href={routes.event(e.data.slug)}>
+                    <span class="row-list__key">{fmtRange(e.data.startDate, e.data.endDate)}</span>
+                    <span class="row-list__main">
+                      <span class="row-list__title">
+                        <span class="badge badge--outline row-list__badge">{EVENT_KIND_LABEL[e.data.kind] ?? e.data.kind}</span>
+                        {e.data.title}
+                      </span>
+                      <span class="row-list__desc">{e.data.location}・{e.data.organizer}</span>
+                      <span class="row-list__path">{routes.event(e.data.slug)}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p class="block__empty">目前沒有即將舉行的活動。</p>
+          )}
+        </section>
+
+        <section class="sub" aria-labelledby="events-past">
+          <h3 id="events-past" class="sub__title">
+            <span class="sub__label">Past・已結束</span>
+            <span class="sub__count">{d.pastEvents.length} 場</span>
+          </h3>
+          {d.pastEvents.length > 0 ? (
+            <ol class="row-list">
+              {d.pastEvents.map((e) => (
+                <li class="row-list__item">
+                  <a class="row-list__link row-list__link--past" href={routes.event(e.data.slug)}>
+                    <span class="row-list__key">{fmtRange(e.data.startDate, e.data.endDate)}</span>
+                    <span class="row-list__main">
+                      <span class="row-list__title">
+                        <span class="badge badge--outline row-list__badge">{EVENT_KIND_LABEL[e.data.kind] ?? e.data.kind}</span>
+                        {e.data.title}
+                      </span>
+                      <span class="row-list__desc">{e.data.location}・{e.data.organizer}</span>
+                      <span class="row-list__path">{routes.event(e.data.slug)}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p class="block__empty">尚無已結束的活動。</p>
+          )}
+        </section>
+      </section>
+
+      <!-- 06 工具索引 ─────────────────────── -->
+      <section class="block" aria-labelledby="block-tools">
+        <h2 id="block-tools" class="block__title">
+          <span class="block__num">06</span>
+          <span class="block__cn">工具索引</span>
+          <span class="block__en">Tools</span>
+          <span class="block__count">{toolPages.length} 項・作品數 ≥ {MIN_TOOL_WORKS}</span>
+        </h2>
+        <div class="rule-hair"></div>
+        {toolPages.length > 0 ? (
+          <ul class="link-list">
+            {toolPages.map((t) => (
+              <li class="link-list__item">
+                <a class="link-list__link" href={routes.tool(t.slug)}>
+                  <span class="link-list__cn">{t.label}<span class="link-list__meta">・{t.count} 部</span></span>
+                  <span class="link-list__en">{TOOL_CATEGORY_LABEL[t.category]}</span>
+                  <span class="link-list__path">{routes.tool(t.slug)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="block__empty">尚無達到建頁門檻的工具。</p>
+        )}
+      </section>
+
+      <!-- 07 類型索引 ─────────────────────── -->
+      <section class="block" aria-labelledby="block-genres">
+        <h2 id="block-genres" class="block__title">
+          <span class="block__num">07</span>
+          <span class="block__cn">類型索引</span>
+          <span class="block__en">Genres</span>
+          <span class="block__count">{genrePages.length} 項・作品數 ≥ {MIN_GENRE_WORKS} 才進搜尋索引</span>
+        </h2>
+        <div class="rule-hair"></div>
+        {genrePages.length > 0 ? (
+          <ul class="link-list">
+            {genrePages.map((g) => (
+              <li class="link-list__item">
+                <a class="link-list__link" href={routes.genre(g.slug)}>
+                  <span class="link-list__cn">
+                    {g.label}<span class="link-list__meta">・{g.count} 部</span>
+                    {!g.indexable && <span class="link-list__meta">（條目不足）</span>}
+                  </span>
+                  <span class="link-list__en">{g.labelEn}</span>
+                  <span class="link-list__path">{routes.genre(g.slug)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="block__empty">尚無作品類型。</p>
+        )}
+      </section>
+
+      <!-- 08 機器可讀索引 ─────────────────── -->
+      <section class="block" aria-labelledby="block-machine">
+        <h2 id="block-machine" class="block__title">
+          <span class="block__num">08</span>
+          <span class="block__cn">機器可讀索引</span>
+          <span class="block__en">Machine-readable</span>
+        </h2>
+        <div class="rule-hair"></div>
+        <p class="block__note">供搜尋引擎、RSS 閱讀器、AI 爬蟲與 LLM 索引使用。</p>
+        <ul class="link-list">
+          {machinePages.map((p) => (
+            <li class="link-list__item">
+              <a class="link-list__link" href={p.href}>
+                <span class="link-list__cn">{p.label}</span>
+                <span class="link-list__en">{p.labelEn}</span>
+                <span class="link-list__path">{p.href}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div class="rule-double bottom-rule"></div>
+      <p class="back">
+        <a href={routes.home()}>← 返回首頁</a>
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* ── 分區 ─────────────────────────── */
+  .block {
+    margin-top: 56px;
+  }
+
+  .block__title {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 0 0 12px;
+    scroll-margin-top: 24px;
+  }
+
+  .block__num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+
+  .block__cn {
+    font-weight: 900;
+    font-size: var(--fs-xl);
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+
+  .block__en {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .block__count {
+    margin-left: auto;
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .block__empty,
+  .block__note {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    padding: 12px 0 4px;
+  }
+
+  /* ── 子分區（年份 / upcoming / past） ── */
+  .sub {
+    margin-top: 24px;
+  }
+
+  .sub__title {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 4px;
+    font-family: var(--font-caps);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .sub__count {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  /* ── 格網式連結列表（主要頁面 / 工具 / 類型 / 機器可讀） ── */
+  .link-list {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  .link-list__item {
+    border-bottom: 1px solid var(--rule-soft);
+    min-width: 0;
+  }
+
+  .link-list__link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: baseline;
+    gap: 4px 12px;
+    padding: 14px 4px;
+    color: var(--ink);
+    transition: background 160ms var(--ease-out), padding 160ms var(--ease-out);
+  }
+
+  .link-list__link:hover {
+    background: var(--paper-alt);
+    padding-left: 12px;
+    color: var(--ink);
+  }
+
+  .link-list__cn {
+    grid-column: 1;
+    grid-row: 1;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-base);
+  }
+
+  .link-list__meta {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+
+  .link-list__en {
+    grid-column: 2;
+    grid-row: 1;
+    font-family: var(--font-caps);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .link-list__path,
+  .row-list__path {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    word-break: break-all;
+  }
+
+  .link-list__path {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  /* ── 逐列列表（創作者 / 作品 / 文章 / 活動） ── */
+  .row-list {
+    margin-top: 8px;
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+
+  .row-list__item {
+    border-top: 1px dashed var(--rule-soft);
+  }
+
+  .row-list__link {
+    display: grid;
+    grid-template-columns: 148px minmax(0, 1fr);
+    align-items: baseline;
+    gap: 14px;
+    padding: 12px 4px;
+    color: var(--ink-soft);
+    transition: background 160ms var(--ease-out), padding 160ms var(--ease-out);
+  }
+
+  .row-list__link:hover {
+    background: var(--paper-alt);
+    padding-left: 12px;
+    color: var(--ink);
+  }
+
+  .row-list__link--past {
+    color: var(--muted);
+  }
+
+  .row-list__key {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row-list__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .row-list__title {
+    font-family: var(--font-serif);
+    font-size: var(--fs-base);
+    font-weight: 700;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+
+  .row-list__sub {
+    font-family: var(--font-caps);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .row-list__badge {
+    margin-right: 8px;
+    vertical-align: 0.15em;
+  }
+
+  .row-list__desc {
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  .row-list__link--past .row-list__title {
+    color: var(--ink-soft);
+  }
+
+  .bottom-rule {
+    margin-top: 64px;
+  }
+
+  /* ── 手機 ─────────────────────────── */
+  @media (max-width: 640px) {
+    .block {
+      margin-top: 40px;
+    }
+
+    .block__cn {
+      font-size: var(--fs-lg);
+    }
+
+    .block__count {
+      margin-left: 0;
+      flex-basis: 100%;
+      white-space: normal;
+    }
+
+    .link-list {
+      grid-template-columns: 1fr;
+    }
+
+    .row-list__link {
+      grid-template-columns: 1fr;
+      gap: 4px;
+      padding: 10px 4px;
+    }
+
+    .row-list__title {
+      font-size: 0.95rem;
+    }
+  }
+</style>

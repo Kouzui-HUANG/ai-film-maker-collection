@@ -1,0 +1,305 @@
+---
+/**
+ * 捲動分批載入（只給 /works/ 用）。
+ *
+ * 只 SSR 前 MORE_INITIAL 張 WorkCard；其餘捲到底時 fetch `${base}${n}.json`
+ * （base = href('/more/<listKey>/')，含 GitHub Pages 的 /<repo> 前綴），
+ * 端點在 src/pages/more/[key]/[page].json.ts，每個 JSON 為 MORE_CHUNK 部，前端每批補 MORE_BATCH 部。
+ *
+ * 新卡片用 clone 第一張 SSR 卡片當模板：Astro scoped style 掛在 data-astro-cid-* 屬性上，
+ * clone 才能原封不動帶著那些屬性，不必寫死 hash。
+ */
+import WorkCard from './WorkCard.astro';
+import type { Work } from '../data/queries';
+import { href } from '../data/site';
+import { MORE_INITIAL, MORE_BATCH, MORE_CHUNK } from '../data/listings';
+
+interface Props {
+  /** 對應 /more/<listKey>/<page>.json 的 key */
+  listKey: string;
+  /** 完整清單；只有前 MORE_INITIAL 部會進 HTML，其餘捲到底才 fetch */
+  works: Work[];
+}
+
+const { listKey, works } = Astro.props;
+
+const initial = works.slice(0, MORE_INITIAL);
+const total = works.length;
+const hasMore = total > initial.length;
+/** 首屏一列（桌機 3 欄）eager，其餘 lazy */
+const EAGER_COUNT = 3;
+---
+
+<div
+  class="more-list"
+  data-more-list
+  data-more-key={listKey}
+  data-more-base={href(`/more/${listKey}/`)}
+  data-more-total={String(total)}
+  data-more-initial={String(initial.length)}
+  data-more-batch={String(MORE_BATCH)}
+  data-more-chunk={String(MORE_CHUNK)}
+>
+  <div class="more-list__items" data-more-items>
+    {initial.map((w, i) => <WorkCard work={w} loading={i < EAGER_COUNT ? 'eager' : 'lazy'} />)}
+  </div>
+
+  {hasMore && (
+    <div class="more-list__foot">
+      <div class="more-list__sentinel" data-more-sentinel aria-hidden="true"></div>
+      <p class="more-list__status" data-more-status role="status" aria-live="polite"></p>
+      <noscript>
+        <p class="more-list__noscript">
+          其餘 {total - initial.length} 部作品請由 <a href={href('/sitemap/')}>網站地圖</a> 或各創作者頁查閱。
+        </p>
+      </noscript>
+    </div>
+  )}
+</div>
+
+<script>
+  type CardCreator = { name: string; href: string };
+  type CardData = {
+    href: string;
+    title: string;
+    creators: CardCreator[];
+    meta: string;
+    award: boolean;
+    alt: string;
+    src: string;
+    srcset: string;
+  };
+
+  function setup(root: HTMLElement) {
+    const base = root.dataset.moreBase;
+    const total = Number(root.dataset.moreTotal ?? '0');
+    const initial = Number(root.dataset.moreInitial ?? '0');
+    const batch = Number(root.dataset.moreBatch ?? '12');
+    const chunk = Number(root.dataset.moreChunk ?? '24');
+
+    const items = root.querySelector<HTMLElement>('[data-more-items]');
+    const sentinel = root.querySelector<HTMLElement>('[data-more-sentinel]');
+    const status = root.querySelector<HTMLElement>('[data-more-status]');
+    if (!base || !items || !sentinel || !status || initial >= total) return;
+
+    const template = items.querySelector<HTMLElement>('[data-work-card]');
+    if (!template) return;
+
+    const totalChunks = Math.ceil((total - initial) / chunk);
+    const buffer: CardData[] = [];
+    let nextChunk = 1;
+    let rendered = initial;
+    let busy = false;
+    let stopped = false;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) void pump();
+      },
+      { rootMargin: '400px 0px' },
+    );
+
+    function renderCard(data: CardData): HTMLElement {
+      const el = template!.cloneNode(true) as HTMLElement;
+
+      const link = el.querySelector<HTMLAnchorElement>('.card__link');
+      if (link) link.href = data.href;
+
+      const img = el.querySelector<HTMLImageElement>('.card__figure img');
+      if (img) {
+        img.src = data.src;
+        if (data.srcset) img.srcset = data.srcset;
+        else img.removeAttribute('srcset');
+        img.alt = data.alt;
+        img.loading = 'lazy';
+        img.removeAttribute('fetchpriority');
+      }
+
+      const badge = el.querySelector<HTMLElement>('.card__badge');
+      if (badge) badge.hidden = !data.award;
+
+      const title = el.querySelector<HTMLElement>('.card__title');
+      if (title) title.textContent = data.title;
+
+      const creators = el.querySelector<HTMLElement>('.card__creators');
+      if (creators) {
+        creators.replaceChildren();
+        data.creators.forEach((c, i) => {
+          if (i > 0) creators.append('、');
+          const a = document.createElement('a');
+          a.href = c.href;
+          a.textContent = c.name;
+          creators.append(a);
+        });
+      }
+
+      const meta = el.querySelector<HTMLElement>('.card__meta');
+      if (meta) meta.textContent = data.meta;
+
+      return el;
+    }
+
+    function finish() {
+      stopped = true;
+      observer.disconnect();
+      sentinel!.remove();
+      status!.textContent = '';
+    }
+
+    function fail() {
+      observer.disconnect();
+      status!.textContent = '';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'more-list__retry';
+      btn.textContent = '載入失敗，點此重試';
+      btn.addEventListener('click', () => {
+        btn.remove();
+        observer.observe(sentinel!);
+        void pump();
+      });
+      status!.after(btn);
+    }
+
+    async function pump() {
+      if (busy || stopped || rendered >= total) return;
+      busy = true;
+      status!.textContent = '載入中…';
+
+      try {
+        while (buffer.length < batch && nextChunk <= totalChunks) {
+          const res = await fetch(`${base}${nextChunk}.json`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const batchData = (await res.json()) as CardData[];
+          buffer.push(...batchData);
+          nextChunk += 1;
+        }
+      } catch {
+        busy = false;
+        fail();
+        return;
+      }
+
+      const next = buffer.splice(0, batch);
+      if (next.length === 0) {
+        busy = false;
+        finish();
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+      for (const data of next) frag.appendChild(renderCard(data));
+      items!.appendChild(frag);
+      rendered += next.length;
+      status!.textContent = '';
+      busy = false;
+
+      if (rendered >= total) {
+        finish();
+        return;
+      }
+
+      // 新內容若不夠高，sentinel 仍留在觸發範圍內，但 IntersectionObserver
+      // 只在「跨越門檻」時回呼，不會自己再送一次。重新 observe 可強制它
+      // 用目前狀態再回呼一次，讓批次自然接續到 sentinel 被推出畫面為止。
+      observer.unobserve(sentinel!);
+      observer.observe(sentinel!);
+    }
+
+    observer.observe(sentinel);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-more-list]').forEach(setup);
+</script>
+
+<style>
+  /* 作品網格：桌機 3 欄 → ≤900px 2 欄 → ≤640px 1 欄 */
+  .more-list__items {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 24px;
+    min-width: 0;
+  }
+
+  .more-list__sentinel {
+    height: 1px;
+  }
+
+  .more-list__noscript {
+    margin-top: 24px;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+  .more-list__noscript a {
+    color: var(--accent-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .more-list__status:empty {
+    display: none;
+  }
+
+  .more-list__status {
+    margin-top: 28px;
+    text-align: center;
+    font-family: var(--font-caps);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    animation: more-pulse 1.4s var(--ease-out) infinite;
+  }
+
+  .more-list :global(.more-list__retry) {
+    display: block;
+    margin: 28px auto 0;
+    padding: 10px 20px;
+    background: var(--paper-white);
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--ink);
+    font-family: var(--font-caps);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+
+  .more-list :global(.more-list__retry:hover) {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  @keyframes more-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .more-list__items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 28px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .more-list__items {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .more-list__status {
+      animation: none;
+    }
+  }
+</style>

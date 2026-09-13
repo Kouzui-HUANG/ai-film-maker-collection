@@ -1,0 +1,247 @@
+---
+/**
+ * 影片 lite facade（設計文件 §1-3 ②）
+ *
+ * 預設只渲染縮圖 + 播放鈕，點擊才注入 <iframe>，首屏不載入 YouTube / Vimeo 的 JS。
+ * provider 解析不出來（unknown）時不做 facade，改顯示縮圖 + 「在外站觀看 ↗」連結。
+ * 點擊播放時發 GA4 事件 video_play { work_slug, provider }。
+ */
+import { Image } from 'astro:assets';
+import type { Work } from '../data/queries';
+import { parseVideoUrl } from '../data/queries';
+
+interface Props {
+  work: Work;
+}
+
+const { work } = Astro.props;
+const { title, slug, thumb, thumbAlt, videoUrl } = work.data;
+const video = parseVideoUrl(videoUrl);
+
+const watchLabel =
+  video.provider === 'youtube' ? '在 YouTube 觀看 ↗' : video.provider === 'vimeo' ? '在 Vimeo 觀看 ↗' : '在原站觀看 ↗';
+const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
+---
+
+<div class="video">
+  {canEmbed ? (
+    <div
+      class="facade"
+      data-embed={video.embedUrl}
+      data-title={title}
+      data-slug={slug}
+      data-provider={video.provider}
+    >
+      <Image
+        src={thumb}
+        alt={thumbAlt}
+        width={1280}
+        height={720}
+        widths={[640, 960, 1280]}
+        sizes="(max-width: 1240px) 100vw, 1192px"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <button type="button" class="facade__play" aria-label={`播放 ${title}`}>
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false">
+          <path d="M7 4.5v15l12-7.5z" fill="currentColor" />
+        </svg>
+      </button>
+    </div>
+  ) : (
+    <div class="facade facade--static">
+      <Image
+        src={thumb}
+        alt={thumbAlt}
+        width={1280}
+        height={720}
+        widths={[640, 960, 1280]}
+        sizes="(max-width: 1240px) 100vw, 1192px"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <a
+        class="btn facade__external"
+        href={videoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-ga-cta="watch_external"
+        data-ga-location="work_video"
+      >
+        在外站觀看 ↗
+      </a>
+    </div>
+  )}
+
+  <p class="video__credit">
+    影片外連自 YouTube／Vimeo，版權屬創作者所有。
+    <a href={video.watchUrl} target="_blank" rel="noopener noreferrer">{watchLabel}</a>
+  </p>
+</div>
+
+<script>
+  function setup(root: HTMLElement) {
+    const btn = root.querySelector<HTMLButtonElement>('.facade__play');
+    const embed = root.dataset.embed;
+    if (!btn || !embed) return;
+
+    btn.addEventListener(
+      'click',
+      () => {
+        const iframe = document.createElement('iframe');
+        iframe.src = embed;
+        iframe.title = root.dataset.title ?? '';
+        iframe.allow =
+          'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.allowFullscreen = true;
+        iframe.loading = 'lazy';
+        iframe.className = 'facade__iframe';
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+
+        root.replaceChildren(iframe);
+        // 被點擊的按鈕已移除，把焦點交給播放器（WCAG 2.4.3）
+        iframe.tabIndex = -1;
+        iframe.focus();
+        root.classList.add('is-playing');
+
+        (window as any).gtag?.('event', 'video_play', {
+          work_slug: root.dataset.slug ?? '',
+          provider: root.dataset.provider ?? 'unknown',
+        });
+      },
+      { once: true },
+    );
+  }
+
+  document.querySelectorAll<HTMLElement>('.facade[data-embed]').forEach(setup);
+</script>
+
+<style>
+  .video {
+    margin: 0 0 28px;
+  }
+
+  /* 16:9 容器；1px 框線、零圓角；縮圖一律全彩 */
+  .facade {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--rule);
+    background: var(--ink);
+    overflow: hidden;
+  }
+
+  .facade img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: var(--filter-work);
+    transition: transform 600ms var(--ease-out);
+  }
+
+  .facade:hover img {
+    transform: scale(1.01);
+  }
+
+  /* 播放鈕：方形底、硬陰影，置中 */
+  .facade__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    margin: -38px 0 0 -38px;
+    padding: 0 0 0 4px;
+    color: var(--ink);
+    background: var(--paper-white);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out),
+      background 140ms var(--ease-out), color 140ms var(--ease-out);
+  }
+
+  .facade__play:hover,
+  .facade__play:focus-visible {
+    color: var(--paper-white);
+    background: var(--accent);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+
+  .facade__play:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+
+  .facade__play svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* 點擊後注入的 iframe（JS 建立，沒有 scoped 屬性，走 :global） */
+  .facade :global(.facade__iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--ink);
+  }
+
+  /* 無法嵌入：縮圖 + 外站連結 */
+  .facade__external {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .facade__external:hover {
+    transform: translate(calc(-50% - 1px), calc(-50% - 1px));
+  }
+
+  .facade__external:active {
+    transform: translate(calc(-50% + 2px), calc(-50% + 2px));
+  }
+
+  .video__credit {
+    margin-top: 10px;
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+
+  .video__credit a {
+    margin-left: 6px;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--rule-soft);
+    white-space: nowrap;
+  }
+
+  .video__credit a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  @media (max-width: 640px) {
+    .facade__play {
+      width: 56px;
+      height: 56px;
+      margin: -28px 0 0 -28px;
+    }
+
+    .facade__play svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+/**
+ * Google Analytics 4
+ *
+ * 只在 production build 且 SITE.gaId 非空時載入（`npm run dev` 不會輸出任何 script，
+ * 避免本機測試流量污染報表）。
+ *
+ * 自訂事件：
+ *   - outbound_click：所有指向外部網域的 <a> 點擊（含創作者社群連結、活動官網、影片外連）
+ *   - scroll_depth ：25 / 50 / 75 / 100% 各觸發一次（短頁面自動略過）
+ *   - cta_click    ：任何帶 data-ga-cta="<名稱>" 屬性的元素點擊
+ *                    可加 data-ga-location="<位置>" 補充上下文
+ *   - video_play   ：VideoFacade 點擊播放（由元件自行 gtag）
+ */
+import { SITE } from '../data/site';
+
+const GA_ID = SITE.gaId;
+const enabled = import.meta.env.PROD && !!GA_ID;
+---
+
+{enabled && (
+  <>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
+    <script is:inline define:vars={{ GA_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', GA_ID, { send_page_view: true });
+
+      /* ── 1. 外部連結點擊 ───────────────────────── */
+      document.addEventListener('click', function (e) {
+        var a = e.target && e.target.closest && e.target.closest('a[href]');
+        if (!a) return;
+        var href = a.getAttribute('href') || '';
+        if (!/^https?:\/\//i.test(href)) return;
+        try {
+          var u = new URL(href);
+          if (u.hostname === location.hostname) return;
+          gtag('event', 'outbound_click', {
+            link_url: u.href,
+            link_domain: u.hostname,
+            link_text: (a.innerText || a.getAttribute('aria-label') || '').trim().slice(0, 100),
+          });
+        } catch (_) { /* ignore malformed */ }
+      }, { capture: true });
+
+      /* ── 2. CTA 點擊 ──────────────────────────── */
+      document.addEventListener('click', function (e) {
+        var el = e.target && e.target.closest && e.target.closest('[data-ga-cta]');
+        if (!el) return;
+        gtag('event', 'cta_click', {
+          cta_name: el.getAttribute('data-ga-cta') || 'unknown',
+          cta_location: el.getAttribute('data-ga-location') || location.pathname,
+          cta_text: (el.innerText || el.getAttribute('aria-label') || '').trim().slice(0, 100),
+        });
+      }, { capture: true });
+
+      /* ── 3. 捲動深度 ──────────────────────────── */
+      (function () {
+        var thresholds = [25, 50, 75, 100];
+        var fired = {};
+        var ticking = false;
+
+        function check() {
+          ticking = false;
+          var doc = document.documentElement;
+          var scrollable = (doc.scrollHeight || 0) - (window.innerHeight || 0);
+          if (scrollable < 200) return;
+          var pct = Math.min(100, Math.round(((window.scrollY || 0) / scrollable) * 100));
+          for (var i = 0; i < thresholds.length; i++) {
+            var t = thresholds[i];
+            if (!fired[t] && pct >= t) {
+              fired[t] = true;
+              gtag('event', 'scroll_depth', { percent: t, page_path: location.pathname });
+            }
+          }
+        }
+        window.addEventListener('scroll', function () {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(check);
+        }, { passive: true });
+      })();
+    </script>
+  </>
+)}

@@ -1,0 +1,239 @@
+---
+/**
+ * CreatorCard — 創作者卡片（契約：CONTRACT §4）
+ *
+ *   <CreatorCard creator={Creator | CreatorRef} variant="row" | "tile" workCount?={number} />
+ *
+ *   row : 肖像 56px（1:1 裁切、.frame--portrait 濾鏡）左；右邊 .no + 名字(+nameEn) + tagline
+ *         + 工具 chips（最多 4 個，其餘「+N」）；右端「N 部作品」（有 workCount 才顯示）
+ *   tile: 肖像 4:5 上、下方 .no / 名字 / tagline（首頁「最新收錄」5 格用）
+ *
+ * 整張卡是一個 <a href={routes.creator(slug)}>；因此 chips 一律非連結（避免巢狀 <a>）。
+ * workCount 未傳時，若 creator 是 Creator（有 workCount 欄位）則自動採用。
+ */
+import { Image } from 'astro:assets';
+import type { Creator, CreatorRef } from '../data/queries';
+import { routes } from '../data/site';
+import { toolLabel } from '../data/tools';
+
+interface Props {
+  creator: Creator | CreatorRef;
+  variant?: 'row' | 'tile';
+  workCount?: number;
+  /** 首屏卡片可傳 eager；預設 lazy */
+  loading?: 'lazy' | 'eager';
+}
+
+const { creator, variant = 'row', workCount, loading = 'lazy' } = Astro.props;
+
+const count = workCount ?? ('workCount' in creator ? creator.workCount : undefined);
+const MAX_CHIPS = 4;
+const shownTools = creator.tools.slice(0, MAX_CHIPS);
+const restTools = creator.tools.length - shownTools.length;
+const noLabel = `No.${String(creator.no).padStart(3, '0')}`;
+const url = routes.creator(creator.slug);
+---
+
+{variant === 'row' ? (
+  <a class="ccard ccard--row" href={url} aria-label={`${noLabel} ${creator.name}：${creator.tagline}`}>
+    <figure class="frame frame--portrait ccard__figure">
+      <Image
+        src={creator.portrait}
+        alt={creator.portraitAlt}
+        width={112}
+        height={112}
+        widths={[56, 112, 168]}
+        sizes="56px"
+        loading={loading}
+        decoding="async"
+      />
+    </figure>
+
+    <div class="ccard__body">
+      <div class="ccard__head">
+        <span class="no">{noLabel}</span>
+        <h3 class="ccard__name">
+          {creator.name}
+          {creator.nameEn && <span class="ccard__name-en">{creator.nameEn}</span>}
+        </h3>
+      </div>
+      <p class="ccard__tagline">{creator.tagline}</p>
+      <ul class="chips ccard__chips" aria-label="主力工具">
+        {shownTools.map((t) => (
+          <li><span class="chip">{toolLabel(t)}</span></li>
+        ))}
+        {restTools > 0 && (
+          <li><span class="chip chip--plain">+{restTools}</span></li>
+        )}
+      </ul>
+    </div>
+
+    {typeof count === 'number' && (
+      <span class="ccard__count">
+        <span class="ccard__count-num">{count}</span>
+        <span class="ccard__count-unit">部作品</span>
+      </span>
+    )}
+  </a>
+) : (
+  <a class="ccard ccard--tile" href={url} aria-label={`${noLabel} ${creator.name}：${creator.tagline}`}>
+    <figure class="frame frame--portrait ccard__figure">
+      <Image
+        src={creator.portrait}
+        alt={creator.portraitAlt}
+        width={400}
+        height={500}
+        widths={[240, 400, 600]}
+        sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 230px"
+        loading={loading}
+        decoding="async"
+      />
+    </figure>
+
+    <div class="ccard__body">
+      <span class="no">{noLabel}</span>
+      <h3 class="ccard__name">
+        {creator.name}
+        {creator.nameEn && <span class="ccard__name-en">{creator.nameEn}</span>}
+      </h3>
+      <p class="ccard__tagline">{creator.tagline}</p>
+    </div>
+  </a>
+)}
+
+<style>
+  .ccard {
+    display: grid;
+    color: inherit;
+    text-decoration: none;
+    min-width: 0;
+  }
+
+  .ccard__figure {
+    flex-shrink: 0;
+  }
+
+  .ccard__head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+
+  .ccard__name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    transition: color 160ms var(--ease-out);
+  }
+  .ccard:hover .ccard__name {
+    color: var(--accent);
+  }
+
+  .ccard__name-en {
+    margin-left: 8px;
+    font-family: var(--font-caps);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .ccard__tagline {
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  /* ── row：肖像 56px 左、內容右、作品數右端 ─────────── */
+  .ccard--row {
+    grid-template-columns: 56px 1fr auto;
+    align-items: start;
+    gap: 16px;
+    padding: 16px 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .ccard--row .ccard__figure {
+    width: 56px;
+  }
+  .ccard--row .ccard__figure :global(img) {
+    aspect-ratio: 1 / 1;
+  }
+  .ccard--row .ccard__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .ccard--row .ccard__chips {
+    margin-top: 2px;
+  }
+
+  .ccard__count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding-top: 2px;
+    white-space: nowrap;
+    color: var(--ink-soft);
+  }
+  .ccard__count-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .ccard__count-unit {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  /* ── tile：肖像 4:5 上、文字下 ─────────────────────── */
+  .ccard--tile {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-content: start;
+  }
+  .ccard--tile .ccard__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ccard--tile .ccard__name {
+    font-size: var(--fs-lg);
+    line-height: 1.3;
+  }
+  .ccard--tile .ccard__name-en {
+    display: block;
+    margin: 4px 0 0;
+  }
+  .ccard--tile .ccard__tagline {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (max-width: 640px) {
+    .ccard--row {
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      padding: 14px 0;
+    }
+    .ccard--row .ccard__count {
+      grid-column: 2;
+      padding-top: 0;
+    }
+    .ccard--tile .ccard__name {
+      font-size: var(--fs-md);
+    }
+  }
+</style>

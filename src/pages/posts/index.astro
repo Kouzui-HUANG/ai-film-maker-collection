@@ -1,0 +1,337 @@
+---
+/**
+ * /posts/ — 訪談與教學列表（type 切換）
+ *
+ * - 全部文章一次 SSR，頂部 tab（全部／訪談／教學）與難度 chips 為純前端篩選：
+ *   ?type=interview|tutorial、?level=beginner|intermediate|advanced，
+ *   以 history.replaceState 同步網址；無 JS 時全部顯示、tab 仍是可點的真連結。
+ * - schema：CollectionPage + ItemList
+ * - 麵包屑由 BaseLayout 依路徑自動生成（首頁 › 訪談與教學），與可見 .crumbs 一致
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getSiteData } from '../../data/queries';
+import { SITE, routes, absRoutes } from '../../data/site';
+import { POST_TYPE_LABEL, LEVEL_LABEL } from '../../data/genres';
+
+const d = await getSiteData();
+const posts = d.posts;
+const interviews = posts.filter((p) => p.data.type === 'interview');
+const tutorials = posts.filter((p) => p.data.type === 'tutorial');
+
+const LEVEL_ORDER = ['beginner', 'intermediate', 'advanced'] as const;
+const levelsPresent = LEVEL_ORDER.filter((l) => tutorials.some((t) => t.data.level === l));
+
+const title = '訪談與教學';
+const seoTitle = '訪談與教學：創作者訪談與 AI 影片製作教學';
+const description =
+  `台灣 AI 影視創作者的深度訪談與 AI 影片製作教學，共 ${posts.length} 篇：` +
+  `訪談 ${interviews.length} 篇、教學 ${tutorials.length} 篇。` +
+  '從分鏡、生成、角色一致性到剪接調色，記錄創作者的方法與工作流。';
+
+const tabs = [
+  { key: 'all', label: '全部', labelEn: 'ALL', count: posts.length, href: routes.posts() },
+  {
+    key: 'interview',
+    label: POST_TYPE_LABEL.interview.label,
+    labelEn: POST_TYPE_LABEL.interview.labelEn,
+    count: interviews.length,
+    href: `${routes.posts()}?type=interview`,
+  },
+  {
+    key: 'tutorial',
+    label: POST_TYPE_LABEL.tutorial.label,
+    labelEn: POST_TYPE_LABEL.tutorial.labelEn,
+    count: tutorials.length,
+    href: `${routes.posts()}?type=tutorial`,
+  },
+];
+
+/* ── CollectionPage + ItemList ── */
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': absRoutes.posts(),
+  url: absRoutes.posts(),
+  name: `${seoTitle}｜${SITE.name}`,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: posts.length,
+    itemListElement: posts.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absRoutes.post(p.data.urlSlug),
+      name: p.data.title,
+    })),
+  },
+};
+---
+
+<BaseLayout title={title} seoTitle={seoTitle} description={description} schemas={[collectionSchema]}>
+  <div class="page">
+    <div class="page-inner page-inner--wide" data-post-filter>
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <span aria-current="page">訪談與教學</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Read・訪談與教學</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">
+          創作者訪談記錄方法與取捨，教學拆解可複製的工作流。兩者都以圖鑑收錄的人與作品為錨，工具只是索引。
+        </p>
+        <p class="page-meta">
+          共 {posts.length} 篇：訪談 {interviews.length} 篇・教學 {tutorials.length} 篇
+        </p>
+      </header>
+
+      {posts.length > 0 ? (
+        <>
+          <nav class="type-tabs" aria-label="文章類型">
+            {tabs.map((t) => (
+              <a
+                href={t.href}
+                class="type-tabs__link"
+                data-tab={t.key}
+                aria-current={t.key === 'all' ? 'page' : undefined}
+              >
+                <span class="type-tabs__label">{t.label}</span>
+                <span class="type-tabs__en" aria-hidden="true">{t.labelEn}</span>
+                <span class="type-tabs__n">{t.count}</span>
+              </a>
+            ))}
+          </nav>
+
+          {levelsPresent.length > 0 && (
+            <div class="level-filter" data-level-filter hidden>
+              <span class="level-filter__label" id="level-filter-label">難度</span>
+              <ul class="chips" role="list" aria-labelledby="level-filter-label">
+                <li>
+                  <button type="button" class="chip level-filter__btn" data-level="all" aria-pressed="true">
+                    全部
+                  </button>
+                </li>
+                {levelsPresent.map((l) => (
+                  <li>
+                    <button type="button" class="chip level-filter__btn" data-level={l} aria-pressed="false">
+                      {LEVEL_LABEL[l]}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <h2 class="visually-hidden">文章列表</h2>
+          <ul class="post-list" role="list">
+            {posts.map((p, i) => (
+              <li data-post-item data-type={p.data.type} data-level={p.data.level ?? ''}>
+                <PostCard post={p} variant="row" loading={i === 0 ? 'eager' : 'lazy'} />
+              </li>
+            ))}
+          </ul>
+
+          <p class="post-list__empty" data-empty hidden>
+            此分類尚無文章。<a href={routes.posts()} data-tab="all">看全部文章 →</a>
+          </p>
+          <p class="visually-hidden" data-status aria-live="polite"></p>
+        </>
+      ) : (
+        <div class="coming">
+          <p class="coming__kanji">收錄中</p>
+          <p class="coming__lead">
+            訪談與教學整理中。<br />
+            <a href={routes.creators()}>← 回創作者圖鑑</a>
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* ── 類型 tab 列 ─────────────────────────────── */
+  .type-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .type-tabs__link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 12px 2px 10px;
+    margin-bottom: -1px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .type-tabs__link:hover {
+    color: var(--ink);
+  }
+  .type-tabs__link[aria-current='page'] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+
+  .type-tabs__en {
+    font-family: var(--font-caps);
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .type-tabs__n {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 難度 chips（僅教學 tab 顯示；按鈕態 button.chip[aria-pressed] 與 [hidden] 由 global 提供） ── */
+  .level-filter {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+  .level-filter__label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── 列表 ────────────────────────────────────── */
+  .post-list {
+    margin: 0;
+  }
+
+  .post-list__empty {
+    padding: 40px 0;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .post-list__empty a {
+    margin-left: 8px;
+    font-family: var(--font-caps);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.16em;
+    color: var(--ink);
+  }
+  .post-list__empty a:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 640px) {
+    .type-tabs {
+      gap: 0 18px;
+    }
+    .type-tabs__link {
+      font-size: var(--fs-base);
+      padding: 10px 0 8px;
+    }
+    .type-tabs__en {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  /* 純前端篩選：?type= / ?level= ↔ tab 與 chips 狀態 ↔ 卡片顯示 */
+  const root = document.querySelector<HTMLElement>('[data-post-filter]');
+
+  if (root) {
+    const tabs = Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-tab]'));
+    const levelWrap = root.querySelector<HTMLElement>('[data-level-filter]');
+    const levelBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-level-filter] [data-level]'));
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-post-item]'));
+    const empty = root.querySelector<HTMLElement>('[data-empty]');
+    const status = root.querySelector<HTMLElement>('[data-status]');
+
+    const TYPES = ['all', 'interview', 'tutorial'];
+    const LEVELS = ['all', ...levelBtns.map((b) => b.dataset.level ?? '').filter((l) => l && l !== 'all')];
+
+    const readParam = (name: string, allowed: string[]): string => {
+      const v = new URLSearchParams(window.location.search).get(name) ?? 'all';
+      return allowed.includes(v) ? v : 'all';
+    };
+
+    let type = readParam('type', TYPES);
+    let level = type === 'tutorial' ? readParam('level', LEVELS) : 'all';
+
+    const apply = () => {
+      let shown = 0;
+      for (const li of items) {
+        const ok =
+          (type === 'all' || li.dataset.type === type) &&
+          (level === 'all' || li.dataset.level === level);
+        li.hidden = !ok;
+        if (ok) shown++;
+      }
+      for (const t of tabs) {
+        if (t.dataset.tab === type) t.setAttribute('aria-current', 'page');
+        else t.removeAttribute('aria-current');
+      }
+      if (levelWrap) levelWrap.hidden = type !== 'tutorial';
+      for (const b of levelBtns) b.setAttribute('aria-pressed', String(b.dataset.level === level));
+      if (empty) empty.hidden = shown > 0;
+      if (status) status.textContent = `顯示 ${shown} 篇`;
+    };
+
+    const sync = () => {
+      const url = new URL(window.location.href);
+      if (type === 'all') url.searchParams.delete('type');
+      else url.searchParams.set('type', type);
+      if (level === 'all') url.searchParams.delete('level');
+      else url.searchParams.set('level', level);
+      window.history.replaceState(null, '', url.toString());
+    };
+
+    for (const t of tabs) {
+      t.addEventListener('click', (e) => {
+        e.preventDefault();
+        const next = t.dataset.tab ?? 'all';
+        type = TYPES.includes(next) ? next : 'all';
+        if (type !== 'tutorial') level = 'all';
+        apply();
+        sync();
+      });
+    }
+
+    for (const b of levelBtns) {
+      b.addEventListener('click', () => {
+        const next = b.dataset.level ?? 'all';
+        level = LEVELS.includes(next) ? next : 'all';
+        apply();
+        sync();
+      });
+    }
+
+    window.addEventListener('popstate', () => {
+      type = readParam('type', TYPES);
+      level = type === 'tutorial' ? readParam('level', LEVELS) : 'all';
+      apply();
+    });
+
+    apply();
+  }
+</script>

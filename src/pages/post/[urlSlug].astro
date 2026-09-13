@@ -1,0 +1,594 @@
+---
+/**
+ * /post/<urlSlug>/ — 訪談／教學單篇
+ *
+ * - 訪談 → Article（about 以 @id 綁回 Person entity）
+ * - 教學 → 內文有 ≥ 2 個 Step 標題時 HowTo，否則 Article
+ * - 兩者都會自動抽取 FAQ 段落成 FAQPage（buildFaqSchema）
+ * - 麵包屑：首頁 › 訪談與教學 › 標題（傳給 BaseLayout，與可見 .crumbs 一致）
+ * - 內文交給 global 的 .prose，本頁 scoped style 只寫頁首、受訪者列、文末區塊
+ */
+import type { InferGetStaticPropsType } from 'astro';
+import { render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ShareLike from '../../components/ShareLike.astro';
+import { getSiteData } from '../../data/queries';
+import { SITE, routes, absRoutes, absAsset } from '../../data/site';
+import { POST_TYPE_LABEL, LEVEL_LABEL } from '../../data/genres';
+import { toolLabel, toolHasPage } from '../../data/tools';
+import { fmtDate } from '../../data/events';
+import { buildFaqSchema, extractHowToSteps } from '../../data/faq';
+
+export async function getStaticPaths() {
+  const d = await getSiteData();
+  return d.posts.map((post) => ({
+    params: { urlSlug: post.data.urlSlug },
+    props: { post },
+  }));
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { post } = Astro.props as Props;
+
+const d = await getSiteData();
+const { Content } = await render(post.entry);
+
+const { title, seoTitle, excerpt, type, urlSlug, author, date, updated, cover, coverAlt, readMin, level } = post.data;
+const body = post.entry.body ?? '';
+
+const typeDef = POST_TYPE_LABEL[type] ?? { label: type, labelEn: type.toUpperCase() };
+const isInterview = type === 'interview';
+const levelLabel = level ? (LEVEL_LABEL[level] ?? level) : null;
+const peopleLabel = isInterview ? '受訪者' : '相關創作者';
+const peopleEyebrow = isInterview ? 'Interviewee・受訪者' : 'Creators・相關創作者';
+
+const pageUrl = absRoutes.post(urlSlug);
+const dateLabel = fmtDate(date);
+const updatedLabel = updated && updated !== date ? fmtDate(updated) : null;
+
+/* JSON-LD image：Astro 圖片 src 已含 base，absAsset 只補 origin */
+const coverAbs = absAsset(cover.src);
+
+/* ── 工具 chips（達建頁門檻才可點） ── */
+const tools = (post.data.tools ?? []).map((slug) => ({
+  slug,
+  label: toolLabel(slug),
+  hasPage: toolHasPage(d.toolCounts, slug),
+}));
+const toolLabels = tools.map((t) => t.label);
+
+/* ── 作者實體：編輯部 → Organization；作者本人是收錄創作者 → 綁回 Person @id ── */
+const isEditorial = author === '圖鑑編輯部';
+const authorCreator = isEditorial ? null : (d.creators.find((c) => c.name === author) ?? null);
+const authorEntity = isEditorial
+  ? { '@type': 'Organization', '@id': `${SITE.url}/#editorial`, name: author, parentOrganization: { '@id': `${SITE.url}/#organization` } }
+  : authorCreator
+    ? {
+        '@type': 'Person',
+        '@id': absRoutes.creatorId(authorCreator.slug),
+        name: author,
+        url: absRoutes.creator(authorCreator.slug),
+      }
+    : { '@type': 'Person', name: author };
+
+/* ── 同類型其他文章（最新 3 篇） ── */
+const sameType = d.posts.filter((p) => p.data.type === type && p.id !== post.id).slice(0, 3);
+
+/* ── 麵包屑（可見 UI 與 BreadcrumbList JSON-LD 一致） ── */
+const breadcrumbs = [
+  { name: '訪談與教學', item: absRoutes.posts() },
+  { name: title, item: pageUrl },
+];
+
+/* 字數：去掉 Markdown 符號與空白後的字元數（CJK 內容以字元計） */
+const wordCount = body
+  .replace(/\]\([^)]*\)/g, ']')
+  .replace(/[#>*\-|`\[\]()~_]/g, '')
+  .replace(/\s+/g, '').length;
+
+const personRefs = post.creators.map((c) => ({
+  '@type': 'Person',
+  '@id': absRoutes.creatorId(c.slug),
+  name: c.name,
+}));
+
+const schemaCommon = {
+  '@context': 'https://schema.org',
+  description: excerpt,
+  image: coverAbs,
+  author: authorEntity,
+  datePublished: date,
+  dateModified: updated ?? date,
+  publisher: { '@id': `${SITE.url}/#organization` },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+  inLanguage: 'zh-Hant-TW',
+  ...(toolLabels.length ? { keywords: toolLabels.join(', ') } : {}),
+};
+
+const articleSchema = {
+  ...schemaCommon,
+  '@type': 'Article',
+  headline: title,
+  articleSection: typeDef.label,
+  wordCount,
+  timeRequired: `PT${readMin}M`,
+  ...(personRefs.length ? (isInterview ? { about: personRefs } : { mentions: personRefs }) : {}),
+};
+
+const howToSteps = isInterview ? [] : extractHowToSteps(body);
+const howToSchema =
+  howToSteps.length >= 2
+    ? {
+        ...schemaCommon,
+        '@type': 'HowTo',
+        name: title,
+        totalTime: `PT${readMin}M`,
+        step: howToSteps.map((s, i) => ({
+          '@type': 'HowToStep',
+          position: i + 1,
+          name: s.name,
+          text: s.text || s.name,
+        })),
+        ...(toolLabels.length ? { tool: toolLabels.map((name) => ({ '@type': 'HowToTool', name })) } : {}),
+        ...(personRefs.length ? { mentions: personRefs } : {}),
+      }
+    : null;
+
+const faqSchema = buildFaqSchema(body);
+const schemas = [howToSchema ?? articleSchema, ...(faqSchema ? [faqSchema] : [])];
+
+const pad3 = (n: number) => String(n).padStart(3, '0');
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={seoTitle ?? title}
+  description={excerpt}
+  ogImage={cover.src}
+  ogType="article"
+  schemas={schemas}
+  breadcrumbs={breadcrumbs}
+  article={{
+    publishedTime: date,
+    ...(updated ? { modifiedTime: updated } : {}),
+    section: typeDef.label,
+    tags: toolLabels,
+    ...(authorCreator ? { authorUrl: absRoutes.creator(authorCreator.slug) } : {}),
+  }}
+>
+  <div class="page">
+    <article class="article page-inner page-inner--wide">
+      <header class="article__head">
+        <nav class="crumbs" aria-label="麵包屑">
+          <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+          <a href={routes.posts()}>訪談與教學</a><span aria-hidden="true">／</span>
+          <span aria-current="page">{title}</span>
+        </nav>
+
+        <div class="article__meta">
+          <span class="tag">{typeDef.labelEn}・{typeDef.label}</span>
+          <time class="date-chip" datetime={date}>{dateLabel}</time>
+          <span class="date-chip">閱讀 {readMin} 分鐘</span>
+          {levelLabel && <span class="badge badge--outline">{levelLabel}</span>}
+        </div>
+
+        <h1 class="article__title">{title}</h1>
+        <p class="article__lede">{excerpt}</p>
+
+        <div class="article__byline">
+          <span class="byline">
+            文／{authorCreator ? <a class="byline__link" href={routes.creator(authorCreator.slug)}>{author}</a> : author}
+          </span>
+          {updatedLabel && <span class="date-chip">更新 {updatedLabel}</span>}
+        </div>
+
+        {(post.creators.length > 0 || tools.length > 0) && (
+          <dl class="article__facts">
+            {post.creators.length > 0 && (
+              <div class="article__fact">
+                <dt class="article__fact-label">{peopleLabel}</dt>
+                <dd class="article__fact-value">
+                  <ul class="people" role="list">
+                    {post.creators.map((c) => (
+                      <li>
+                        <a class="people__link" href={routes.creator(c.slug)}>
+                          <figure class="frame frame--portrait people__portrait">
+                            <Image
+                              src={c.portrait}
+                              alt=""
+                              width={64}
+                              height={80}
+                              widths={[64, 128]}
+                              sizes="32px"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </figure>
+                          <span class="people__name">{c.name}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
+            {tools.length > 0 && (
+              <div class="article__fact">
+                <dt class="article__fact-label">{isInterview ? '提及工具' : '涉及工具'}</dt>
+                <dd class="article__fact-value">
+                  <ul class="chips" role="list">
+                    {tools.map((t) =>
+                      t.hasPage ? (
+                        <li><a class="chip" href={routes.tool(t.slug)}>{t.label}</a></li>
+                      ) : (
+                        <li><span class="chip chip--plain">{t.label}</span></li>
+                      ),
+                    )}
+                  </ul>
+                </dd>
+              </div>
+            )}
+          </dl>
+        )}
+      </header>
+
+      <figure class="frame frame--post article__cover">
+        <Image
+          src={cover}
+          alt={coverAlt}
+          width={1600}
+          height={900}
+          widths={[480, 800, 1200, 1600]}
+          sizes="(max-width: 1288px) calc(100vw - 48px), 1240px"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </figure>
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <footer class="article__foot">
+        <div class="rule-hair"></div>
+
+        {post.creators.length > 0 && (
+          <section class="related-people" aria-labelledby="related-people-label">
+            <div class="section-head">
+              <h2 id="related-people-label" class="section-eyebrow">{peopleEyebrow}</h2>
+              <a class="section-all" href={routes.creators()}>創作者圖鑑 →</a>
+            </div>
+            <ul class="creator-cards" role="list">
+              {post.creators.map((c) => (
+                <li>
+                  <a
+                    class="creator-card"
+                    href={routes.creator(c.slug)}
+                    data-ga-cta="post_creator_card"
+                    data-ga-location="post_footer"
+                  >
+                    <figure class="frame frame--portrait creator-card__portrait">
+                      <Image
+                        src={c.portrait}
+                        alt=""
+                        width={160}
+                        height={200}
+                        widths={[160, 320]}
+                        sizes="80px"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </figure>
+                    <span class="creator-card__body">
+                      <span class="no">No.{pad3(c.no)}</span>
+                      <span class="creator-card__name">
+                        {c.name}
+                        {c.nameEn && <span class="creator-card__name-en">{c.nameEn}</span>}
+                      </span>
+                      <span class="creator-card__tagline">{c.tagline}</span>
+                      <span class="creator-card__cta">進入圖鑑頁 →</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {sameType.length > 0 && (
+          <nav class="related" aria-label={`其他${typeDef.label}`}>
+            <p class="related__title">其他{typeDef.label}</p>
+            <ul class="related__list" role="list">
+              {sameType.map((p) => (
+                <li>
+                  <a class="related__link" href={routes.post(p.data.urlSlug)}>
+                    <span class="related__headline">{p.data.title}</span>
+                    <time class="related__date" datetime={p.data.date}>{fmtDate(p.data.date)}</time>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
+        <ShareLike slug={`post:${urlSlug}`} title={title} url={pageUrl} location="post_footer" />
+
+        <p class="back">
+          <a href={routes.posts()} data-ga-cta="back_posts" data-ga-location="post_footer">← 回訪談與教學</a>
+        </p>
+      </footer>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .article {
+    min-width: 0;
+  }
+
+  /* ── 頁首 ───────────────────────────────────── */
+  .article__head {
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .article__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .article__title {
+    font-weight: 900;
+    font-size: clamp(1.75rem, 3.8vw, var(--fs-hero));
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    max-width: 24em;
+    margin-bottom: 18px;
+  }
+
+  .article__lede {
+    font-family: var(--font-serif);
+    font-size: var(--fs-md);
+    line-height: 1.9;
+    color: var(--ink-soft);
+    max-width: 52em;
+    margin-bottom: 16px;
+  }
+
+  .article__byline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding-top: 10px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .byline__link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .byline__link:hover {
+    color: var(--accent);
+  }
+
+  /* 受訪者列 ＋ 工具 chips */
+  .article__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 40px;
+    margin: 16px 0 0;
+  }
+  .article__fact {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    min-width: 0;
+  }
+  .article__fact-label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .article__fact-value {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .people {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .people__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+  }
+  .people__portrait {
+    width: 32px;
+    flex-shrink: 0;
+  }
+  .people__name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.04em;
+    transition: color 160ms var(--ease-out);
+  }
+  .people__link:hover .people__name {
+    color: var(--accent);
+  }
+
+  /* ── 封面：文章頁不做 hover 回彩，維持 grayscale(0.5) ── */
+  .article__cover {
+    margin: 0 0 36px;
+  }
+
+  /* ── 文末 ───────────────────────────────────── */
+  .article__foot {
+    margin-top: 56px;
+  }
+
+  .related-people {
+    margin-top: 32px;
+  }
+  .creator-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 880px;
+    margin-top: 4px;
+  }
+  .creator-card {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 16px;
+    height: 100%;
+    padding: 16px;
+    background: var(--paper-white);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+  }
+  .creator-card:hover {
+    color: var(--ink);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .creator-card__portrait {
+    width: 80px;
+  }
+  .creator-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .creator-card__name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.4;
+    transition: color 160ms var(--ease-out);
+  }
+  .creator-card:hover .creator-card__name {
+    color: var(--accent);
+  }
+  .creator-card__name-en {
+    margin-left: 8px;
+    font-family: var(--font-caps);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .creator-card__tagline {
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .creator-card__cta {
+    margin-top: auto;
+    padding-top: 8px;
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.18em;
+    color: var(--ink);
+  }
+
+  /* 同類型其他文章（標題＋日期一列式） */
+  .related {
+    max-width: 46em;
+    margin-top: 40px;
+  }
+  .related__title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    letter-spacing: 0.08em;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .related__link {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink);
+  }
+  .related__list li:last-child .related__link {
+    border-bottom: 0;
+  }
+  .related__headline {
+    min-width: 0;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    line-height: 1.65;
+    transition: color 160ms var(--ease-out);
+  }
+  .related__link:hover .related__headline,
+  .related__link:focus-visible .related__headline {
+    color: var(--accent);
+  }
+  .related__date {
+    flex-shrink: 0;
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── 手機 ───────────────────────────────────── */
+  @media (max-width: 640px) {
+    .article__head {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+    }
+    .article__title {
+      font-size: clamp(1.4rem, 6vw, 1.75rem);
+      margin-bottom: 14px;
+    }
+    .article__lede {
+      font-size: 0.9375rem;
+      line-height: 1.75;
+    }
+    .article__facts {
+      gap: 10px 20px;
+    }
+    .article__cover {
+      margin-bottom: 24px;
+    }
+    .article__foot {
+      margin-top: 40px;
+    }
+    .creator-cards {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .creator-card {
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px;
+    }
+    .creator-card__portrait {
+      width: 64px;
+    }
+  }
+</style>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="台灣AI影視創作者圖鑑 favicon">
+  <rect width="64" height="64" fill="#f6f3ec"/>
+  <rect x="4" y="4" width="56" height="56" fill="none" stroke="#141414" stroke-width="2"/>
+  <!-- 膠卷孔 -->
+  <rect x="9" y="10" width="5" height="7" fill="#141414"/>
+  <rect x="9" y="22" width="5" height="7" fill="#141414"/>
+  <rect x="9" y="34" width="5" height="7" fill="#141414"/>
+  <rect x="9" y="46" width="5" height="7" fill="#141414"/>
+  <text x="38" y="45"
+    text-anchor="middle"
+    font-family="'Noto Serif TC', 'Shippori Mincho', Georgia, serif"
+    font-weight="900"
+    font-size="30"
+    fill="#0f6b78">AI</text>
+</svg>

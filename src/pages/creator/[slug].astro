@@ -1,0 +1,750 @@
+---
+/**
+ * /creator/<slug>/ — 創作者個人頁（核心資產，設計文件 §6-3、§4-1）
+ *
+ * 版面：兩欄頭部（肖像 + 認證章 │ 名字 / tagline / 社群 / 資料格網）
+ *      → 簡介 → WORKS 作品 → AWARDS 得獎 → READ 相關訪談 → 分享 / 上下一位
+ *
+ * 資料格網欄位順序固定（收錄日 │ 地區 │ 角色 │ 主力工具 │ 作品類型 │ 作品數 │ 代表作 │ 得獎），
+ * 沒有值顯示「—」而非隱藏——每位創作者一模一樣的順序，讀者才能橫向比較。
+ *
+ * schema：Person（@id = creatorId）＋ ItemList of VideoObject；ogType="profile"
+ */
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ShareLike from '../../components/ShareLike.astro';
+import { getSiteData, isoDuration, fmtDuration } from '../../data/queries';
+import { routes, absRoutes, absAsset } from '../../data/site';
+import { toolLabel, toolHasPage } from '../../data/tools';
+import { genreLabel, POST_TYPE_LABEL } from '../../data/genres';
+import { fmtDate } from '../../data/events';
+
+export async function getStaticPaths() {
+  const d = await getSiteData();
+  return d.creators.map((c) => ({ params: { slug: c.slug }, props: { slug: c.slug } }));
+}
+
+const { slug } = Astro.props as { slug: string };
+const d = await getSiteData();
+const creator = d.creatorById.get(slug);
+if (!creator) throw new Error(`[creator] 找不到創作者「${slug}」`);
+
+const { name, nameEn, tagline, bio, region, role, tools, genres, awards, sameAs, listedAt, updatedAt } = creator.data;
+const works = creator.works;
+const posts = creator.posts;
+const noLabel = `No.${String(creator.no).padStart(3, '0')}`;
+
+/* 內文（frontmatter 以外的 Markdown body）：有才渲染 */
+const hasBody = !!creator.entry.body && creator.entry.body.trim().length > 0;
+const Content = hasBody ? (await render(creator.entry)).Content : null;
+
+/* 上一位／下一位（依編號） */
+const idx = d.creators.findIndex((c) => c.slug === slug);
+const prev = idx > 0 ? d.creators[idx - 1] : null;
+const next = idx < d.creators.length - 1 ? d.creators[idx + 1] : null;
+
+/* 社群連結（sameAs 每個 key → 顯示名） */
+const SOCIAL_LABEL: Record<string, string> = {
+  youtube: 'YouTube',
+  instagram: 'Instagram',
+  x: 'X',
+  threads: 'Threads',
+  vimeo: 'Vimeo',
+  website: '網站',
+};
+const socialLinks = Object.entries(sameAs ?? {})
+  .filter((kv): kv is [string, string] => typeof kv[1] === 'string' && kv[1].length > 0)
+  .map(([key, url]) => ({ key, url, label: SOCIAL_LABEL[key] ?? key }));
+
+/* 得獎依年份倒序 */
+const awardRows = [...(awards ?? [])].sort((a, b) => b.year - a.year);
+const topResultRe = /首獎|金獎|最佳|冠軍|大獎/;
+
+/* 靜態資產 → 絕對 URL：site.ts 的 absAsset()（Astro 圖片 src 在有 base 時已含 base，只補 origin） */
+const pageUrl = absRoutes.creator(slug);
+const personId = absRoutes.creatorId(slug);
+const portraitUrl = absAsset(creator.portrait.src);
+
+/* ── 雙標題制 + description ── */
+const seoTitle =
+  creator.data.seoTitle ?? `${name}｜AI 影視創作者（${tools.slice(0, 2).map(toolLabel).join('・')}）`;
+const bioHead = bio.length > 100 ? `${bio.slice(0, 100)}…` : bio;
+const description = `${tagline}。${bioHead}`;
+
+/* ── Person schema ── */
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  '@id': personId,
+  name,
+  ...(nameEn ? { alternateName: nameEn } : {}),
+  description: tagline,
+  image: portraitUrl,
+  url: pageUrl,
+  ...(role?.length ? { jobTitle: role.join('、') } : {}),
+  ...(region ? { homeLocation: { '@type': 'Place', name: region } } : {}),
+  knowsAbout: tools.map(toolLabel),
+  ...(awardRows.length ? { award: awardRows.map((a) => `${a.year} ${a.title}（${a.result}）`) } : {}),
+  sameAs: socialLinks.map((s) => s.url),
+  mainEntityOfPage: { '@type': 'ProfilePage', '@id': pageUrl },
+};
+
+/* ── ItemList of VideoObject（該創作者作品） ── */
+const worksSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${name}的作品`,
+  numberOfItems: works.length,
+  itemListElement: works.map((w, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'VideoObject',
+      name: w.data.title,
+      description: w.data.synopsis,
+      url: absRoutes.work(w.data.slug),
+      thumbnailUrl: absAsset(w.data.thumb.src),
+      uploadDate: w.data.releasedAt ?? `${w.data.year}-01-01`,
+      ...(isoDuration(w.data.durationSec) ? { duration: isoDuration(w.data.durationSec) } : {}),
+      genre: genreLabel(w.data.genre),
+      creator: w.creators.map((c) => ({ '@id': absRoutes.creatorId(c.slug) })),
+    },
+  })),
+};
+
+const schemas = works.length ? [personSchema, worksSchema] : [personSchema];
+
+const breadcrumbs = [
+  { name: '創作者', item: absRoutes.creators() },
+  { name, item: pageUrl },
+];
+---
+
+<BaseLayout
+  title={name}
+  seoTitle={seoTitle}
+  description={description}
+  ogType="profile"
+  ogImage={creator.portrait.src}
+  schemas={schemas}
+  breadcrumbs={breadcrumbs}
+>
+  <article class="page container" itemscope itemtype="https://schema.org/Person" itemid={personId}>
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <a href={routes.creators()}>創作者</a><span aria-hidden="true">／</span>
+        <span aria-current="page">{name}</span>
+      </nav>
+
+      <!-- ── 頭部：肖像 │ 名字・tagline・社群・資料格網 ─────────── -->
+      <header class="profile">
+        <div class="profile__media">
+          <figure class="frame frame--portrait profile__portrait">
+            <Image
+              src={creator.portrait}
+              alt={creator.portraitAlt}
+              width={600}
+              height={750}
+              widths={[320, 600, 900]}
+              sizes="(max-width: 640px) 220px, (max-width: 960px) 260px, 320px"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+            <span class="chop profile__chop">收錄 <span class="chop__no">{noLabel}</span></span>
+          </figure>
+        </div>
+
+        <div class="profile__body">
+          <p class="profile__kicker">
+            <span class="tag">Creator・創作者</span>
+            <span class="no">{noLabel}</span>
+          </p>
+          <h1 class="profile__name" itemprop="name">
+            {name}
+            {nameEn && <span class="profile__name-en" itemprop="alternateName">{nameEn}</span>}
+          </h1>
+          <p class="profile__tagline" itemprop="description">{tagline}</p>
+
+          <!-- 資料格網：欄位順序固定，每位創作者一致 -->
+          <dl class="data-grid profile__grid">
+            <div class="data-grid__cell">
+              <dt class="data-grid__label">收錄日</dt>
+              <dd class="data-grid__value data-grid__value--num">{fmtDate(listedAt)}</dd>
+            </div>
+            <div class="data-grid__cell">
+              <dt class="data-grid__label">地區</dt>
+              <dd class="data-grid__value">{region ?? '—'}</dd>
+            </div>
+            <div class="data-grid__cell">
+              <dt class="data-grid__label">角色</dt>
+              <dd class="data-grid__value">{role?.length ? role.join('・') : '—'}</dd>
+            </div>
+            <div class="data-grid__cell data-grid__cell--wide">
+              <dt class="data-grid__label">主力工具</dt>
+              <dd class="data-grid__value">
+                <ul class="chips">
+                  {tools.map((t) =>
+                    toolHasPage(d.toolCounts, t) ? (
+                      <li><a class="chip" href={routes.tool(t)}>{toolLabel(t)}</a></li>
+                    ) : (
+                      <li><span class="chip chip--plain">{toolLabel(t)}</span></li>
+                    ),
+                  )}
+                </ul>
+              </dd>
+            </div>
+            <div class="data-grid__cell">
+              <dt class="data-grid__label">作品類型</dt>
+              <dd class="data-grid__value">
+                {genres.length ? (
+                  <ul class="chips">
+                    {genres.map((g) => (
+                      <li><a class="chip" href={routes.genre(g)}>{genreLabel(g)}</a></li>
+                    ))}
+                  </ul>
+                ) : (
+                  '—'
+                )}
+              </dd>
+            </div>
+            <div class="data-grid__cell">
+              <dt class="data-grid__label">作品數</dt>
+              <dd class="data-grid__value data-grid__value--num">
+                {creator.workCount > 0 ? `${creator.workCount} 部` : '—'}
+              </dd>
+            </div>
+            <div class="data-grid__cell">
+              <dt class="data-grid__label">代表作</dt>
+              <dd class="data-grid__value">
+                {creator.latestWork ? (
+                  <a class="profile__rep" href={routes.work(creator.latestWork.data.slug)}>
+                    {creator.latestWork.data.title}
+                  </a>
+                ) : (
+                  '—'
+                )}
+              </dd>
+            </div>
+            <div class="data-grid__cell">
+              <dt class="data-grid__label">得獎</dt>
+              <dd class="data-grid__value data-grid__value--num">
+                {awardRows.length ? <a class="profile__rep" href="#awards">{awardRows.length} 筆</a> : '—'}
+              </dd>
+            </div>
+          </dl>
+
+          {socialLinks.length > 0 && (
+            <ul class="profile__social" aria-label="社群連結">
+              {socialLinks.map((s) => (
+                <li>
+                  <a
+                    class="profile__social-link"
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-ga-cta="creator_social"
+                    data-ga-location="creator_head"
+                    aria-label={`${name}的 ${s.label}（另開新視窗）`}
+                  >
+                    {s.label}<span class="profile__social-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </header>
+
+      <!-- ── 簡介 ─────────────────────────────────────────────── -->
+      <section class="sec sec--bio" aria-labelledby="bio-head">
+        <div class="section-head">
+          <h2 class="section-eyebrow" id="bio-head">Profile・簡介</h2>
+          {updatedAt && <span class="listed-chip">更新 {fmtDate(updatedAt)}</span>}
+        </div>
+        <p class="page-lead profile__bio">{bio}</p>
+        {Content && (
+          <div class="prose profile__prose">
+            <Content />
+          </div>
+        )}
+      </section>
+
+      <!-- ── WORKS・作品 ────────────────────────────────────────── -->
+      <section class="sec" aria-labelledby="works-head" id="works">
+        <div class="section-head">
+          <h2 class="section-eyebrow" id="works-head">Works・作品</h2>
+          <a class="section-all" href={routes.works()}>全部作品 →</a>
+        </div>
+        <div class="rule-hair"></div>
+
+        {works.length > 0 ? (
+          <ul class="wk-grid">
+            {works.map((w, i) => {
+              const collaborators = w.creators.filter((c) => c.slug !== slug);
+              const metaParts = [String(w.data.year), genreLabel(w.data.genre), fmtDuration(w.data.durationSec)].filter(Boolean);
+              return (
+                <li class="wk">
+                  <a class="wk__link" href={routes.work(w.data.slug)}>
+                    <figure class="frame frame--work wk__figure">
+                      <Image
+                        src={w.data.thumb}
+                        alt={w.data.thumbAlt}
+                        width={640}
+                        height={360}
+                        widths={[400, 640, 960]}
+                        sizes="(max-width: 640px) 92vw, (max-width: 960px) 46vw, 390px"
+                        loading={i < 3 ? 'eager' : 'lazy'}
+                        decoding="async"
+                      />
+                    </figure>
+                    <div class="wk__body">
+                      <h3 class="wk__title">{w.data.title}</h3>
+                      <p class="wk__meta">{metaParts.join('・')}</p>
+                      {collaborators.length > 0 && (
+                        <p class="wk__collab">
+                          <span class="badge badge--outline">合作</span>
+                          <span class="wk__collab-names">與{collaborators.map((c) => c.name).join('、')}</span>
+                        </p>
+                      )}
+                    </div>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p class="sec__empty">本站尚未收錄 {name}的作品。</p>
+        )}
+      </section>
+
+      <!-- ── AWARDS・得獎與入圍 ─────────────────────────────────── -->
+      {awardRows.length > 0 && (
+        <section class="sec" aria-labelledby="awards-head" id="awards">
+          <div class="section-head">
+            <h2 class="section-eyebrow" id="awards-head">Awards・得獎與入圍</h2>
+            <span class="listed-chip">共 {awardRows.length} 筆</span>
+          </div>
+          <div class="table-wrap">
+            <table class="table table--tight awards">
+              <thead>
+                <tr>
+                  <th scope="col" class="awards__year">年</th>
+                  <th scope="col">獎項</th>
+                  <th scope="col" class="awards__result">結果</th>
+                </tr>
+              </thead>
+              <tbody>
+                {awardRows.map((a) => (
+                  <tr>
+                    <td class="num awards__year">{a.year}</td>
+                    <td class="awards__title">{a.title}</td>
+                    <td class="awards__result">
+                      <span class:list={['badge', !topResultRe.test(a.result) && 'badge--outline']}>{a.result}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <!-- ── READ・相關訪談與教學 ──────────────────────────────── -->
+      {posts.length > 0 && (
+        <section class="sec" aria-labelledby="read-head" id="read">
+          <div class="section-head">
+            <h2 class="section-eyebrow" id="read-head">Read・相關訪談與教學</h2>
+            <a class="section-all" href={routes.posts()}>全部文章 →</a>
+          </div>
+          <div class="rule-hair"></div>
+          <ul class="plist">
+            {posts.map((p) => {
+              const t = POST_TYPE_LABEL[p.data.type] ?? { label: p.data.type, labelEn: p.data.type };
+              return (
+                <li class="plist__item">
+                  <a class="plist__link" href={routes.post(p.data.urlSlug)}>
+                    <span class:list={['badge', p.data.type === 'interview' ? 'badge--accent' : 'badge--outline', 'plist__badge']}>
+                      {t.label}
+                    </span>
+                    <span class="plist__title">{p.data.title}</span>
+                    <span class="listed-chip plist__date">{fmtDate(p.data.date)}</span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      <!-- ── 頁尾：分享 / 上一位・下一位 / 回總表 ─────────────── -->
+      <footer class="profile-foot">
+        <ShareLike slug={`creator:${slug}`} title={name} url={pageUrl} location="creator_footer" />
+
+        <nav class="pager" aria-label="上一位／下一位創作者">
+          {prev ? (
+            <a class="pager__link pager__link--prev" href={routes.creator(prev.slug)} rel="prev">
+              <span class="pager__dir">← 上一位</span>
+              <span class="pager__name"><span class="no">No.{String(prev.no).padStart(3, '0')}</span> {prev.name}</span>
+            </a>
+          ) : (
+            <span class="pager__link pager__link--prev pager__link--none" aria-hidden="true">
+              <span class="pager__dir">← 上一位</span>
+              <span class="pager__name">—</span>
+            </span>
+          )}
+          {next ? (
+            <a class="pager__link pager__link--next" href={routes.creator(next.slug)} rel="next">
+              <span class="pager__dir">下一位 →</span>
+              <span class="pager__name"><span class="no">No.{String(next.no).padStart(3, '0')}</span> {next.name}</span>
+            </a>
+          ) : (
+            <span class="pager__link pager__link--next pager__link--none" aria-hidden="true">
+              <span class="pager__dir">下一位 →</span>
+              <span class="pager__name">—</span>
+            </span>
+          )}
+        </nav>
+
+        <div class="rule-double profile-foot__rule"></div>
+        <p class="back"><a href={routes.creators()}>← 回圖鑑總表</a></p>
+      </footer>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  /* ── 頭部兩欄 ────────────────────────────────────── */
+  .profile {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+  .profile__media {
+    position: relative;
+  }
+  .profile__portrait {
+    width: 100%;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .profile__chop {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--paper);
+    z-index: 1;
+  }
+
+  .profile__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+  .profile__kicker {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .profile__name {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 4.4vw, 2.75rem);
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+  .profile__name-en {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-caps);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .profile__tagline {
+    font-family: var(--font-serif);
+    font-size: var(--fs-lg);
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 30em;
+  }
+
+  /* 社群連結列 */
+  .profile__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .profile__social-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 9px 12px;
+    min-height: 36px;
+    border: 1px solid var(--ink);
+    background: var(--paper-white);
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+  }
+  .profile__social-link:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .profile__social-arrow {
+    font-size: 0.85em;
+  }
+
+  /* 資料格網：本頁只調欄數與外距 */
+  .profile__grid {
+    margin-top: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 14px;
+  }
+  .data-grid__cell--wide {
+    grid-column: span 2;
+  }
+  .profile__rep {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule-soft);
+  }
+  .profile__rep:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  /* ── 區塊共用 ────────────────────────────────────── */
+  .sec {
+    margin-top: 56px;
+  }
+  .sec--bio {
+    margin-top: 48px;
+  }
+  .sec .rule-hair {
+    margin-bottom: 20px;
+  }
+  .sec__empty {
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    padding: 20px 0;
+  }
+  .profile__bio {
+    margin-bottom: 0;
+  }
+  .profile__prose {
+    margin-top: 24px;
+  }
+
+  /* ── 作品格：3 欄全彩縮圖 ────────────────────────── */
+  .wk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px 24px;
+  }
+  .wk__link {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: inherit;
+  }
+  .wk__figure :global(img) {
+    transition: transform 500ms var(--ease-out);
+  }
+  .wk__link:hover .wk__figure :global(img) {
+    transform: scale(1.03);
+  }
+  .wk__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .wk__title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.4;
+    color: var(--ink);
+    transition: color 160ms var(--ease-out);
+  }
+  .wk__link:hover .wk__title {
+    color: var(--accent);
+  }
+  .wk__meta {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .wk__collab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .wk__collab-names {
+    font-family: var(--font-serif);
+    font-size: var(--fs-xs);
+    color: var(--ink-soft);
+  }
+
+  /* ── 得獎表 ─────────────────────────────────────── */
+  .awards__year {
+    width: 72px;
+    white-space: nowrap;
+  }
+  .awards__title {
+    font-family: var(--font-serif);
+    color: var(--ink);
+  }
+  .awards__result {
+    width: 120px;
+    white-space: nowrap;
+  }
+
+  /* ── 相關訪談與教學 ─────────────────────────────── */
+  .plist__item + .plist__item {
+    border-top: 1px dashed var(--rule-soft);
+  }
+  .plist__link {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 4px;
+    color: var(--ink);
+    transition: background 160ms var(--ease-out);
+  }
+  .plist__link:hover {
+    background: var(--paper-alt);
+    color: var(--ink);
+  }
+  .plist__title {
+    font-family: var(--font-serif);
+    font-size: var(--fs-base);
+    line-height: 1.55;
+    transition: color 160ms var(--ease-out);
+  }
+  .plist__link:hover .plist__title {
+    color: var(--accent);
+  }
+
+  /* ── 頁尾 ───────────────────────────────────────── */
+  .profile-foot {
+    margin-top: 56px;
+  }
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .pager__link {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--rule);
+    background: var(--paper-white);
+    color: var(--ink);
+    transition: background 160ms var(--ease-out);
+  }
+  a.pager__link:hover {
+    background: var(--paper-alt);
+    color: var(--ink);
+  }
+  .pager__link--next {
+    text-align: right;
+    align-items: flex-end;
+  }
+  .pager__link--none {
+    border-color: var(--rule-soft);
+    color: var(--muted);
+    background: transparent;
+  }
+  .pager__dir {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+  .pager__name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+  }
+  a.pager__link:hover .pager__name {
+    color: var(--accent);
+  }
+  .profile-foot__rule {
+    margin-top: 40px;
+    margin-bottom: 0;
+  }
+
+  /* ── 響應式 ─────────────────────────────────────── */
+  @media (max-width: 960px) {
+    .profile {
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 28px;
+    }
+    .profile__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .wk-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .profile {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .profile__media {
+      max-width: 220px;
+    }
+    .profile__name {
+      font-size: clamp(1.75rem, 8vw, 2.25rem);
+    }
+    .profile__tagline {
+      font-size: var(--fs-md);
+    }
+    .profile__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .data-grid__cell--wide {
+      grid-column: span 2;
+    }
+    .sec {
+      margin-top: 40px;
+    }
+    .wk-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .plist__link {
+      grid-template-columns: auto 1fr;
+      row-gap: 6px;
+    }
+    .plist__date {
+      grid-column: 1 / -1;
+    }
+    .pager {
+      grid-template-columns: 1fr;
+    }
+    .pager__link--next {
+      text-align: left;
+      align-items: flex-start;
+    }
+  }
+</style>

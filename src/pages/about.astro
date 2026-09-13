@@ -1,0 +1,386 @@
+---
+/**
+ * /about/ — 關於圖鑑・收錄準則
+ *
+ * 同時承接設計文件 §9 待決事項 3（收錄標準）、4（作品授權）、5（退出機制）的公開版本，
+ * 也是本站的 E-E-A-T 資產：說清楚「誰會被收錄、資料怎麼來、怎麼退出」。
+ * schema：AboutPage（isPartOf WebSite、about Organization）。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, routes, absUrl } from '../data/site';
+import { getSiteData } from '../data/queries';
+import { TOOLS } from '../data/tools';
+import { GENRES } from '../data/genres';
+import { fmtDate } from '../data/events';
+
+const d = await getSiteData();
+
+const pageUrl = absUrl('/about/');
+const title = '關於圖鑑・收錄準則';
+const description =
+  '台灣AI影視創作者圖鑑的定位與收錄準則：至少三部公開作品、AI 生成畫面佔主要比例、具台灣身分、作品可公開嵌入並標示使用工具。' +
+  '另說明資料整理方式、作品授權與影片嵌入聲明、更正與退出機制。';
+
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  '@id': `${pageUrl}#aboutpage`,
+  name: title,
+  url: pageUrl,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  about: { '@id': `${SITE.url}/#organization` },
+};
+
+const breadcrumbs = [{ name: '關於圖鑑', item: pageUrl }];
+
+/* 章節目錄（與下方 h2 的 id 對應） */
+const sections = [
+  { id: 'what', no: '01', label: '這是什麼' },
+  { id: 'criteria', no: '02', label: '收錄準則' },
+  { id: 'method', no: '03', label: '資料整理方式' },
+  { id: 'rights', no: '04', label: '授權與嵌入聲明' },
+  { id: 'exit', no: '05', label: '更正與退出' },
+  { id: 'benefit', no: '06', label: '對創作者的意義' },
+  { id: 'contact', no: '07', label: '聯絡方式' },
+];
+
+const mailto = `mailto:${SITE.email}`;
+---
+
+<BaseLayout title={title} seoTitle={title} description={description} schemas={[aboutSchema]} breadcrumbs={breadcrumbs}>
+  <div class="page container">
+    <div class="page-inner">
+
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a>
+        <span aria-hidden="true">／</span>
+        <span aria-current="page">關於圖鑑</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">About・關於圖鑑</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">
+          {SITE.name}是一份年鑑式網站：以創作者為單位，整理台灣以 AI 工具進行影視創作的人、他們的作品、工具棧與公開紀錄。
+          本頁說明圖鑑的定位、收錄準則、資料整理方式、授權聲明與退出機制。
+        </p>
+      </header>
+
+      <!-- 圖鑑現況：直接吃 build 時的實際數字 -->
+      <dl class="data-grid about-stats" aria-label="圖鑑現況">
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">收錄創作者</dt>
+          <dd class="data-grid__value data-grid__value--num">{d.creators.length} 位</dd>
+        </div>
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">收錄作品</dt>
+          <dd class="data-grid__value data-grid__value--num">{d.works.length} 部</dd>
+        </div>
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">訪談與教學</dt>
+          <dd class="data-grid__value data-grid__value--num">{d.posts.length} 篇</dd>
+        </div>
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">活動與比賽</dt>
+          <dd class="data-grid__value data-grid__value--num">{d.events.length} 場</dd>
+        </div>
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">受控詞彙</dt>
+          <dd class="data-grid__value data-grid__value--num">{TOOLS.length} 工具・{GENRES.length} 類型</dd>
+        </div>
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">本期更新</dt>
+          <dd class="data-grid__value data-grid__value--num">{fmtDate(d.today)}</dd>
+        </div>
+      </dl>
+
+      <nav class="toc" aria-label="本頁章節">
+        <ol class="toc__list">
+          {sections.map((s) => (
+            <li>
+              <a href={`#${s.id}`}>
+                <span class="toc__num">{s.no}</span>
+                <span class="toc__label">{s.label}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <div class="prose about-body">
+
+        <h2 id="what">這是什麼</h2>
+        <p>
+          本圖鑑收錄台灣的 AI 影視創作者。每位創作者一個條目，統一整理定位、主力工具、作品、得獎紀錄與社群連結；
+          作品、訪談與教學都關聯回創作者本人。資料由編輯部整理、經創作者確認後刊出，以年鑑的方式逐期累積。
+        </p>
+        <p>我們刻意不做三件事：</p>
+        <ul>
+          <li>
+            <strong>不是投稿平台。</strong>
+            沒有上傳、沒有會員、沒有自助表單。收錄由編輯部邀請，或經讀者推薦後審閱。
+          </li>
+          <li>
+            <strong>不是工具評測站。</strong>
+            工具是索引軸，用來回答「誰在用 Runway 做短片」，而不是「哪個工具比較好」。
+          </li>
+          <li>
+            <strong>不是新聞媒體。</strong>
+            不追即時消息。內容以人與作品為錨，比賽與活動資訊只是輔助。
+          </li>
+        </ul>
+
+        <h2 id="criteria">收錄準則</h2>
+        <p>符合以下五項，才會進入圖鑑。這是唯一的門檻，不分知名度、不分接案或獨立創作。</p>
+        <ol class="criteria">
+          <li>
+            <strong>至少三部公開作品。</strong>
+            <span>作品須可在 YouTube 或 Vimeo 公開觀看，不接受私人連結、限時連結或僅供下載的檔案。</span>
+          </li>
+          <li>
+            <strong>AI 生成畫面佔主要比例。</strong>
+            <span>以 AI 影片或圖像生成工具製作的畫面須構成作品主體；只以 AI 做調色、去背、補幀或字幕的實拍作品不在此列。</span>
+          </li>
+          <li>
+            <strong>創作者本人或團隊位於台灣，或具台灣身分。</strong>
+            <span>旅居海外的台灣創作者可收錄，地區欄位標示為「海外」。</span>
+          </li>
+          <li>
+            <strong>作品可公開嵌入。</strong>
+            <span>影片需允許在第三方網站以官方播放器嵌入播放。本站不代管影片檔，關閉嵌入的作品無法收錄。</span>
+          </li>
+          <li>
+            <strong>標示使用工具。</strong>
+            <span>創作者需提供每部作品的主要工具清單，由編輯部對照受控詞彙填入；無法確認工具的作品不列入作品數。</span>
+          </li>
+        </ol>
+        <p>
+          收錄途徑有兩種：<strong>編輯部主動邀請</strong>，以及<strong>讀者推薦或創作者自薦</strong>（請至
+          <a href={routes.contact()}>聯絡／推薦收錄</a>）。兩者都經同一套準則審閱。
+          本圖鑑不收費、不接受付費收錄，也不因贊助改變排序。
+        </p>
+
+        <h2 id="method">我們怎麼整理資料</h2>
+        <ul>
+          <li>
+            <strong>受控詞彙。</strong>
+            工具（{TOOLS.length} 項）與類型（{GENRES.length} 項）是圖鑑的兩條索引軸，一律由編輯部人工填寫，不做自動推斷。
+            每個工具標籤上線前都會對照作品說明確認確實使用過。
+          </li>
+          <li>
+            <strong>統一欄位。</strong>
+            每位創作者頁跑同樣的順序：收錄章（編號）、固定欄位的資料格網（收錄日、地區、角色、主力工具、作品類型、作品數、代表作、得獎）、社群連結列。
+            欄位固定，讀者才能橫向比較。
+          </li>
+          <li>
+            <strong>確認後上線。</strong>
+            條目文字、工具清單與作品清單在刊出前交由創作者本人確認；訪談稿也於刊出前交受訪者核閱。
+          </li>
+          <li>
+            <strong>編號規則。</strong>
+            收錄編號依刊出順序給定，一經給定不再變動；下架的編號不回收、不補位。
+          </li>
+          <li>
+            <strong>更新頻率。</strong>
+            新收錄隨時刊出。活動與比賽每日重建，過期活動自動移出「即將舉行」。
+            既有條目每季複查一次；創作者也可隨時來信更新作品或社群連結。
+          </li>
+        </ul>
+
+        <h2 id="rights">作品授權與影片嵌入聲明</h2>
+        <ul>
+          <li>
+            <strong>縮圖與劇照</strong>由創作者授權本站使用，僅用於圖鑑內的作品展示與社群分享預覽，不另作他用；作品縮圖一律全彩呈現，不套濾鏡。
+          </li>
+          <li>
+            <strong>影片一律外連。</strong>
+            所有影片以 YouTube／Vimeo 官方嵌入播放器播放；本站不下載、不轉存、不代管任何影片檔。
+            作品頁預設只顯示縮圖與播放鈕，點擊後才載入平台播放器。
+          </li>
+          <li>
+            <strong>版權屬創作者所有。</strong>
+            本站對作品不主張任何權利；條目文字（定位、簡介、作品介紹）由編輯部撰寫，引用請註明出處。
+          </li>
+          <li>
+            作品若在原平台下架或改為私人，圖鑑內對應的作品頁會隨之移除。
+          </li>
+        </ul>
+
+        <h2 id="exit">更正與退出機制</h2>
+        <ul>
+          <li>
+            <strong>更正。</strong>
+            工具、地區、角色、作品清單、社群連結或簡介有誤，來信告知，七個工作日內修正。
+          </li>
+          <li>
+            <strong>下架單一作品。</strong>
+            來信指明作品，該作品頁移除，創作者條目保留，作品數同步更新。
+          </li>
+          <li>
+            <strong>整體退出。</strong>
+            創作者可隨時要求整份條目下架，不需說明理由。
+            下架後，該創作者頁與所屬作品頁自站內移除，原網址不再提供內容（回應 404，不轉址到其他條目），
+            並自 XML sitemap 與 llms.txt 索引中移除。
+          </li>
+          <li>
+            為避免冒名申請，更正與退出請求須來自條目所列的社群帳號，或收錄時使用的聯絡信箱。
+            請至 <a href={routes.contact()}>聯絡／推薦收錄</a> 查看來信格式。
+          </li>
+        </ul>
+
+        <h2 id="benefit">被收錄對創作者的意義</h2>
+        <p>圖鑑不是單方面索取資料。每一個條目都以結構化資料的方式建立，對創作者本人的搜尋能見度有實質作用：</p>
+        <ul>
+          <li>
+            <strong>獨立的 Person 實體。</strong>
+            每位創作者頁輸出 schema.org 的 Person 結構化資料，有固定的識別 ID；
+            作品（VideoObject）與訪談（Article）都以此 ID 指回本人，而不是指向圖鑑編輯部。
+          </li>
+          <li>
+            <strong>sameAs 串連社群。</strong>
+            YouTube、Instagram、X、Threads、Vimeo 與個人網站以 sameAs 併入同一個實體，
+            協助搜尋引擎把分散的帳號認成同一個人。
+          </li>
+          <li>
+            <strong>知識面板的機會。</strong>
+            完整、可驗證、有第三方來源的 Person 實體，是取得 Google 知識面板的基礎條件之一。
+            本站不保證結果，但把該做的結構做齊。
+          </li>
+          <li>
+            <strong>可引用的公開紀錄。</strong>
+            條目、作品與得獎紀錄以固定網址存在，供媒體、影展與合作方引用；資料經本人確認，不是二手轉述。
+          </li>
+        </ul>
+
+        <h2 id="contact">聯絡方式</h2>
+        <p>
+          推薦收錄、更正與下架、媒體引用與合作洽詢，請寫信至
+          <a href={mailto} data-ga-cta="contact_email" data-ga-location="about_contact">{SITE.email}</a>，
+          或前往 <a href={routes.contact()}>聯絡／推薦收錄</a> 頁面查看來信時請附的資料。
+        </p>
+
+      </div>
+
+      <div class="rule-double bottom-rule"></div>
+      <p class="back">
+        <a href={routes.home()}>← 返回首頁</a>
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* 圖鑑現況格網：緊接頁首；六格固定 3×2（auto-fit 在 880px 會排成 5+1 落單） */
+  .about-stats {
+    margin-top: 4px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* 本頁章節目錄（細線夾住的一列） */
+  .toc {
+    margin: 28px 0 4px;
+    padding: 12px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .toc__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+  }
+
+  .toc__list a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+
+  .toc__list a:hover .toc__label {
+    color: var(--accent);
+  }
+
+  .toc__num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+
+  /* 錨點定位時留一點呼吸空間 */
+  .about-body h2 {
+    scroll-margin-top: 24px;
+  }
+
+  /* 收錄準則：以 01–05 編號的細線清單（取代 prose 的 decimal） */
+  .prose .criteria {
+    list-style: none;
+    padding-left: 0;
+    margin: 8px 0 28px;
+    counter-reset: criteria;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .prose .criteria li {
+    counter-increment: criteria;
+    display: grid;
+    grid-template-columns: 2.6em 1fr;
+    gap: 6px 14px;
+    padding: 14px 0;
+    margin: 0;
+    border-top: 1px solid var(--rule-soft);
+    line-height: 1.85;
+  }
+
+  /* 編號佔左欄並跨兩列；標題與說明都落在右欄 */
+  .prose .criteria li::before {
+    content: counter(criteria, decimal-leading-zero);
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding-top: 0.2em;
+  }
+
+  .prose .criteria strong {
+    display: block;
+    grid-column: 2;
+    background: none;
+    padding: 0;
+    font-size: 1.05em;
+  }
+
+  .prose .criteria span {
+    display: block;
+    grid-column: 2;
+    color: var(--ink-soft);
+    font-size: 0.94em;
+  }
+
+  .bottom-rule {
+    margin-top: 64px;
+  }
+
+  @media (max-width: 640px) {
+    .about-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .toc__list {
+      gap: 6px 16px;
+    }
+
+    .prose .criteria li {
+      grid-template-columns: 2.2em 1fr;
+      padding: 12px 0;
+    }
+  }
+</style>

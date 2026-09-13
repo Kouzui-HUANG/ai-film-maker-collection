@@ -1,0 +1,516 @@
+---
+/**
+ * /creators/ — 圖鑑總表（本站最重要的單一頁面，設計文件 §6-2）
+ *
+ * 一頁列完所有創作者，不分頁、不捲動載入。
+ * 細線表格：No. │ 肖像 │ 名字 + tagline │ 主力工具 │ 地區 │ 作品數 │ 收錄日
+ * 排序（編號 / 收錄日 / 作品數）與篩選（工具 / 類型 / 地區）都在前端做，
+ * 網址同步 ?sort=&tool=&genre=&region=，深連結進站可還原篩選態。
+ *
+ * schema：CollectionPage + mainEntity ItemList of Person
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSiteData } from '../../data/queries';
+import { SITE, routes, absRoutes } from '../../data/site';
+import { TOOLS, toolLabel, toolHasPage } from '../../data/tools';
+import { GENRES, genreLabel } from '../../data/genres';
+import { fmtDate } from '../../data/events';
+
+const d = await getSiteData();
+const creators = d.creators; // 已依編號正序
+
+const creatorCount = creators.length;
+const workCount = d.works.length;
+const lastListed = creators.reduce((max, c) => (c.listedAt > max ? c.listedAt : max), '');
+
+/* 篩選選項：只列實際出現的值，順序沿用受控詞彙定義順序 */
+const presentTools = new Set(creators.flatMap((c) => c.tools));
+const toolOptions = TOOLS.filter((t) => presentTools.has(t.slug)).map((t) => ({ value: t.slug, label: t.label }));
+
+const presentGenres = new Set(creators.flatMap((c) => c.genres));
+const genreOptions = GENRES.filter((g) => presentGenres.has(g.slug)).map((g) => ({ value: g.slug, label: g.label }));
+
+const regionOptions = Array.from(new Set(creators.map((c) => c.region).filter((r): r is string => !!r)));
+
+const noLabel = (n: number) => `No.${String(n).padStart(3, '0')}`;
+
+const title = '創作者圖鑑總表';
+const seoTitle = `創作者圖鑑總表：${creatorCount} 位創作者、工具棧與作品一覽`;
+const description =
+  `圖鑑總表一頁列出全部 ${creatorCount} 位收錄的台灣 AI 影視創作者：編號、定位、主力工具、地區與作品數；` +
+  '可依工具、作品類型、地區交叉篩選，並依編號、收錄日或作品數排序。';
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': absRoutes.creators(),
+  url: absRoutes.creators(),
+  name: `${title}｜${SITE.name}`,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    name: title,
+    numberOfItems: creatorCount,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    itemListElement: creators.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Person',
+        '@id': absRoutes.creatorId(c.slug),
+        name: c.name,
+        ...(c.nameEn ? { alternateName: c.nameEn } : {}),
+        url: absRoutes.creator(c.slug),
+      },
+    })),
+  },
+};
+---
+
+<BaseLayout title={title} seoTitle={seoTitle} description={description} schemas={[collectionSchema]}>
+  <div class="page container">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <span aria-current="page">創作者</span>
+      </nav>
+      <header class="page-head">
+        <p class="page-eyebrow">Creators・圖鑑總表</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">
+          本表一頁列出圖鑑收錄的全部創作者，依收錄編號排列。每列標示其定位、主力工具、所在地區與作品數；點名字進入個人頁，可見完整工具棧、作品、得獎紀錄與相關訪談。
+          工具與類型皆為編輯部人工標註的受控詞彙，可用下方選單交叉篩選、切換排序。
+        </p>
+        <p class="page-meta">
+          共 {creatorCount} 位創作者・{workCount} 部作品・最後收錄 {fmtDate(lastListed)}
+        </p>
+      </header>
+
+      {creatorCount > 0 ? (
+        <>
+          <form class="dir-toolbar" id="dir-toolbar" aria-label="排序與篩選" autocomplete="off">
+            <label class="dir-toolbar__field">
+              <span class="dir-toolbar__label">排序</span>
+              <select class="select" id="dir-sort" name="sort">
+                <option value="no">依編號</option>
+                <option value="listed">依收錄日</option>
+                <option value="works">依作品數</option>
+              </select>
+            </label>
+            <label class="dir-toolbar__field">
+              <span class="dir-toolbar__label">工具</span>
+              <select class="select" id="dir-tool" name="tool">
+                <option value="">全部工具</option>
+                {toolOptions.map((o) => <option value={o.value}>{o.label}</option>)}
+              </select>
+            </label>
+            <label class="dir-toolbar__field">
+              <span class="dir-toolbar__label">類型</span>
+              <select class="select" id="dir-genre" name="genre">
+                <option value="">全部類型</option>
+                {genreOptions.map((o) => <option value={o.value}>{o.label}</option>)}
+              </select>
+            </label>
+            <label class="dir-toolbar__field">
+              <span class="dir-toolbar__label">地區</span>
+              <select class="select" id="dir-region" name="region">
+                <option value="">全部地區</option>
+                {regionOptions.map((r) => <option value={r}>{r}</option>)}
+              </select>
+            </label>
+            <button type="button" class="btn btn--ghost dir-toolbar__clear" id="dir-clear">清除篩選</button>
+            <p class="page-meta dir-toolbar__count" id="dir-count" aria-live="polite">
+              顯示 {creatorCount} 位
+            </p>
+          </form>
+
+          <div class="table-wrap dir-wrap" id="dir-wrap" tabindex="0" role="region" aria-label="創作者總表（可水平捲動）">
+            <table class="table dir" id="dir-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="dir__no">No.</th>
+                  <th scope="col" class="dir__portrait"><span class="visually-hidden">肖像</span></th>
+                  <th scope="col" class="dir__who">創作者</th>
+                  <th scope="col" class="dir__tools">主力工具</th>
+                  <th scope="col" class="dir__region">地區</th>
+                  <th scope="col" class="num dir__works">作品</th>
+                  <th scope="col" class="dir__listed">收錄日</th>
+                </tr>
+              </thead>
+              <tbody id="dir-body">
+                {creators.map((c) => (
+                  <tr
+                    class="dir__row"
+                    data-no={c.no}
+                    data-listed={c.listedAt}
+                    data-works={c.workCount}
+                    data-tools={c.tools.join(',')}
+                    data-genres={c.genres.join(',')}
+                    data-region={c.region ?? ''}
+                  >
+                    <td class="dir__no"><span class="no">{noLabel(c.no)}</span></td>
+                    <td class="dir__portrait">
+                      <a href={routes.creator(c.slug)} tabindex="-1" aria-hidden="true" class="dir__portrait-link">
+                        <figure class="frame frame--portrait dir__figure">
+                          <Image
+                            src={c.portrait}
+                            alt=""
+                            width={80}
+                            height={80}
+                            widths={[40, 80, 120]}
+                            sizes="40px"
+                            loading={c.no <= 12 ? 'eager' : 'lazy'}
+                            decoding="async"
+                          />
+                        </figure>
+                      </a>
+                    </td>
+                    <td class="dir__who">
+                      <a href={routes.creator(c.slug)} class="dir__name">
+                        {c.name}
+                        {c.nameEn && <span class="dir__name-en">{c.nameEn}</span>}
+                      </a>
+                      <p class="dir__tagline">{c.tagline}</p>
+                    </td>
+                    <td class="dir__tools">
+                      <ul class="chips" aria-label="主力工具">
+                        {c.tools.map((t) =>
+                          toolHasPage(d.toolCounts, t) ? (
+                            <li><a class="chip" href={routes.tool(t)}>{toolLabel(t)}</a></li>
+                          ) : (
+                            <li><span class="chip chip--plain">{toolLabel(t)}</span></li>
+                          ),
+                        )}
+                      </ul>
+                    </td>
+                    <td class="dir__region">{c.region ?? '—'}</td>
+                    <td class="num dir__works">{c.workCount}</td>
+                    <td class="dir__listed"><span class="listed-chip">{fmtDate(c.listedAt)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="coming dir__empty" id="dir-empty" hidden>
+            <p class="coming__kanji">查無結果</p>
+            <p class="coming__lead">沒有符合的創作者。<br />換一組條件，或清除篩選回到完整總表。</p>
+            <p class="dir__empty-action"><button type="button" class="btn" data-dir-clear>清除篩選</button></p>
+          </div>
+
+          <p class="dir__note">
+            表中「工具」為創作者自述的主力工具；作品數以本站收錄為準，合作作品計入每位參與者。
+            類型索引見各創作者頁的資料格網；工具索引頁僅在該工具作品數達門檻時開放。
+          </p>
+        </>
+      ) : (
+        <div class="coming">
+          <p class="coming__kanji">收錄中</p>
+          <p class="coming__lead">
+            圖鑑尚未收錄任何創作者。<br />
+            <a href={routes.contact()}>推薦收錄 →</a>
+          </p>
+        </div>
+      )}
+
+      <div class="rule-double dir__bottom-rule"></div>
+      <p class="back"><a href={routes.home()}>← 返回首頁</a></p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  /* ── 圖鑑總表：純前端排序 + 篩選，網址同步 ?sort=&tool=&genre=&region= ── */
+  type SortKey = 'no' | 'listed' | 'works';
+
+  const tbody = document.getElementById('dir-body');
+  const wrap = document.getElementById('dir-wrap');
+  const emptyEl = document.getElementById('dir-empty');
+  const countEl = document.getElementById('dir-count');
+  const sortSel = document.getElementById('dir-sort') as HTMLSelectElement | null;
+  const toolSel = document.getElementById('dir-tool') as HTMLSelectElement | null;
+  const genreSel = document.getElementById('dir-genre') as HTMLSelectElement | null;
+  const regionSel = document.getElementById('dir-region') as HTMLSelectElement | null;
+  const clearBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('#dir-clear, [data-dir-clear]'));
+
+  if (tbody && sortSel && toolSel && genreSel && regionSel) {
+    const rows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr.dir__row'));
+    const validOf = (sel: HTMLSelectElement) => new Set(Array.from(sel.options).map((o) => o.value));
+    const validSort = validOf(sortSel);
+    const validTool = validOf(toolSel);
+    const validGenre = validOf(genreSel);
+    const validRegion = validOf(regionSel);
+
+    const has = (csv: string | undefined, v: string) => !!csv && csv.split(',').includes(v);
+
+    const comparators: Record<SortKey, (a: HTMLTableRowElement, b: HTMLTableRowElement) => number> = {
+      no: (a, b) => Number(a.dataset.no) - Number(b.dataset.no),
+      listed: (a, b) =>
+        (b.dataset.listed ?? '').localeCompare(a.dataset.listed ?? '') || Number(b.dataset.no) - Number(a.dataset.no),
+      works: (a, b) =>
+        Number(b.dataset.works) - Number(a.dataset.works) || Number(a.dataset.no) - Number(b.dataset.no),
+    };
+
+    type State = { sort: SortKey; tool: string; genre: string; region: string };
+
+    const readState = (): State => ({
+      sort: (validSort.has(sortSel.value) ? sortSel.value : 'no') as SortKey,
+      tool: validTool.has(toolSel.value) ? toolSel.value : '',
+      genre: validGenre.has(genreSel.value) ? genreSel.value : '',
+      region: validRegion.has(regionSel.value) ? regionSel.value : '',
+    });
+
+    const writeControls = (s: State) => {
+      if (sortSel.value !== s.sort) sortSel.value = s.sort;
+      if (toolSel.value !== s.tool) toolSel.value = s.tool;
+      if (genreSel.value !== s.genre) genreSel.value = s.genre;
+      if (regionSel.value !== s.region) regionSel.value = s.region;
+    };
+
+    const stateFromUrl = (): State => {
+      const q = new URL(window.location.href).searchParams;
+      const sort = q.get('sort') ?? 'no';
+      const tool = q.get('tool') ?? '';
+      const genre = q.get('genre') ?? '';
+      const region = q.get('region') ?? '';
+      return {
+        sort: (validSort.has(sort) ? sort : 'no') as SortKey,
+        tool: validTool.has(tool) ? tool : '',
+        genre: validGenre.has(genre) ? genre : '',
+        region: validRegion.has(region) ? region : '',
+      };
+    };
+
+    const syncUrl = (s: State) => {
+      const url = new URL(window.location.href);
+      const set = (k: string, v: string, def: string) => {
+        if (v && v !== def) url.searchParams.set(k, v);
+        else url.searchParams.delete(k);
+      };
+      set('sort', s.sort, 'no');
+      set('tool', s.tool, '');
+      set('genre', s.genre, '');
+      set('region', s.region, '');
+      const next = url.pathname + url.search + url.hash;
+      if (next !== window.location.pathname + window.location.search + window.location.hash) {
+        history.replaceState(null, '', next);
+      }
+    };
+
+    const apply = (s: State) => {
+      writeControls(s);
+
+      let visible = 0;
+      for (const row of rows) {
+        const show =
+          (!s.tool || has(row.dataset.tools, s.tool)) &&
+          (!s.genre || has(row.dataset.genres, s.genre)) &&
+          (!s.region || row.dataset.region === s.region);
+        row.hidden = !show;
+        if (show) visible++;
+      }
+
+      const sorted = [...rows].sort(comparators[s.sort]);
+      for (const row of sorted) tbody.appendChild(row);
+
+      if (countEl) countEl.textContent = visible === rows.length ? `顯示 ${visible} 位` : `顯示 ${visible} 位（共 ${rows.length} 位）`;
+      if (wrap) wrap.hidden = visible === 0;
+      if (emptyEl) emptyEl.hidden = visible !== 0;
+
+      const filtering = !!(s.tool || s.genre || s.region);
+      for (const b of clearBtns) b.disabled = !filtering && s.sort === 'no';
+
+      syncUrl(s);
+    };
+
+    for (const sel of [sortSel, toolSel, genreSel, regionSel]) {
+      sel.addEventListener('change', () => apply(readState()));
+    }
+    for (const b of clearBtns) {
+      b.addEventListener('click', () => {
+        apply({ sort: 'no', tool: '', genre: '', region: '' });
+        sortSel.focus();
+      });
+    }
+    window.addEventListener('popstate', () => apply(stateFromUrl()));
+
+    /* 深連結進站：/creators/?tool=runway&sort=works 直接呈現篩選態 */
+    apply(stateFromUrl());
+  }
+</script>
+
+<style>
+  /* ── 工具列 ─────────────────────────────────────── */
+  .dir-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 16px;
+    margin: 0 0 20px;
+    padding: 16px 0;
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .dir-toolbar__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .dir-toolbar__label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dir-toolbar .select {
+    min-width: 150px;
+  }
+  .dir-toolbar__clear {
+    padding: 8px 14px;
+  }
+  .dir-toolbar__clear[disabled] {
+    opacity: 0.45;
+    cursor: default;
+  }
+  .dir-toolbar__clear[disabled]:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .dir-toolbar__count {
+    margin: 0 0 8px auto;
+    white-space: nowrap;
+  }
+
+  /* ── 表格 ───────────────────────────────────────── */
+  .dir-wrap[hidden] {
+    display: none;
+  }
+  .dir {
+    min-width: 720px;
+  }
+  /* 尾列粗底線由 global 的 .table 規則處理（以最後一個未 hidden 的列計），篩選後不需另補 */
+  .dir tbody tr[hidden] {
+    display: none;
+  }
+
+  .dir__no {
+    width: 64px;
+    white-space: nowrap;
+  }
+  .dir__portrait {
+    width: 56px;
+    padding-right: 4px;
+  }
+  .dir__portrait-link {
+    display: block;
+    width: 40px;
+  }
+  .dir__figure {
+    width: 40px;
+  }
+  .dir__figure :global(img) {
+    aspect-ratio: 1 / 1;
+  }
+  .dir__who {
+    min-width: 220px;
+  }
+  .dir__name {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .dir__name:hover {
+    color: var(--accent);
+  }
+  .dir__name-en {
+    font-family: var(--font-caps);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .dir__tagline {
+    margin-top: 2px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .dir__tools {
+    min-width: 200px;
+  }
+  .dir__region {
+    white-space: nowrap;
+  }
+  .dir__works {
+    width: 72px;
+  }
+  .dir__listed {
+    white-space: nowrap;
+  }
+
+  /* ── 空狀態 / 註記 / 收尾 ─────────────────────── */
+  .dir__empty[hidden] {
+    display: none;
+  }
+  .dir__empty-action {
+    margin-top: 24px;
+  }
+  .dir__note {
+    margin-top: 16px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+    color: var(--muted);
+    max-width: 46em;
+  }
+  .dir__bottom-rule {
+    margin-top: 56px;
+    margin-bottom: 0;
+  }
+
+  /* ── 手機：橫向捲動 + 隱藏地區欄 ───────────────── */
+  @media (max-width: 640px) {
+    .dir-toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+    }
+    .dir-toolbar .select {
+      width: 100%;
+      min-width: 0;
+    }
+    .dir-toolbar__clear {
+      justify-self: start;
+    }
+    .dir-toolbar__count {
+      margin: 0 0 8px;
+      justify-self: end;
+    }
+    .dir {
+      min-width: 600px;
+    }
+    .dir__region {
+      display: none;
+    }
+    .dir__who {
+      min-width: 180px;
+    }
+    .dir__tools {
+      min-width: 160px;
+    }
+  }
+</style>

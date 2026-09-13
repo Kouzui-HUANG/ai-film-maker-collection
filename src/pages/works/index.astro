@@ -1,0 +1,165 @@
+---
+/**
+ * /works/ — 全作品列表（捲動分批載入）
+ * 上方一列類型 / 工具 chips 當索引入口；schema：CollectionPage + ItemList。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MoreList from '../../components/MoreList.astro';
+import { getSiteData } from '../../data/queries';
+import { WORKS_KEY } from '../../data/listings';
+import { GENRES } from '../../data/genres';
+import { TOOLS, toolHasPage } from '../../data/tools';
+import { SITE, routes, absRoutes } from '../../data/site';
+
+const d = await getSiteData();
+const works = d.works;
+const workCount = works.length;
+const creatorCount = new Set(works.flatMap((w) => w.creators.map((c) => c.id))).size;
+
+/* 索引入口：只列實際有作品的類型、達建頁門檻的工具 */
+const genreChips = GENRES
+  .map((g) => ({ ...g, count: d.genreCounts.get(g.slug) ?? 0 }))
+  .filter((g) => g.count > 0);
+const toolChips = TOOLS
+  .filter((t) => toolHasPage(d.toolCounts, t.slug))
+  .map((t) => ({ ...t, count: d.toolCounts.get(t.slug) ?? 0 }))
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+const title = '全部作品';
+const lead =
+  '收錄於本圖鑑的全部 AI 影視作品，依發表時間由新至舊排列。每部作品標註創作者、類型、時長與主要工具；點入可觀看影片、閱讀劇情簡介與製作手記。';
+const description = `台灣 AI 影視創作者的 ${workCount} 部作品總覽：短片、廣告、MV、紀錄片、動畫、實驗片與概念預告，標註創作者、類型、時長與使用工具，依發表時間排列。`;
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `${title}｜${SITE.name}`,
+  description,
+  url: absRoutes.works(),
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  inLanguage: 'zh-Hant-TW',
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: workCount,
+    itemListElement: works.map((w, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absRoutes.work(w.data.slug),
+      name: w.data.title,
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={`全部作品：台灣 AI 影視創作者的 ${workCount} 部作品總覽`}
+  description={description}
+  schemas={[collectionSchema]}
+>
+  <section class="page">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <span aria-current="page">作品</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Works・全部作品</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">{lead}</p>
+        <p class="page-meta">共 {workCount} 部作品・{creatorCount} 位創作者</p>
+      </header>
+
+      {(genreChips.length > 0 || toolChips.length > 0) && (
+        <nav class="works-index" aria-label="作品索引">
+          {genreChips.length > 0 && (
+            <div class="works-index__row">
+              <span class="works-index__label">作品類型</span>
+              <ul class="chips">
+                {genreChips.map((g) => (
+                  <li>
+                    <a class="chip" href={routes.genre(g.slug)}>
+                      {g.label}<span class="works-index__count">{g.count}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {toolChips.length > 0 && (
+            <div class="works-index__row">
+              <span class="works-index__label">工具</span>
+              <ul class="chips">
+                {toolChips.map((t) => (
+                  <li>
+                    <a class="chip" href={routes.tool(t.slug)}>
+                      {t.label}<span class="works-index__count">{t.count}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </nav>
+      )}
+
+      {workCount > 0 ? (
+        <h2 class="visually-hidden">作品列表</h2>
+        <MoreList listKey={WORKS_KEY} works={works} />
+      ) : (
+        <div class="coming">
+          <p class="coming__kanji">收錄中</p>
+          <p class="coming__lead">作品資料整理中。</p>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* 索引入口：類型 / 工具 chips 各一列，細線夾住 */
+  .works-index {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 0;
+    margin-bottom: 36px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .works-index__row {
+    display: grid;
+    grid-template-columns: 4.5em 1fr;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .works-index__label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.24em;
+    color: var(--muted);
+  }
+
+  .works-index__count {
+    margin-left: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 640px) {
+    .works-index {
+      margin-bottom: 28px;
+    }
+
+    .works-index__row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+</style>

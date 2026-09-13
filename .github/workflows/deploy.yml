@@ -1,0 +1,115 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 部署到 GitHub Pages ＋ 每日重建（設計文件 §7-3、§8 P4）
+#
+# 觸發：
+#   - push 到 main            → 正常部署
+#   - 每天 UTC 00:00（台北 08:00）→ 重新 build，讓時效性引擎（events 的 upcoming / ongoing / past）
+#                              以當天日期重算；靜態站不重建，活動頁會停在上次 push 的狀態
+#   - 手動 workflow_dispatch
+#
+# 第一次啟用：
+#   1. GitHub repo → Settings → Pages → Build and deployment → Source 選「GitHub Actions」
+#   2. 不需要其他 secret；部署位置由下方「Resolve deploy target」依 repo 名稱自動算出
+#      （site.config.mjs 讀 SITE_ORIGIN / BASE_PATH 兩個環境變數）
+#
+# ⚠ GitHub 規則：public repo 60 天沒有任何 commit，排程（schedule）會被自動停用並寄通知。
+#   年鑑型內容兩個月不上稿很正常——收到「scheduled workflow disabled」通知時，
+#   到 Actions → Deploy to GitHub Pages → Enable workflow 重新啟用即可（或推一個小 commit）。
+#
+# 自訂網域：
+#   1. Settings → Secrets and variables → Actions → Variables 新增 SITE_ORIGIN，例如 https://example.com
+#   2. public/ 放一個 CNAME 檔（內容只有網域，例如 example.com），Astro 會原樣複製到 dist/
+#   3. Settings → Pages → Custom domain 填同一個網域並開 Enforce HTTPS
+# ─────────────────────────────────────────────────────────────────────────────
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *'   # 每天 UTC 00:00 = 台北 08:00
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一時間只跑一個部署；不取消進行中的，避免半套的 artifact 被覆蓋
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Check & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # astro.config.mjs 用 git log 算靜態頁的 sitemap lastmod，需要完整歷史
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      # 三種位址型態（與 site.config.mjs 對應）：
+      #   A. vars.SITE_ORIGIN 有設（自訂網域）  → SITE_ORIGIN=<vars>,               BASE_PATH=/
+      #   B. repo 名稱是 <owner>.github.io      → SITE_ORIGIN=https://<owner>.github.io, BASE_PATH=/
+      #   C. 一般專案站                          → SITE_ORIGIN=https://<owner>.github.io, BASE_PATH=/<repo>
+      # owner 一律小寫（GitHub Pages 網域不分大小寫，但 canonical 要一致）。
+      # repo 名稱取自 GITHUB_REPOSITORY（owner/repo）：schedule 觸發時 github.event 沒有 repository 欄位，
+      # 用 github.event.repository.name 會是空字串，每日重建就會 build 成錯的 base。
+      - name: Resolve deploy target
+        env:
+          SITE_ORIGIN_VAR: ${{ vars.SITE_ORIGIN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          repo="${GITHUB_REPOSITORY#*/}"
+          if [ -n "${SITE_ORIGIN_VAR:-}" ]; then
+            origin="${SITE_ORIGIN_VAR%/}"; base="/"; mode="自訂網域（vars.SITE_ORIGIN）"
+          elif [ "$(printf '%s' "$repo" | tr '[:upper:]' '[:lower:]')" = "${owner}.github.io" ]; then
+            origin="https://${owner}.github.io"; base="/"; mode="使用者站（<owner>.github.io）"
+          else
+            origin="https://${owner}.github.io"; base="/${repo}"; mode="專案站（/<repo> base）"
+          fi
+          echo "SITE_ORIGIN=${origin}" >> "$GITHUB_ENV"
+          echo "BASE_PATH=${base}"     >> "$GITHUB_ENV"
+          echo "部署位置：${origin}${base}  ← ${mode}"
+          echo "### Deploy target" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${origin}${base%/}/\` (${mode})" >> "$GITHUB_STEP_SUMMARY"
+          echo "- trigger: \`${GITHUB_EVENT_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+
+      # 上稿防呆：受控詞彙、reference、編號、日期引號… 有錯就不部署
+      - name: Content integrity check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

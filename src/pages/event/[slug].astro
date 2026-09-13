@@ -1,0 +1,367 @@
+---
+/**
+ * /event/<slug>/ — 單一活動頁（設計文件 §4 Event schema、CONTRACT §6）
+ *
+ *   麵包屑：首頁 › 活動 › 標題（可見 .crumbs 與 BreadcrumbList 一致）
+ *   頭部：kind badge ＋ 狀態（進行中／N 天後開始／已結束）→ h1
+ *   資料格網固定順序：日期 │ 報名／投件截止 │ 地點 │ 主辦 │ 費用 │ 形式
+ *   主 CTA：進行中／即將舉行 → .btn--accent「前往官方網站 ↗」；已結束 → .btn--ghost「查看官方紀錄 ↗」
+ *   頁尾：其他即將舉行（最多 3，compact）→ ShareLike → 回活動與比賽
+ */
+import { render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EventCard from '../../components/EventCard.astro';
+import ShareLike from '../../components/ShareLike.astro';
+import { getSiteData, type SiteEvent } from '../../data/queries';
+import { routes, absRoutes, absAsset } from '../../data/site';
+import { EVENT_KIND_LABEL } from '../../data/genres';
+import { fmtDate, fmtRange, countdownLabel } from '../../data/events';
+
+export async function getStaticPaths() {
+  const d = await getSiteData();
+  return d.events.map((event) => ({ params: { slug: event.data.slug }, props: { event } }));
+}
+
+interface Props {
+  event: SiteEvent;
+}
+
+const { event } = Astro.props;
+const d = await getSiteData();
+const { Content } = await render(event.entry);
+const hasBody = !!(event.entry.body && event.entry.body.trim());
+
+const {
+  title,
+  slug,
+  kind,
+  startDate,
+  endDate,
+  deadline,
+  location,
+  isOnline,
+  organizer,
+  officialUrl,
+  fee,
+  cover,
+  coverAlt,
+  summary,
+} = event.data;
+const t = event.timing;
+
+const kindLabel = EVENT_KIND_LABEL[kind] ?? kind;
+const isPast = t.status === 'past';
+const statusText = countdownLabel(t);
+const range = fmtRange(startDate, endDate);
+const pageUrl = absRoutes.event(slug);
+const coverAbs = absAsset(cover.src);
+
+/* 截止欄位註記 */
+const deadlineNote = !deadline
+  ? ''
+  : t.deadlinePassed
+    ? '已截止'
+    : t.daysUntilDeadline === 0
+      ? '今天截止'
+      : `剩 ${t.daysUntilDeadline} 天`;
+
+/* 其他即將舉行的活動（排除自己，最多 3） */
+const otherUpcoming = d.upcomingEvents.filter((e) => e.id !== event.id).slice(0, 3);
+
+/* ── Event schema（CONTRACT §6） ──────────────────────────── */
+/* fee → price：免費 → '0'；抓得到數字 → 數字字串（去千分位）；其餘不填 price */
+const priceOf = (f?: string): string | null => {
+  if (!f) return null;
+  if (/免費|free/i.test(f)) return '0';
+  const m = f.replace(/,/g, '').match(/\d+(?:\.\d+)?/);
+  return m ? m[0] : null;
+};
+const price = priceOf(fee);
+
+/* 「城市・場地」→ addressLocality 取城市；純場地名則只填國別 */
+const cityPart = location.includes('・') ? location.split('・', 1)[0] : null;
+
+const eventSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  '@id': `${pageUrl}#event`,
+  name: title,
+  description: summary,
+  url: pageUrl,
+  image: coverAbs,
+  startDate,
+  endDate: t.lastDay,
+  eventAttendanceMode: isOnline
+    ? 'https://schema.org/OnlineEventAttendanceMode'
+    : 'https://schema.org/OfflineEventAttendanceMode',
+  eventStatus: 'https://schema.org/EventScheduled',
+  location: isOnline
+    ? { '@type': 'VirtualLocation', url: officialUrl }
+    : {
+        '@type': 'Place',
+        name: location,
+        address: {
+          '@type': 'PostalAddress',
+          ...(cityPart ? { addressLocality: cityPart } : {}),
+          addressCountry: 'TW',
+        },
+      },
+  organizer: { '@type': 'Organization', name: organizer },
+  offers: {
+    '@type': 'Offer',
+    url: officialUrl,
+    ...(price !== null ? { price, priceCurrency: 'TWD' } : {}),
+    availability: t.status === 'past' || t.deadlinePassed ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+    ...(deadline ? { validThrough: deadline } : {}),
+  },
+  inLanguage: 'zh-Hant-TW',
+};
+
+const breadcrumbs = [
+  { name: '活動', item: absRoutes.events() },
+  { name: title, item: pageUrl },
+];
+
+const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={seoTitle}
+  description={summary}
+  ogImage={cover.src}
+  schemas={[eventSchema]}
+  breadcrumbs={breadcrumbs}
+>
+  <article class="page event">
+    <div class="page-inner">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <a href={routes.events()}>活動</a><span aria-hidden="true">／</span>
+        <span aria-current="page">{title}</span>
+      </nav>
+
+      <header class="page-head event__head">
+        <p class="event__kicker">
+          <span class="badge">{kindLabel}</span>
+          <span class:list={['event__status', `event__status--${t.status}`]}>{statusText}</span>
+        </p>
+        <h1 class="page-title">{title}</h1>
+        <div class="rule-double"></div>
+
+        <dl class="data-grid event__grid">
+          <div class="data-grid__cell">
+            <dt class="data-grid__label">日期</dt>
+            <dd class="data-grid__value"><time datetime={startDate}>{range}</time></dd>
+          </div>
+          <div class="data-grid__cell">
+            <dt class="data-grid__label">報名／投件截止</dt>
+            <dd class="data-grid__value">
+              {deadline ? (
+                <>
+                  <time datetime={deadline}>{fmtDate(deadline)}</time>
+                  <span class:list={['event__note', t.deadlinePassed && 'event__note--passed']}>（{deadlineNote}）</span>
+                </>
+              ) : (
+                '—'
+              )}
+            </dd>
+          </div>
+          <div class="data-grid__cell">
+            <dt class="data-grid__label">地點</dt>
+            <dd class="data-grid__value">{isOnline ? '線上' : location}</dd>
+          </div>
+          <div class="data-grid__cell">
+            <dt class="data-grid__label">主辦</dt>
+            <dd class="data-grid__value">{organizer}</dd>
+          </div>
+          <div class="data-grid__cell">
+            <dt class="data-grid__label">費用</dt>
+            <dd class="data-grid__value">{fee ?? '—'}</dd>
+          </div>
+          <div class="data-grid__cell">
+            <dt class="data-grid__label">形式</dt>
+            <dd class="data-grid__value">{isOnline ? '線上' : '實體'}</dd>
+          </div>
+        </dl>
+      </header>
+
+      <figure class="frame frame--event event__cover">
+        <Image
+          src={cover}
+          alt={coverAlt}
+          width={1600}
+          height={900}
+          widths={[480, 800, 1200, 1600]}
+          sizes="(max-width: 880px) calc(100vw - 32px), 880px"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </figure>
+
+      <p class="page-lead event__lead">{summary}</p>
+
+      <p class="event__cta">
+        {isPast ? (
+          <a
+            class="btn btn--ghost"
+            href={officialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ga-cta="event_official"
+            data-ga-location="event_body"
+          >
+            查看官方紀錄 ↗
+          </a>
+        ) : (
+          <a
+            class="btn btn--accent"
+            href={officialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ga-cta="event_official"
+            data-ga-location="event_body"
+          >
+            前往官方網站 ↗
+          </a>
+        )}
+        <span class="event__cta-note">
+          {isPast ? '本活動已結束，連結為主辦單位頁面。' : '報名方式與細則以主辦單位公告為準。'}
+        </span>
+      </p>
+
+      {hasBody && (
+        <div class="prose event__body">
+          <Content />
+        </div>
+      )}
+
+      <footer class="event__foot">
+        <div class="rule-hair"></div>
+
+        {otherUpcoming.length > 0 && (
+          <section class="event__more" aria-labelledby="more-events-heading">
+            <div class="section-head">
+              <h2 class="section-eyebrow" id="more-events-heading">Upcoming・其他即將舉行</h2>
+              <a class="section-all" href={routes.events()}>全部活動 →</a>
+            </div>
+            <div class="event__more-list">
+              {otherUpcoming.map((e) => (
+                <EventCard event={e} variant="compact" />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <ShareLike slug={`event:${slug}`} title={title} url={pageUrl} location="event_footer" />
+
+        <p class="back">
+          <a href={routes.events()} data-ga-cta="back_events" data-ga-location="event_footer">← 回活動與比賽</a>
+        </p>
+      </footer>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .event__kicker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .event__status {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.16em;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .event__status--ongoing {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .event__status--past {
+    color: var(--muted);
+  }
+
+  .event__head .rule-double {
+    margin-bottom: 24px;
+  }
+
+  /* 六個欄位 → 桌機 3 欄兩列（global 的 auto-fit 會落成 5+1，不齊） */
+  .event__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 32px;
+  }
+
+  .event__note {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+  }
+  .event__note--passed {
+    color: var(--muted);
+  }
+
+  .event__cover {
+    margin: 0 0 28px;
+  }
+
+  .event__lead {
+    margin-bottom: 24px;
+  }
+
+  .event__cta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    margin: 0 0 40px;
+  }
+  .event__cta-note {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  .event__body {
+    margin-bottom: 8px;
+  }
+
+  .event__foot {
+    margin-top: 48px;
+  }
+  .event__foot .rule-hair {
+    margin-bottom: 28px;
+  }
+
+  .event__more {
+    margin-bottom: 8px;
+  }
+  .event__more-list {
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  @media (max-width: 640px) {
+    .event__head .rule-double {
+      margin-bottom: 16px;
+    }
+    .event__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 24px;
+    }
+    .event__cta {
+      margin-bottom: 28px;
+    }
+    .event__foot {
+      margin-top: 36px;
+    }
+  }
+</style>

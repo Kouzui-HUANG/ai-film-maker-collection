@@ -1,0 +1,369 @@
+---
+/**
+ * /events/ — 活動與比賽（設計文件 §6-5 時效性分區）
+ *
+ *   上半 Upcoming：d.upcomingEvents（upcoming + ongoing，startDate 正序）
+ *   下半 Past    ：d.pastEvents（startDate 倒序），<details> 預設摺疊
+ *   kind 篩選     ：純前端，切 [hidden]；?kind= 與網址同步；無 JS 時全部顯示
+ *   schema        ：CollectionPage + ItemList of Event（url + name + startDate）
+ *
+ * 狀態依台北日期於 build 時計算（src/data/events.ts），需每日重建。
+ * 麵包屑由 BaseLayout 依路徑自動生成（首頁 › 活動），與可見 .crumbs 一致。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EventCard from '../../components/EventCard.astro';
+import { getSiteData } from '../../data/queries';
+import { SITE, routes, absRoutes } from '../../data/site';
+import { EVENT_KIND_LABEL } from '../../data/genres';
+import { fmtDate } from '../../data/events';
+
+const d = await getSiteData();
+const upcoming = d.upcomingEvents;
+const past = d.pastEvents;
+
+const nUpcoming = upcoming.filter((e) => e.timing.status === 'upcoming').length;
+const nOngoing = upcoming.filter((e) => e.timing.status === 'ongoing').length;
+const nPast = past.length;
+
+const title = '活動與比賽';
+const seoTitle = '活動與比賽：AI 影視比賽・工作坊・放映・講座・展覽';
+const lead =
+  '與台灣 AI 影視創作相關的比賽徵件、工作坊、放映、講座與展覽。' +
+  '即將舉行者標示開始倒數與報名截止日；已結束的活動摺疊保存，作為年鑑紀錄。';
+const description =
+  '台灣 AI 影視創作相關的比賽、工作坊、放映、講座與展覽總覽：' +
+  `即將舉行 ${upcoming.length} 場，附開始倒數與報名截止日；過往 ${nPast} 場完整保存。`;
+
+/* 篩選 chips：五種 kind 固定順序，附各類型總數（含過往） */
+const KIND_ORDER = ['competition', 'workshop', 'screening', 'talk', 'exhibition'] as const;
+const kindCounts = new Map<string, number>();
+for (const e of d.events) kindCounts.set(e.data.kind, (kindCounts.get(e.data.kind) ?? 0) + 1);
+const kindChips = KIND_ORDER.map((slug) => ({
+  slug,
+  label: EVENT_KIND_LABEL[slug],
+  count: kindCounts.get(slug) ?? 0,
+}));
+
+/* ── CollectionPage + ItemList of Event ── */
+const listed = [...upcoming, ...past];
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': absRoutes.events(),
+  url: absRoutes.events(),
+  name: `${title}｜${SITE.name}`,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: listed.length,
+    itemListElement: listed.map((e, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Event',
+        name: e.data.title,
+        url: absRoutes.event(e.data.slug),
+        startDate: e.data.startDate,
+      },
+    })),
+  },
+};
+---
+
+<BaseLayout title={title} seoTitle={seoTitle} description={description} schemas={[collectionSchema]}>
+  <div class="page">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <span aria-current="page">活動</span>
+      </nav>
+
+      <header class="page-head">
+        <p class="page-eyebrow">Events・活動與比賽</p>
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">{lead}</p>
+        <p class="page-meta">
+          即將舉行 <span data-meta-upcoming>{nUpcoming}</span> 場・進行中 <span data-meta-ongoing>{nOngoing}</span> 場・過往 <span data-meta-past>{nPast}</span> 場
+        </p>
+        <p class="events-note">活動狀態依台北時間每日重新計算（本次計算日 {fmtDate(d.today)}）。</p>
+      </header>
+
+      <!-- kind 篩選（純前端） -->
+      <div class="filter" role="group" aria-labelledby="filter-label">
+        <span class="filter__label" id="filter-label">活動種類</span>
+        <ul class="chips" role="list">
+          <li>
+            <button type="button" class="chip filter__chip is-active" data-filter-kind="" aria-pressed="true">
+              全部 <span class="filter__n">{d.events.length}</span>
+            </button>
+          </li>
+          {kindChips.map((k) => (
+            <li>
+              <button
+                type="button"
+                class="chip filter__chip"
+                data-filter-kind={k.slug}
+                aria-pressed="false"
+                disabled={k.count === 0}
+              >
+                {k.label} <span class="filter__n">{k.count}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- ── Upcoming ─────────────────────────────────── -->
+      <section class="events-section" aria-labelledby="upcoming-heading">
+        <div class="section-head">
+          <h2 class="section-eyebrow" id="upcoming-heading">Upcoming・即將舉行</h2>
+          <span class="section-count"><span data-count-upcoming>{upcoming.length}</span> 場</span>
+        </div>
+        <div class="rule-hair"></div>
+
+        {upcoming.length > 0 ? (
+          <div class="ecard-list" data-list-upcoming>
+            {upcoming.map((e, i) => (
+              <EventCard event={e} variant="row" loading={i === 0 ? 'eager' : 'lazy'} />
+            ))}
+          </div>
+        ) : (
+          <div class="coming">
+            <p class="coming__kanji">暫無</p>
+            <p class="coming__lead">
+              目前沒有即將舉行的活動。<br />
+              過往活動可在下方展開查閱；若有應收錄的比賽或活動，歡迎<a href={routes.contact()}>告知編輯部</a>。
+            </p>
+          </div>
+        )}
+
+        <p class="filter-empty" data-empty-upcoming hidden>此類型目前沒有即將舉行的活動。</p>
+      </section>
+
+      <!-- ── Past ─────────────────────────────────────── -->
+      <section class="events-section events-section--past" aria-labelledby="past-heading">
+        <div class="section-head">
+          <h2 class="section-eyebrow" id="past-heading">Past・過往活動</h2>
+          <span class="section-count"><span data-count-past>{nPast}</span> 場</span>
+        </div>
+        <div class="rule-hair"></div>
+
+        {nPast > 0 ? (
+          <details class="past" data-past-details>
+            <summary class="btn btn--ghost past__summary">
+              <span class="past__label past__label--closed">展開過往活動（<span data-count-past-btn>{nPast}</span>）</span>
+              <span class="past__label past__label--open">收合過往活動</span>
+              <span class="past__arrow" aria-hidden="true">▾</span>
+            </summary>
+            <div class="ecard-list ecard-list--past" data-list-past>
+              {past.map((e) => (
+                <EventCard event={e} variant="row" dense />
+              ))}
+            </div>
+            <p class="filter-empty" data-empty-past hidden>此類型沒有過往活動。</p>
+          </details>
+        ) : (
+          <p class="past__none">尚無過往活動紀錄。</p>
+        )}
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .events-note {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  /* ── 篩選列 ─────────────────────────────────────── */
+  .filter {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin: 28px 0 36px;
+  }
+  .filter__label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .filter__chip {
+    cursor: pointer;
+    background: var(--paper-white);
+  }
+  .filter__chip:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .filter__chip.is-active {
+    color: var(--paper);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .filter__chip[disabled] {
+    cursor: default;
+    opacity: 0.45;
+  }
+  .filter__chip[disabled]:hover {
+    color: var(--ink-soft);
+    border-color: var(--rule);
+  }
+  .filter__n {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-left: 2px;
+  }
+
+  /* ── 分區 ───────────────────────────────────────── */
+  .events-section {
+    margin-bottom: 56px;
+  }
+  .events-section .rule-hair {
+    margin-bottom: 24px;
+  }
+  .section-count {
+    font-family: var(--font-caps);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ecard-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .filter-empty {
+    padding: 28px 0;
+    font-family: var(--font-serif);
+    color: var(--muted);
+    text-align: center;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  /* ── Past：<details> 摺疊，summary 借 .btn--ghost 外觀 ── */
+  .past__summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+  }
+  .past__summary::-webkit-details-marker {
+    display: none;
+  }
+  .past__label--open {
+    display: none;
+  }
+  .past[open] .past__label--closed {
+    display: none;
+  }
+  .past[open] .past__label--open {
+    display: inline;
+  }
+  .past__arrow {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out);
+  }
+  .past[open] .past__arrow {
+    transform: rotate(180deg);
+  }
+  .ecard-list--past {
+    margin-top: 28px;
+    padding-top: 4px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .past__none {
+    font-family: var(--font-serif);
+    color: var(--muted);
+  }
+
+  @media (max-width: 640px) {
+    .filter {
+      margin: 20px 0 28px;
+    }
+    .events-section {
+      margin-bottom: 40px;
+    }
+    .events-section .rule-hair {
+      margin-bottom: 16px;
+    }
+    .ecard-list--past {
+      margin-top: 20px;
+    }
+  }
+</style>
+
+<script>
+  /* kind 篩選：切 [hidden]、同步 ?kind=、更新計數；篩選後上半區空而下半區有東西時自動展開過往 */
+  const KINDS = new Set(['competition', 'workshop', 'screening', 'talk', 'exhibition']);
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter-kind]'));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-event-card]'));
+  const countUp = document.querySelector<HTMLElement>('[data-count-upcoming]');
+  const countPast = document.querySelector<HTMLElement>('[data-count-past]');
+  const countPastBtn = document.querySelector<HTMLElement>('[data-count-past-btn]');
+  const emptyUp = document.querySelector<HTMLElement>('[data-empty-upcoming]');
+  const emptyPast = document.querySelector<HTMLElement>('[data-empty-past]');
+  const pastDetails = document.querySelector<HTMLDetailsElement>('[data-past-details]');
+  const hasUpcomingList = !!document.querySelector('[data-list-upcoming]');
+
+  const totalUp = cards.filter((c) => c.dataset.status !== 'past').length;
+  const totalPast = cards.length - totalUp;
+
+  function apply(kind: string, syncUrl: boolean) {
+    let up = 0;
+    let pastN = 0;
+    for (const card of cards) {
+      const show = !kind || card.dataset.kind === kind;
+      card.hidden = !show;
+      if (!show) continue;
+      if (card.dataset.status === 'past') pastN++;
+      else up++;
+    }
+
+    for (const chip of chips) {
+      const on = (chip.dataset.filterKind ?? '') === kind;
+      chip.classList.toggle('is-active', on);
+      chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+
+    const upShown = kind ? up : totalUp;
+    const pastShown = kind ? pastN : totalPast;
+    if (countUp) countUp.textContent = String(upShown);
+    if (countPast) countPast.textContent = String(pastShown);
+    if (countPastBtn) countPastBtn.textContent = String(pastShown);
+    if (emptyUp) emptyUp.hidden = !(kind && hasUpcomingList && up === 0);
+    if (emptyPast) emptyPast.hidden = !(kind && totalPast > 0 && pastN === 0);
+
+    if (pastDetails && kind && up === 0 && pastN > 0) pastDetails.open = true;
+
+    if (syncUrl) {
+      const url = new URL(window.location.href);
+      if (kind) url.searchParams.set('kind', kind);
+      else url.searchParams.delete('kind');
+      window.history.replaceState(null, '', url.toString());
+    }
+  }
+
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      if (chip.disabled) return;
+      apply(chip.dataset.filterKind ?? '', true);
+    });
+  }
+
+  const initial = new URLSearchParams(window.location.search).get('kind') ?? '';
+  const initialChip = chips.find((c) => (c.dataset.filterKind ?? '') === initial);
+  if (initial && KINDS.has(initial) && initialChip && !initialChip.disabled) apply(initial, false);
+  else if (initial) history.replaceState(null, '', window.location.pathname);
+</script>
