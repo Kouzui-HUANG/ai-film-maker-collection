@@ -33,7 +33,7 @@ export async function getStaticPaths() {
 const { work } = Astro.props as { work: Work };
 const d = await getSiteData();
 
-const { title, slug, year, releasedAt, genre, tools, durationSec, videoUrl, thumb, thumbAlt, synopsis, note, awards } =
+const { title, slug, equalCredit, year, releasedAt, genre, tools, durationSec, videoUrl, thumb, thumbAlt, synopsis, note, awards } =
   work.data;
 
 const creators = work.creators;
@@ -139,7 +139,7 @@ const videoSchema = {
                   />
                 </figure>
                 <span class="work__creator-name">{c.name}</span>
-                {i === 0 && creators.length > 1 && <span class="work__creator-role">主創作者</span>}
+                {i === 0 && creators.length > 1 && !equalCredit && <span class="work__creator-role">主創作者</span>}
               </a>
             </li>
           ))}

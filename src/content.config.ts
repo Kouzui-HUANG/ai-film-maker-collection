@@ -80,6 +80,7 @@ const works = defineCollection({
       title: z.string(),
       slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'slug 須為全小寫 kebab-case'),
       creators: z.array(reference('creators')).min(1),   // ★ 支援合作作品
+      equalCredit: z.boolean().optional(),               // 多位創作者是否採共同署名、不標示主創作者
       year: z.number().int(),
       releasedAt: dateStr.optional(),
       genre: z.string(),                                 // 受控詞彙 → genres.ts

@@ -42,7 +42,7 @@ export type Work = {
   id: string;
   entry: WorkEntry;
   data: WorkEntry['data'];
-  /** 依 frontmatter 順序解析後的創作者（第一位視為主創作者） */
+  /** 依 frontmatter 順序解析後的創作者（第一位作為代表；equalCredit 控制是否顯示主創作者） */
   creators: CreatorRef[];
   /** 排序鍵：releasedAt ?? `${year}-01-01` */
   sortDate: string;

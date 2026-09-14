@@ -2,6 +2,7 @@
 title: "繭房 Cocoons"
 slug: "exuan-cocoons"
 creators: ["exuan", "data-witch-dpys", "sokushijin"]
+equalCredit: true
 year: 2026
 releasedAt: "2026-09-04"
 genre: "short-film"

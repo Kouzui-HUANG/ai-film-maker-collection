@@ -7,7 +7,7 @@ works/
 ```
 
 - 檔名 = frontmatter `slug`（全小寫 kebab-case），建議 `<creator-slug>-<title-kebab>`
-- `creators` 陣列填創作者資料夾名，第一位視為主創作者（麵包屑用）
+- `creators` 陣列填創作者資料夾名，第一位預設視為主創作者；無公開主從分工時加 `equalCredit: true`
 - `genre` 單值、`tools` 陣列，都必須在 src/data/genres.ts / tools.ts 的受控詞彙裡
 - 用 `node scripts/new-work.mjs <youtube-url> --creator <slug> --genre <slug>` 一鍵產骨架
 - 示範資料已於 2026-09-13 全數移除；目前為實際收錄的作品
