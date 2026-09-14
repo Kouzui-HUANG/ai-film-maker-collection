@@ -6,7 +6,7 @@ tagline: "把日常寫成極短篇的台中 AI 影像創作者"
 bio: "台中的數位創作者，自述「在日常裡找靈感，在影像中造夢」，把創作當成一本流動的日記。主線是原創極短篇系列《人生失物招領所》：設定一間專收人生遺失物的招領所，有人弄丟了名字，有人弄丟了眼淚，每集一到兩分鐘，用 Suno 的配樂與字卡式獨白把情緒收乾淨。另一條線是高頻率的同題實測——同一張圖、同一組提示詞分別交給 Wan、Seedance、Hailuo 比對動態氣質，角色與場景多由 Midjourney 起稿。2026 年在 GMI Cloud × Wan × DV ASIA 的 AI 影視職人創作大賽中，於四人團隊裡負責人物設定與空景，以《間合》拿下第二名。"
 seoTitle: "Evelyn Lin｜台中 AI 影像創作者・《人生失物招領所》《間合》"
 portrait: "./portrait.jpg"
-portraitAlt: "暫用佔位圖：暖褐色漸層底上印著收錄編號 No.005，尚未取得本人授權的肖像"
+portraitAlt: "Evelyn Lin 的個人檔案照片：戴著白色棒球帽與紫色耳機低頭側望，背景是紫色霓虹幾何光暈"
 tools: ["midjourney", "wan", "seedance", "suno", "hailuo"]
 genres: ["short-film"]
 categories: ["social-video", "serial-short-drama"]
