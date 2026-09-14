@@ -89,8 +89,8 @@ export type SiteData = {
   upcomingEvents: SiteEvent[];
   /** past，依 startDate 倒序 */
   pastEvents: SiteEvent[];
-  /** 首頁焦點創作者（spotlight: true；多位時取編號最小並警告；沒有則取最新收錄） */
-  spotlight: Creator | null;
+  /** 首頁頭條作品（headline: true；多部時取最新並警告；沒有則取最新作品） */
+  headline: Work | null;
   /** 工具 slug → 作品數 */
   toolCounts: Map<string, number>;
   /** 類型 slug → 作品數 */
@@ -159,6 +159,15 @@ async function build(): Promise<SiteData> {
     }))
     .sort((a, b) => b.sortDate.localeCompare(a.sortDate) || a.data.title.localeCompare(b.data.title, 'zh-Hant'));
 
+  /* ── 首頁頭條作品 ── */
+  const headlines = works.filter((w) => w.data.headline);
+  if (headlines.length > 1) {
+    console.warn(
+      `[queries] headline: true 有 ${headlines.length} 部（${headlines.map((w) => w.data.slug).join(', ')}），首頁只取最新的一部`,
+    );
+  }
+  const headline = headlines[0] ?? works[0] ?? null;
+
   /* ── posts ── */
   const posts: Post[] = postEntries
     .map((e) => ({
@@ -197,16 +206,6 @@ async function build(): Promise<SiteData> {
   const upcomingEvents = sortUpcoming(events.filter((e) => e.timing.status !== 'past'));
   const pastEvents = sortPast(events.filter((e) => e.timing.status === 'past'));
 
-  /* ── spotlight ── */
-  const spotlights = creators.filter((c) => c.data.spotlight);
-  if (spotlights.length > 1) {
-    console.warn(
-      `[queries] spotlight: true 有 ${spotlights.length} 位（${spotlights.map((c) => c.slug).join(', ')}），首頁只取編號最小的一位`,
-    );
-  }
-  const latestListed = [...creators].sort((a, b) => b.listedAt.localeCompare(a.listedAt))[0] ?? null;
-  const spotlight = spotlights[0] ?? latestListed;
-
   return {
     today,
     creators,
@@ -215,7 +214,7 @@ async function build(): Promise<SiteData> {
     events,
     upcomingEvents,
     pastEvents,
-    spotlight,
+    headline,
     toolCounts: getToolWorkCounts(works.map((w) => w.data)),
     genreCounts: getGenreWorkCounts(works.map((w) => w.data)),
     creatorById: new Map(creators.map((c) => [c.id, c])),

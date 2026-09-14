@@ -89,8 +89,7 @@ ai-film-maker-collection/
 1. 建立 `src/content/creators/<slug>/`，放 `index.md` 與 `portrait.jpg`（建議 800×1000，4:5）。
 2. `index.md` 的 frontmatter 照現有條目填：`no`（圖鑑編號，**不可重複、不可跳號**，接在現有最大號之後）、`name` / `nameEn` / `slug` / `tagline`（40 字內）/ `bio`（150–250 字）/ `seoTitle`（選填，45 字內；`<title>` 會再加站名後綴）/ `portrait` / `portraitAlt` / `tools` / `genres` / `region` / `role` / `sameAs`（社群連結，必須是完整 http(s) URL）/ `awards` / `listedAt`（收錄日）/ `updatedAt`（選填，資料更新日）。中文標題與名稱之間不留半形空格（子標題用「・」或「：」）。
 3. 正文（`---` 之後）寫「創作方法」等段落，會顯示在創作者頁 bio 之下。
-4. 首頁焦點創作者用 `spotlight: true`，**全站同時只能一位**；換人時記得把前一位的拿掉。
-5. `npm run check`。
+4. `npm run check`。
 
 ### 新增作品（用 `new-work.mjs`）
 
@@ -104,7 +103,8 @@ node scripts/new-work.mjs https://www.youtube.com/watch?v=XXXXXXXXXXX --creator 
 
 1. 補 `synopsis`（60–200 字）、`tools`（至少一個受控詞彙）、`thumbAlt`（描述實際縮圖）；視需要補 `durationSec` / `releasedAt` / `note` / `awards`。
 2. 縮圖可換成正式劇照（16:9、全彩，不套濾鏡）。
-3. `npm run check`。骨架未補完時 `tools: []` 會被判為錯誤，`synopsis: "TODO"` 會出警告。
+3. 要設為首頁頭條時加 `headline: true`，**全站同時只能有一部**；換片時記得移除前一部的標記。都沒設時首頁會退回最新作品。
+4. `npm run check`。骨架未補完時 `tools: []` 會被判為錯誤，`synopsis: "TODO"` 會出警告。
 
 ### 新增訪談／教學
 
@@ -175,7 +175,7 @@ DNS 側在 Squarespace 網域後台（`account.squarespace.com/domains` → 選�
 新增條目請照〈內容維護流程〉的步驟，並注意：
 
 - **編號連續**：`no` 必須是 1..N 連續，新收錄接在現有最大號之後。
-- **首頁焦點**：`spotlight: true` 全站同時只能一位；都沒設時首頁自動取最近收錄的一位。
+- **首頁頭條**：在作品設 `headline: true`，全站同時只能一部；都沒設時首頁自動取最新作品。
 - **alt 要描述實際圖片**：`portraitAlt` / `thumbAlt` / `coverAlt` 換圖時一併改寫。
 
 ## 待決事項

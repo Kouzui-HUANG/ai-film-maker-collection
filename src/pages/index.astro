@@ -2,7 +2,7 @@
 /**
  * / — 首頁（設計文件 §6-1）
  *
- *   SPOTLIGHT・本期焦點  → d.spotlight：代表作劇照（全彩 16:9）+ 肖像 + 認證章 + 名字 + tagline + 工具 chips
+ *   HEADLINE・頭版頭條  → d.headline：作品劇照（全彩 16:9）+ 標題 + 摘要 + 共同創作者 + 工具 chips
  *   NEW・最新收錄        → creatorsByListedAt 前 5 位（CreatorCard tile）
  *   WORKS・最新作品      → d.works 前 6 部（WorkCard 3 欄）
  *   READ・訪談與教學     → d.posts 前 5 篇（PostCard row）
@@ -18,25 +18,33 @@ import CreatorCard from '../components/CreatorCard.astro';
 import WorkCard from '../components/WorkCard.astro';
 import PostCard from '../components/PostCard.astro';
 import EventCard from '../components/EventCard.astro';
-import { getSiteData, creatorsByListedAt } from '../data/queries';
+import { getSiteData, creatorsByListedAt, fmtDuration } from '../data/queries';
 import { SITE, routes, absRoutes } from '../data/site';
 import { toolLabel } from '../data/tools';
+import { GENRE_BY_SLUG, genreLabel } from '../data/genres';
+import { getWinningAward } from '../data/awards';
 import { fmtDate } from '../data/events';
 
 const d = await getSiteData();
 
-const spotlight = d.spotlight;
-const spotWork = spotlight?.latestWork ?? null;
+const headline = d.headline;
 const newest = creatorsByListedAt(d).slice(0, 5);
 const latestWorks = d.works.slice(0, 6);
 const latestPosts = d.posts.slice(0, 5);
 const upcoming = d.upcomingEvents.slice(0, 3);
 
-const noLabel = (n: number) => `No.${String(n).padStart(3, '0')}`;
-const spotTools = spotlight ? spotlight.tools.slice(0, 5) : [];
-const spotMeta = spotlight
-  ? [...(spotlight.role ?? []), spotlight.region].filter(Boolean).join('・')
+const headlineTools = headline ? headline.data.tools.slice(0, 5) : [];
+const headlineGenre = headline ? GENRE_BY_SLUG[headline.data.genre] : null;
+const headlineMeta = headline
+  ? [String(headline.data.year), genreLabel(headline.data.genre), fmtDuration(headline.data.durationSec)].filter(Boolean).join('・')
   : '';
+const headlineCredits = headline?.creators.map((creator) => creator.name).join('、') ?? '';
+const headlineCreditLabel = headline
+  ? headline.creators.length > 1 && headline.data.equalCredit
+    ? '共同創作'
+    : '創作者'
+  : '';
+const headlineAward = headline ? getWinningAward(headline.data.awards) : null;
 
 /* 最新收錄 ItemList of Person（可選 schema） */
 const newListedSchema =
@@ -65,84 +73,52 @@ const newListedSchema =
 
 <BaseLayout description={SITE.description} schemas={newListedSchema ? [newListedSchema] : []}>
   <div class="home container">
-    <!-- ── SPOTLIGHT・本期焦點 ───────────────────────────── -->
-    <section class="spot" aria-labelledby="spot-label">
+    <!-- ── HEADLINE・頭版頭條 ────────────────────────────── -->
+    <section class="spot" aria-labelledby="headline-label">
       <header class="section-head">
-        <p id="spot-label" class="section-eyebrow">Spotlight・本期焦點</p>
-        {spotlight && (
-          <span class="listed-chip">收錄 {fmtDate(spotlight.listedAt)}</span>
+        <p id="headline-label" class="section-eyebrow">Headline・頭版頭條</p>
+        {headline && (
+          <span class="listed-chip">{headline.data.releasedAt ? `發表 ${fmtDate(headline.data.releasedAt)}` : headline.data.year}</span>
         )}
       </header>
       <div class="rule-hair"></div>
 
-      {spotlight ? (
-        <a class="spot__link" href={routes.creator(spotlight.slug)}>
-          {spotWork ? (
-            <figure class="frame frame--work spot__figure">
-              <Image
-                src={spotWork.data.thumb}
-                alt={spotWork.data.thumbAlt}
-                width={1280}
-                height={720}
-                widths={[640, 960, 1280]}
-                sizes="(max-width: 1240px) calc(100vw - 32px), 1192px"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-              />
-              <span class="spot__badge">
-                <span class="spot__badge-label">SPOTLIGHT・本期焦點</span>
-                <span class="spot__badge-sub">《{spotWork.data.title}》{spotWork.data.year}</span>
+      {headline ? (
+        <a class="spot__link" href={routes.work(headline.data.slug)}>
+          <figure class="frame frame--work spot__figure">
+            <Image
+              src={headline.data.thumb}
+              alt={headline.data.thumbAlt}
+              width={1280}
+              height={720}
+              widths={[640, 960, 1280]}
+              sizes="(max-width: 1240px) calc(100vw - 32px), 1192px"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+            <span class="spot__badge">
+              <span class="spot__badge-label">HEADLINE・頭版頭條</span>
+              <span class="spot__badge-sub">
+                {headlineAward ? `${headlineAward.result}・${headlineAward.title}` : headlineMeta}
               </span>
-            </figure>
-          ) : (
-            <figure class="frame frame--portrait spot__figure spot__figure--portrait">
-              <Image
-                src={spotlight.portrait}
-                alt={spotlight.portraitAlt}
-                width={800}
-                height={1000}
-                widths={[400, 600, 800]}
-                sizes="(max-width: 640px) calc(100vw - 32px), 480px"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-              />
-              <span class="spot__badge">
-                <span class="spot__badge-label">SPOTLIGHT・本期焦點</span>
-              </span>
-            </figure>
-          )}
+            </span>
+          </figure>
 
           <div class="spot__body">
-            {spotWork && (
-              <figure class="frame frame--portrait spot__portrait">
-                <Image
-                  src={spotlight.portrait}
-                  alt={spotlight.portraitAlt}
-                  width={112}
-                  height={112}
-                  widths={[56, 112, 168]}
-                  sizes="56px"
-                  loading="eager"
-                  decoding="async"
-                />
-              </figure>
-            )}
             <div class="spot__text">
-              <span class="chop">收錄 <span class="chop__no">{noLabel(spotlight.no)}</span></span>
-              <h1 class="spot__name">
-                {spotlight.name}
-                {spotlight.nameEn && <span class="spot__name-en">{spotlight.nameEn}</span>}
-              </h1>
-              <p class="spot__tagline">{spotlight.tagline}</p>
-              {spotTools.length > 0 && (
-                <ul class="chips spot__chips" aria-label="主力工具">
-                  {spotTools.map((t) => (
+              <span class="spot__kicker">
+                {headlineGenre ? `${headlineGenre.labelEn}・${headlineGenre.label}` : genreLabel(headline.data.genre)}
+              </span>
+              <h1 class="spot__name">{headline.data.title}</h1>
+              <p class="spot__tagline">{headline.data.synopsis}</p>
+              {headlineTools.length > 0 && (
+                <ul class="chips spot__chips" aria-label="使用工具">
+                  {headlineTools.map((t) => (
                     <li><span class="chip">{toolLabel(t)}</span></li>
                   ))}
-                  {spotlight.tools.length > spotTools.length && (
-                    <li><span class="chip chip--plain">+{spotlight.tools.length - spotTools.length}</span></li>
+                  {headline.data.tools.length > headlineTools.length && (
+                    <li><span class="chip chip--plain">+{headline.data.tools.length - headlineTools.length}</span></li>
                   )}
                 </ul>
               )}
@@ -150,16 +126,16 @@ const newListedSchema =
           </div>
 
           <div class="spot__foot">
-            <span class="byline">{spotMeta}{spotMeta && spotlight.workCount > 0 ? '・' : ''}{spotlight.workCount > 0 ? `${spotlight.workCount} 部作品` : ''}</span>
-            <span class="spot__more">進入圖鑑頁 →</span>
+            <span class="byline">{headlineCreditLabel}・{headlineCredits}{headlineMeta ? `　${headlineMeta}` : ''}</span>
+            <span class="spot__more">觀看作品 →</span>
           </div>
         </a>
       ) : (
         <div class="coming">
-          <p class="coming__kanji">收錄中</p>
+          <p class="coming__kanji">作品收錄中</p>
           <p class="coming__lead">
-            首批收錄名單整理中。<br />
-            收錄準則見 <a href={routes.about()}>關於圖鑑</a>；歡迎 <a href={routes.contact()}>推薦創作者</a>。
+            首批作品整理中。<br />
+            先逛逛 <a href={routes.works()}>作品總表</a>，或 <a href={routes.contact()}>推薦作品</a>。
           </p>
         </div>
       )}
@@ -255,7 +231,7 @@ const newListedSchema =
     margin-top: 56px;
   }
 
-  /* ── Spotlight ─────────────────────────────────────── */
+  /* ── Headline ──────────────────────────────────────── */
   .spot__link {
     display: block;
     color: inherit;
@@ -274,11 +250,7 @@ const newListedSchema =
   .spot__link:hover .spot__figure :global(img) {
     transform: scale(1.02);
   }
-  .spot__figure--portrait {
-    max-width: 480px;
-  }
-
-  /* 圖左下角的焦點章：墨底 + accent 標籤段 + 代表作段 */
+  /* 圖左下角的頭條章：墨底 + accent 標籤段 + 得獎／作品資訊段 */
   .spot__badge {
     position: absolute;
     left: 0;
@@ -315,17 +287,7 @@ const newListedSchema =
   }
 
   .spot__body {
-    display: grid;
-    grid-template-columns: 56px minmax(0, 1fr);
-    gap: 20px;
-    align-items: start;
-  }
-  .spot__portrait {
-    width: 56px;
-    margin-top: 6px;
-  }
-  .spot__portrait :global(img) {
-    aspect-ratio: 1 / 1;
+    display: block;
   }
 
   .spot__text {
@@ -334,9 +296,14 @@ const newListedSchema =
     align-items: flex-start;
     gap: 12px;
     min-width: 0;
+    max-width: 58rem;
   }
-  .spot__text .chop {
-    margin-bottom: 2px;
+  .spot__kicker {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--accent);
   }
 
   .spot__name {
@@ -350,25 +317,12 @@ const newListedSchema =
   .spot__link:hover .spot__name {
     color: var(--accent);
   }
-  .spot__name-en {
-    display: inline-block;
-    margin-left: 14px;
-    font-family: var(--font-caps);
-    font-weight: 500;
-    font-size: var(--fs-sm);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--muted);
-    vertical-align: 0.35em;
-    white-space: nowrap;
-  }
-
   .spot__tagline {
     font-family: var(--font-serif);
     font-size: var(--fs-lg);
     line-height: 1.7;
     color: var(--ink-soft);
-    max-width: 30em;
+    max-width: 46em;
   }
 
   .spot__chips {
@@ -477,19 +431,6 @@ const newListedSchema =
     }
     .spot__badge-sub {
       display: none;
-    }
-    .spot__body {
-      grid-template-columns: 48px minmax(0, 1fr);
-      gap: 14px;
-    }
-    .spot__portrait {
-      width: 48px;
-      margin-top: 4px;
-    }
-    .spot__name-en {
-      display: block;
-      margin: 8px 0 0;
-      vertical-align: baseline;
     }
     .spot__tagline {
       font-size: var(--fs-md);

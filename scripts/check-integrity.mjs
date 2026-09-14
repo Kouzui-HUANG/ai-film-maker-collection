@@ -5,16 +5,16 @@
  * 掃 src/content/**，把「build 才會炸」與「build 不會炸但上線就出事」的問題提前抓出來：
  *
  *   錯誤（exit 1）
- *     creators  資料夾名 ≠ slug、編號重複或跳號（須 1..N 連續）、spotlight 超過一位、
+ *     creators  資料夾名 ≠ slug、編號重複或跳號（須 1..N 連續）、
  *               tools / genres / categories 不在受控詞彙、肖像檔不存在、listedAt / updatedAt 沒加引號、sameAs 不是 http(s)
  *     works     檔名 ≠ slug、creators reference 解析不到、genre / tools 不在受控詞彙、tools 為空、
- *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號、awards 格式或狀態不合法
+ *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號、awards 格式或狀態不合法、headline 超過一部
  *     posts     urlSlug 重複、type / level 不合法、creators reference 解析不到、封面不存在、
  *               date / updated 沒加引號、excerpt 超過 180 字、tools 不在受控詞彙
  *     events    檔名 ≠ slug、kind 不合法、startDate / endDate / deadline 沒加引號、封面不存在、officialUrl 不是 http(s)
  *
  *   警告（exit 0）
- *     工具標籤在該條目內文找不到（防誤植）、同一支影片收在多部作品、spotlight 一位都沒有、
+ *     工具標籤在該條目內文找不到（防誤植）、同一支影片收在多部作品、headline 一部都沒有、
  *     posts 資料夾名 ≠ urlSlug、endDate < startDate、deadline > startDate、new-work.mjs 骨架的 TODO 還沒補…
  *
  * 用法
@@ -335,13 +335,6 @@ for (const name of readdirSync(DIR.creators).sort()) {
   if (missing.length) err('creators', `編號跳號：缺 No.${missing.join('、No.')}（共 ${creators.size} 位，編號應為 1..${creators.size} 連續）`);
 }
 
-/* spotlight：非 draft 恰好一位 */
-{
-  const spot = [...creators].filter(([, c]) => !c.draft && c.data.spotlight === true).map(([id]) => id);
-  if (spot.length > 1) err('creators', `spotlight: true 有 ${spot.length} 位（${spot.join('、')}），全站只能一位`);
-  else if (spot.length === 0 && creators.size) warn('creators', 'spotlight: true 一位都沒有，首頁焦點會退回最新收錄者');
-}
-
 /* ═══════════════════════════════════════════════════════════════
    works
    ═══════════════════════════════════════════════════════════════ */
@@ -418,6 +411,13 @@ for (const file of listMd(DIR.works)) {
 
 for (const [key, ids] of videoSeen) {
   if (ids.length > 1) warn('works', `同一支影片（${key}）出現在多部作品：${ids.join('、')}`);
+}
+
+/* headline：非 draft 恰好一部 */
+{
+  const headlines = works.filter((w) => !w.draft && w.data.headline === true).map((w) => w.id);
+  if (headlines.length > 1) err('works', `headline: true 有 ${headlines.length} 部（${headlines.join('、')}），全站只能一部`);
+  else if (headlines.length === 0 && works.length) warn('works', 'headline: true 一部都沒有，首頁頭條會退回最新作品');
 }
 
 /* 創作者標了某個類型、但站上該類型 0 部作品 → /genre/<slug>/ 不會建頁

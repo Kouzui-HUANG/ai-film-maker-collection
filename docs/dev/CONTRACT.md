@@ -69,7 +69,7 @@ d.posts            // Post[]    依 date 倒序
 d.events           // SiteEvent[]
 d.upcomingEvents   // upcoming + ongoing，startDate 正序
 d.pastEvents       // past，startDate 倒序
-d.spotlight        // Creator | null
+d.headline         // Work | null
 d.toolCounts       // Map<toolSlug, 作品數>   → toolHasPage(d.toolCounts, slug)
 d.genreCounts      // Map<genreSlug, 作品數>  → genreIsIndexable(d.genreCounts, slug)
 d.creatorById / d.workById / d.postByUrlSlug / d.eventById

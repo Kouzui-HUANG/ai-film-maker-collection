@@ -142,7 +142,6 @@ const creators = defineCollection({
     })).optional(),
     listedAt: z.string(),                  // 收錄日 "YYYY-MM-DD"
     updatedAt: z.string().optional(),
-    spotlight: z.boolean().optional(),     // 首頁焦點創作者（同時只有一位）
     draft: z.boolean().optional(),
   }),
 });
@@ -154,6 +153,7 @@ const works = defineCollection({
     title: z.string(),
     slug: z.string(),
     creators: z.array(reference('creators')),   // ★ 支援合作作品
+    headline: z.boolean().optional(),            // 首頁頭條作品（同時只有一部）
     year: z.number(),
     releasedAt: z.string().optional(),          // "YYYY-MM-DD"
     genre: z.string(),                          // 受控詞彙 → genres.ts
@@ -482,7 +482,7 @@ node scripts/new-work.mjs <youtube-url> --creator ming-wang --genre short-film
 - 每個工具標籤在對應作品的內文 grep 次數 ≥ 1（防誤植）
 - `creators` reference 全部解析得到
 - 編號 `no` 無重複、無跳號
-- `spotlight: true` 全站僅一位
+- 作品的 `headline: true` 全站僅一部
 - frontmatter 日期欄位**有加引號**（JP¥ ONLINE 曾因未加引號被 YAML 當日期物件而 build 失敗）
 
 ### 7-3 每日重建（時效性引擎的必要條件）

@@ -67,7 +67,6 @@ const creators = defineCollection({
         .optional(),
       listedAt: dateStr,                     // 收錄日
       updatedAt: dateStr.optional(),
-      spotlight: z.boolean().optional(),     // 首頁焦點創作者（同時只有一位）
       draft: z.boolean().optional(),
     }),
 });
@@ -81,6 +80,7 @@ const works = defineCollection({
       slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'slug 須為全小寫 kebab-case'),
       creators: z.array(reference('creators')).min(1),   // ★ 支援合作作品
       equalCredit: z.boolean().optional(),               // 多位創作者是否採共同署名、不標示主創作者
+      headline: z.boolean().optional(),                  // 首頁頭條作品（同時只有一部）
       year: z.number().int(),
       releasedAt: dateStr.optional(),
       genre: z.string(),                                 // 受控詞彙 → genres.ts
