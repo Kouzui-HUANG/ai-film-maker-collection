@@ -1,11 +1,11 @@
 ---
 no: 6
-name: "盧雅玲"
-nameEn: "Lu Ya-ling"
-slug: "lu-ya-ling"
+name: "貓貓"
+nameEn: "CutCat²"
+slug: "cutcat"
 tagline: "剪輯師出身的 AI MV 作者，自稱反骨幻想家"
 bio: "剪輯師背景的 AI 影像創作者，在 YouTube 以「剪片貓²／CutCat²」活動，頻道自我設定成「一個專門剪輯人類夢境、潛意識與創作靈感的編輯室」。作品幾乎全是 MV，路徑固定：歌先用 Suno 生成，角色與世界觀由 Midjourney 鎖定一致性，動態交給 Kling，題材從賽博龐克科幻寓言橫跨到水墨潑彩，共同點是先把情緒寫成歌詞、再把歌詞拍出來。低調，但得獎紀錄扎實——2026 年以《未完稿角色》入圍第五屆野草計畫「AI 創意影片獎」，AI 組全台僅五部入圍；同年擔任《間合》的剪輯，隨隊拿下 AI 影視職人創作大賽第二名。自述是「反骨幻想家」。"
-seoTitle: "盧雅玲 Lu Ya-ling（剪片貓² CutCat²）｜台灣 AI MV 創作者・野草計畫入圍"
+seoTitle: "貓貓 CutCat²（剪片貓²）｜台灣 AI MV 創作者・野草計畫入圍"
 portrait: "./portrait.jpg"
 portraitAlt: "剪片貓² 的頻道吉祥物：戴著耳機的橘色虎斑貓，胸前掛著紅色剪刀造型墜飾，白色背景"
 tools: ["suno", "midjourney", "kling"]
