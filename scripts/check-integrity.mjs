@@ -8,13 +8,14 @@
  *     creators  資料夾名 ≠ slug、編號重複或跳號（須 1..N 連續）、
  *               tools / genres / categories 不在受控詞彙、肖像檔不存在、listedAt / updatedAt 沒加引號、sameAs 不是 http(s)
  *     works     檔名 ≠ slug、creators reference 解析不到、genre / tools 不在受控詞彙、tools 為空、
- *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號、awards 格式或狀態不合法、headline 超過一部
+ *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號、awards 格式或狀態不合法、
+ *               press 格式不合法或 date 沒加引號、headline 超過一部
  *     posts     urlSlug 重複、type / level 不合法、creators reference 解析不到、封面不存在、
  *               date / updated 沒加引號、excerpt 超過 180 字、tools 不在受控詞彙
  *     events    檔名 ≠ slug、kind 不合法、startDate / endDate / deadline 沒加引號、封面不存在、officialUrl 不是 http(s)
  *
  *   警告（exit 0）
- *     工具標籤在該條目內文找不到（防誤植）、同一支影片收在多部作品、headline 一部都沒有、
+ *     工具標籤在該條目內文找不到（防誤植）、同一支影片收在多部作品、press 連結重複、headline 一部都沒有、
  *     posts 資料夾名 ≠ urlSlug、endDate < startDate、deadline > startDate、new-work.mjs 骨架的 TODO 還沒補…
  *
  * 用法
@@ -402,6 +403,27 @@ for (const file of listMd(DIR.works)) {
       if (typeof award.result !== 'string' || !award.result.trim()) err(where, `awards[${i}].result 未填`);
       if (!WORK_AWARD_STATUSES.includes(award.status)) {
         err(where, `awards[${i}].status「${award.status ?? '（未填）'}」不合法（${WORK_AWARD_STATUSES.join(' / ')}）`);
+      }
+    });
+  }
+
+  if (data.press !== undefined && !Array.isArray(data.press)) {
+    err(where, 'press 須為陣列');
+  } else if (Array.isArray(data.press)) {
+    const pressUrls = new Set();
+    data.press.forEach((item, i) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        err(where, `press[${i}] 須為 { outlet, title, url, date? }`);
+        return;
+      }
+      if (typeof item.outlet !== 'string' || !item.outlet.trim()) err(where, `press[${i}].outlet 未填`);
+      if (typeof item.title !== 'string' || !item.title.trim()) err(where, `press[${i}].title 未填`);
+      if (!isHttp(item.url)) err(where, `press[${i}].url 不是 http(s) URL：${JSON.stringify(item.url)}`);
+      else if (pressUrls.has(item.url)) warn(where, `press 有重複的連結：${item.url}`);
+      else pressUrls.add(item.url);
+      /* 沒加引號的日期會被 YAML 轉成 Date 物件，zod 的 z.string() 會在 build 時炸 */
+      if (item.date !== undefined && !isDateStr(item.date)) {
+        err(where, `press[${i}].date 須為加引號的 "YYYY-MM-DD"（目前：${JSON.stringify(item.date)}）`);
       }
     });
   }

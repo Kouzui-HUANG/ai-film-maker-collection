@@ -3,8 +3,8 @@
  * /work/<slug>/ — 單一作品頁（設計文件 §6-4）
  *
  * 影片 lite facade → 標題 + 創作者列 → 作品資訊格網（固定欄位順序）→
- * synopsis / 製作手記 / 得獎 → 同創作者其他作品 / 同工具其他作品 → 分享、返回。
- * schema：VideoObject（creator 以 @id 指回 Person entity）。
+ * synopsis / 製作手記 / 得獎 / 媒體報導 → 同創作者其他作品 / 同工具其他作品 → 分享、返回。
+ * schema：VideoObject（creator 以 @id 指回 Person entity，媒體報導掛 subjectOf）。
  */
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -34,7 +34,7 @@ export async function getStaticPaths() {
 const { work } = Astro.props as { work: Work };
 const d = await getSiteData();
 
-const { title, slug, equalCredit, year, releasedAt, genre, tools, durationSec, videoUrl, thumb, thumbAlt, synopsis, note, awards } =
+const { title, slug, equalCredit, year, releasedAt, genre, tools, durationSec, videoUrl, thumb, thumbAlt, synopsis, note, awards, press } =
   work.data;
 
 const creators = work.creators;
@@ -49,6 +49,7 @@ const awardRows = awardList.map((award) => ({
   text: formatWorkAward(award),
   badge: getWorkAwardBadge([award])!,
 }));
+const pressList = press ?? [];
 
 const toolChips = tools.map((s) => ({ slug: s, label: toolLabel(s), hasPage: toolHasPage(d.toolCounts, s) }));
 const noteParas = (note ?? '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
@@ -91,6 +92,18 @@ const videoSchema = {
   keywords: tools.map(toolLabel).join(', '),
   inLanguage: 'zh-Hant-TW',
   ...(awardRows.length ? { award: awardRows.map((row) => row.text) } : {}),
+  /* 媒體報導＝以這部作品為題的外部文章，schema.org 用 subjectOf 掛 */
+  ...(pressList.length
+    ? {
+        subjectOf: pressList.map((p) => ({
+          '@type': 'NewsArticle',
+          headline: p.title,
+          url: p.url,
+          ...(p.date ? { datePublished: p.date } : {}),
+          publisher: { '@type': 'Organization', name: p.outlet },
+        })),
+      }
+    : {}),
   creator: creators.map((c) => ({
     '@type': 'Person',
     '@id': absRoutes.creatorId(c.slug),
@@ -198,6 +211,12 @@ const videoSchema = {
             {awardList.length > 0 ? <a class="work__grid-link" href="#awards">{awardList.length} 筆</a> : '—'}
           </dd>
         </div>
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">媒體報導</dt>
+          <dd class="data-grid__value data-grid__value--num">
+            {pressList.length > 0 ? <a class="work__grid-link" href="#press">{pressList.length} 篇</a> : '—'}
+          </dd>
+        </div>
       </dl>
 
       <div class="work__body">
@@ -224,6 +243,32 @@ const videoSchema = {
                     aria-label={row.badge.ariaLabel}
                   >{row.badge.label}</span>
                   <span>{row.text}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {pressList.length > 0 && (
+          <section class="work__section" id="press" aria-labelledby="work-press">
+            <h2 id="work-press" class="work__h2">媒體報導</h2>
+            <ul class="work__press">
+              {pressList.map((p) => (
+                <li>
+                  <a
+                    class="work__press-link"
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-ga-cta="work_press"
+                    data-ga-location="work_body"
+                    aria-label={`${p.outlet}：${p.title}（另開新視窗）`}
+                  >
+                    <span class="work__press-outlet">{p.outlet}</span>
+                    {/* U+2060 word joiner：標題換行時不讓 ↗ 落單到下一行 */}
+                    <span class="work__press-title">{p.title}{'⁠'}<span class="work__press-arrow" aria-hidden="true">↗</span></span>
+                  </a>
+                  {p.date && <span class="work__press-date">{fmtDate(p.date)}</span>}
                 </li>
               ))}
             </ul>
@@ -404,6 +449,65 @@ const videoSchema = {
 
   .work__awards li:last-child {
     border-bottom: 1px solid var(--rule);
+  }
+
+  /* ── 媒體報導 ───────────────────────────────── */
+  .work__press li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 6px 16px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+
+  .work__press li:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .work__press-link {
+    display: block;
+    color: var(--ink);
+  }
+
+  .work__press-outlet {
+    display: block;
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .work__press-title {
+    font-family: var(--font-serif);
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    border-bottom: 1px solid transparent;
+    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+
+  .work__press-link:hover .work__press-title {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .work__press-arrow {
+    margin-left: 6px;
+    font-size: 0.85em;
+    color: var(--muted);
+  }
+
+  .work__press-link:hover .work__press-arrow {
+    color: var(--accent);
+  }
+
+  .work__press-date {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   /* ── 相關作品 ───────────────────────────────── */

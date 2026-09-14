@@ -101,6 +101,17 @@ const works = defineCollection({
           }),
         )
         .optional(),
+      /* 媒體報導：外部報導這部作品的新聞連結，依刊出日新到舊排 */
+      press: z
+        .array(
+          z.object({
+            outlet: z.string(),                  // 媒體名稱，如「公視新聞網」
+            title: z.string(),                   // 報導標題（照原標，不改寫）
+            url: z.string().url(),
+            date: dateStr.optional(),            // 刊出日，查不到就留空
+          }),
+        )
+        .optional(),
       draft: z.boolean().optional(),
     }),
 });
