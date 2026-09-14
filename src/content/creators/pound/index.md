@@ -7,7 +7,7 @@ tagline: "做妖怪遊行，也拆解工具的 AI 影像創作者"
 bio: "以「我是龐德」在 YouTube、Threads 與 Instagram 活動的 AI 影像創作者，自述「每天 8 小時沉浸 AI 影像」「我沒有你專業、但我比你更努力研究」。2023 年以 Stable Diffusion 的逐格動畫、換臉與聲音克隆教學起家，是中文圈最早一批把整條 AI 工具鏈拆給新手的創作者，頻道現有 10.8 萬訂閱、364 部影片。2024 年底起重心轉向自己的創作：用 Midjourney 建立角色，以 Runway、Kling、Hailuo 與 Nano Banana 讓畫面動起來，做出《繁殖気味》秋葉原妖怪遊行系列，單支最高逾一百五十萬次觀看。同時在 OMIA PLUS 與自營平台開課、經營「AI 短劇公社」社團，並與另外兩組創作者合辦 AI 短片創作比賽。"
 seoTitle: "我是龐德 Pound｜AI 影像教學創作者與《繁殖気味》妖怪遊行系列"
 portrait: "./portrait.jpg"
-portraitAlt: "我是龐德的社群頭像：AI 生成的擬人化兔子穿深灰連帽外套，站在健身房裡雙手各握一只啞鈴"
+portraitAlt: "我是龐德的社群頭像：白色鋼彈風機甲頭部的正面特寫，額前雙刃天線交叉、單眼為青色，深紫背景上以桃紅與藍色色塊襯出「POUND」字樣"
 tools: ["midjourney", "runway", "kling", "hailuo", "nano-banana", "stable-diffusion", "premiere-pro"]
 genres: ["experimental", "animation"]
 categories: ["lecture-teaching", "social-video", "animation-comics"]
