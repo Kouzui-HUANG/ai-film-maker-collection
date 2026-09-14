@@ -5,7 +5,7 @@ import { fmtDuration } from '../../../data/queries';
 import { getWorkAwardBadge } from '../../../data/awards';
 import { genreLabel } from '../../../data/genres';
 import { routes } from '../../../data/site';
-import { getMoreLists, chunkCount, chunkSlice } from '../../../data/listings';
+import { getMoreLists, chunkCount, chunkSlice, listVersion } from '../../../data/listings';
 
 /**
  * /works/ 「捲到底再載入」用的資料端點。
@@ -15,6 +15,10 @@ import { getMoreLists, chunkCount, chunkSlice } from '../../../data/listings';
  * 縮圖用 getImage() 走與 WorkCard 的 <Image> 完全相同的轉檔參數，
  * 才能拿到同一批 /_astro/*.webp 檔名，前端 clone 卡片後直接套 src/srcset。
  * getImage() 回傳的 src 已含 base（與 <Image> 一致）。
+ *
+ * 回傳 { version, items }：version 是整份清單的版本戳，與頁面上的
+ * data-more-version 對帳。對不上代表 HTML 與 JSON 來自不同次 build
+ * （部署後還開著的舊分頁），前端會重載換回同一版。
  */
 
 const IMAGE_OPTS = {
@@ -64,7 +68,7 @@ export const GET: APIRoute = async ({ params }) => {
   const slice = chunkSlice(works, Number(params.page));
   const items = await Promise.all(slice.map(toCard));
 
-  return new Response(JSON.stringify(items), {
+  return new Response(JSON.stringify({ version: listVersion(works), items }), {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });
 };

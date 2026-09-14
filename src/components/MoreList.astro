@@ -8,11 +8,17 @@
  *
  * 新卡片用 clone 第一張 SSR 卡片當模板：Astro scoped style 掛在 data-astro-cid-* 屬性上，
  * clone 才能原封不動帶著那些屬性，不必寫死 hash。
+ *
+ * 偏移是位置式的，HTML 與 JSON 必須同一次 build，否則作品會重複或被跳過。
+ * 兩邊各帶 listVersion() 的版本戳對帳：
+ *   - fetch 網址帶 ?v=<version>，避開瀏覽器快取到舊 JSON
+ *   - JSON 的 version 與 data-more-version 不符 → 代表這頁 HTML 是舊的，重載一次換回同一版
+ *   - 重載後仍不符（中間有代理快取住）就不再重試，改用 href 去重硬撐，至少不會出現重複卡片
  */
 import WorkCard from './WorkCard.astro';
 import type { Work } from '../data/queries';
 import { href } from '../data/site';
-import { MORE_INITIAL, MORE_BATCH, MORE_CHUNK } from '../data/listings';
+import { MORE_INITIAL, MORE_BATCH, MORE_CHUNK, listVersion } from '../data/listings';
 
 interface Props {
   /** 對應 /more/<listKey>/<page>.json 的 key */
@@ -25,6 +31,8 @@ const { listKey, works } = Astro.props;
 
 const initial = works.slice(0, MORE_INITIAL);
 const total = works.length;
+/** 與 /more/<key>/<n>.json 對帳用；對不上代表 HTML 與 JSON 不是同一次 build */
+const version = listVersion(works);
 const hasMore = total > initial.length;
 /** 首屏一列（桌機 3 欄）eager，其餘 lazy */
 const EAGER_COUNT = 3;
@@ -35,6 +43,7 @@ const EAGER_COUNT = 3;
   data-more-list
   data-more-key={listKey}
   data-more-base={href(`/more/${listKey}/`)}
+  data-more-version={version}
   data-more-total={String(total)}
   data-more-initial={String(initial.length)}
   data-more-batch={String(MORE_BATCH)}
@@ -71,9 +80,15 @@ const EAGER_COUNT = 3;
     src: string;
     srcset: string;
   };
+  /** 端點現在回 { version, items }；純陣列是舊版 JSON（快取到上一版時），照樣吃 */
+  type ChunkPayload = CardData[] | { version?: string; items?: CardData[] };
+
+  /** 「這一版的 HTML 已經重載過一次」的記號，避免代理快取住時無限重載 */
+  const RELOAD_KEY = 'more-list:reloaded';
 
   function setup(root: HTMLElement) {
     const base = root.dataset.moreBase;
+    const version = root.dataset.moreVersion ?? '';
     const total = Number(root.dataset.moreTotal ?? '0');
     const initial = Number(root.dataset.moreInitial ?? '0');
     const batch = Number(root.dataset.moreBatch ?? '12');
@@ -87,12 +102,29 @@ const EAGER_COUNT = 3;
     const template = items.querySelector<HTMLElement>('[data-work-card]');
     if (!template) return;
 
+    /** 已印出的作品連結；版本錯開時用來擋掉重複卡片（getAttribute 才和 JSON 的 href 同形） */
+    const seen = new Set<string>();
+    for (const a of items.querySelectorAll<HTMLAnchorElement>('[data-work-card] .card__link')) {
+      const h = a.getAttribute('href');
+      if (h) seen.add(h);
+    }
+
     const totalChunks = Math.ceil((total - initial) / chunk);
     const buffer: CardData[] = [];
     let nextChunk = 1;
     let rendered = initial;
     let busy = false;
     let stopped = false;
+    /** 版本對不上又重載不了：HTML 帶來的 total / totalChunks 都不可信，改抓到沒有為止 */
+    let stale = false;
+    /** 資料源見底（chunk 抓完、回空陣列，或降級時抓到 404） */
+    let exhausted = false;
+
+    /** 還有沒有下一個 chunk 可抓 */
+    function hasNextChunk(): boolean {
+      if (exhausted) return false;
+      return stale || nextChunk <= totalChunks;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -155,6 +187,32 @@ const EAGER_COUNT = 3;
       status!.textContent = '';
     }
 
+    /**
+     * JSON 的版本戳與這頁 HTML 對不上：這頁是部署前載入的舊版，偏移已經錯位。
+     * 重載一次換回同一版；若這一版先前已經重載過（代理還在給舊 HTML），
+     * 就不再重試，回 false 讓呼叫端改用 href 去重繼續。
+     */
+    function handleStale(): boolean {
+      let tried = '';
+      try {
+        tried = sessionStorage.getItem(RELOAD_KEY) ?? '';
+      } catch {
+        /* 無痕模式等讀不到 sessionStorage：當作沒重載過，最多多刷一次 */
+      }
+      if (tried === version) return false;
+
+      try {
+        sessionStorage.setItem(RELOAD_KEY, version);
+      } catch {
+        /* 寫不進去也照重載，下面的 stopped 會擋住後續批次 */
+      }
+      stopped = true;
+      observer.disconnect();
+      status!.textContent = '清單已更新，重新載入…';
+      location.reload();
+      return true;
+    }
+
     function fail() {
       observer.disconnect();
       status!.textContent = '';
@@ -171,18 +229,42 @@ const EAGER_COUNT = 3;
     }
 
     async function pump() {
-      if (busy || stopped || rendered >= total) return;
+      if (busy || stopped) return;
+      if (!stale && rendered >= total) return;
       busy = true;
       status!.textContent = '載入中…';
 
       try {
-        while (buffer.length < batch && nextChunk <= totalChunks) {
-          const res = await fetch(`${base}${nextChunk}.json`);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const batchData = (await res.json()) as CardData[];
-          buffer.push(...batchData);
+        while (buffer.length < batch && hasNextChunk()) {
+          // ?v= 只為了避開瀏覽器快取到上一版 JSON；靜態主機會忽略 query
+          const url = `${base}${nextChunk}.json${version ? `?v=${encodeURIComponent(version)}` : ''}`;
+          const res = await fetch(url);
+          if (!res.ok) {
+            // 降級時 chunk 數是猜的，404 就當作抓完了
+            if (stale && res.status === 404) {
+              exhausted = true;
+              break;
+            }
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const payload = (await res.json()) as ChunkPayload;
+          const list = Array.isArray(payload) ? payload : payload.items ?? [];
+          const chunkVersion = Array.isArray(payload) ? '' : payload.version ?? '';
+
+          if (version && chunkVersion && chunkVersion !== version) {
+            if (handleStale()) return;
+            stale = true;
+          }
+
+          if (list.length === 0) {
+            exhausted = true;
+            break;
+          }
+          buffer.push(...list);
           nextChunk += 1;
         }
+        if (!hasNextChunk()) exhausted = true;
       } catch {
         busy = false;
         fail();
@@ -190,20 +272,21 @@ const EAGER_COUNT = 3;
       }
 
       const next = buffer.splice(0, batch);
-      if (next.length === 0) {
-        busy = false;
-        finish();
-        return;
-      }
+      // 版本錯開時同一部作品可能已經在頁面上，去重後才進 DOM
+      const fresh = next.filter((d) => d.href && !seen.has(d.href));
+      for (const d of fresh) seen.add(d.href);
 
-      const frag = document.createDocumentFragment();
-      for (const data of next) frag.appendChild(renderCard(data));
-      items!.appendChild(frag);
-      rendered += next.length;
+      if (fresh.length > 0) {
+        const frag = document.createDocumentFragment();
+        for (const data of fresh) frag.appendChild(renderCard(data));
+        items!.appendChild(frag);
+        rendered += fresh.length;
+      }
       status!.textContent = '';
       busy = false;
 
-      if (rendered >= total) {
+      // 資料源見底就收工；total 只在版本相符時才可信，才不會卡在載入中。
+      if ((buffer.length === 0 && exhausted) || (!stale && rendered >= total)) {
         finish();
         return;
       }

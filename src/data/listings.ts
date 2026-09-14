@@ -32,3 +32,23 @@ export function chunkSlice<T>(items: T[], page: number): T[] {
   const rest = items.slice(MORE_INITIAL);
   return rest.slice((page - 1) * MORE_CHUNK, page * MORE_CHUNK);
 }
+
+/**
+ * 清單版本戳（HTML 與 JSON 的對帳碼）。
+ *
+ * 分批載入是「位置偏移」切片（chunkSlice 的 slice(MORE_INITIAL)），所以頁面的
+ * HTML 與 /more/<key>/<n>.json 必須來自同一次 build。部署後還開著的舊分頁會拿到
+ * 新 JSON，偏移就錯位——同一部作品重複出現，中間的作品被整段跳過。
+ * 兩邊都帶這個值，前端對不上就重載換回同一版。
+ *
+ * FNV-1a 雜湊「總數 + 依序的 slug」：順序、增刪、換片都會讓它改變。
+ */
+export function listVersion(works: Work[]): string {
+  const src = `${works.length}:${works.map((w) => w.data.slug).join(',')}`;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < src.length; i += 1) {
+    h ^= src.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(36);
+}
