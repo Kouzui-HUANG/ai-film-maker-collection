@@ -32,10 +32,10 @@ npm run new-work -- <url> --creator <slug> --genre <slug>   # 從 YouTube / Vime
 npm run placeholders              # 補齊缺件的佔位圖（示範資料用）
 ```
 
-本機 dev / build 預設用 `site.config.mjs` 內的 `https://kouzui-huang.github.io` + `/ai-film-maker-collection` base；要模擬其他部署位置：
+本機 dev / build 預設用 `site.config.mjs` 內的 `https://hallucination28.com` + `/` base（與正式站一致）；要模擬其他部署位置：
 
 ```bash
-SITE_ORIGIN=https://example.com BASE_PATH=/ npm run build
+SITE_ORIGIN=https://kouzui-huang.github.io BASE_PATH=/ai-film-maker-collection npm run build
 ```
 
 ## 目錄結構
@@ -48,7 +48,7 @@ ai-film-maker-collection/
 ├── docs/
 │   ├── plans/                    # 設計文件
 │   └── dev/CONTRACT.md           # 實作契約
-├── public/                       # favicon、logo、og-default、.nojekyll（CNAME 放這裡）
+├── public/                       # favicon、logo、og-default、.nojekyll、CNAME（正式網域）
 ├── scripts/
 │   ├── new-work.mjs              # YouTube / Vimeo 網址 → 作品 md 骨架 + 縮圖
 │   ├── check-integrity.mjs       # 上稿前檢核（受控詞彙、reference、編號、日期引號…）
@@ -150,7 +150,15 @@ push 之後到 **Settings → Pages → Build and deployment → Source** 選 **
 
 站內連結一律經 `href()` / `routes.*` 加 base，JSON-LD 與 canonical 用 `absUrl()` / `absRoutes.*`，所以三種型態不需要改任何頁面。
 
-自訂網域的步驟：**Settings → Secrets and variables → Actions → Variables** 新增 `SITE_ORIGIN=https://example.com`；`public/` 放 `CNAME` 檔（內容只有網域）；**Settings → Pages → Custom domain** 填同一個網域並開 Enforce HTTPS。`public/.nojekyll` 是空檔，避免 GitHub Pages 用 Jekyll 處理而忽略 `_astro/` 資料夾。
+本站走第三種：正式網域 **`hallucination28.com`**（Squarespace Domains 註冊，DNS 指向 GitHub Pages）。設定分三處，缺一不可：
+
+1. **Settings → Secrets and variables → Actions → Variables** 設 `SITE_ORIGIN=https://hallucination28.com`
+2. `public/CNAME`（內容只有網域一行，Astro 原樣複製到 `dist/`）
+3. **Settings → Pages → Custom domain** 填同一個網域，憑證簽發後開 **Enforce HTTPS**
+
+DNS 側在 Squarespace 網域後台（`account.squarespace.com/domains` → 選網域 → DNS）：apex 四筆 A（`185.199.108~111.153`）＋四筆 AAAA（`2606:50c0:8000~8003::153`），`www` 的 CNAME 指 `kouzui-huang.github.io`。**MX / SPF / DKIM 不要動**——`ai_video@hallucination28.com` 靠那幾筆走 Google Workspace。
+
+`public/.nojekyll` 是空檔，避免 GitHub Pages 用 Jekyll 處理而忽略 `_astro/` 資料夾。
 
 ### 為什麼每日重建
 
@@ -176,6 +184,6 @@ push 之後到 **Settings → Pages → Build and deployment → Source** 選 **
 |---|---|---|
 | GA4 Measurement ID | `src/data/site.ts` → `SITE.gaId` | 留空時 production build 不載入 gtag；填入後自動輸出 `outbound_click` / `cta_click` / `scroll_depth` / `video_play` 事件 |
 | 作品按讚 API | `src/data/site.ts` → `SITE.likesApiUrl` | Google Apps Script Web App 端點；留空則按讚按鈕隱藏、分享功能照常 |
-| 正式網域 | `site.config.mjs` 預設值 + Actions Variables `SITE_ORIGIN` + `public/CNAME` | 決定後三處一起改，並更新 `SITE.name` / og 圖 |
+| ~~正式網域~~ | 已設為 `hallucination28.com`（`site.config.mjs` 預設值 + Actions Variable `SITE_ORIGIN` + `public/CNAME`） | 見〈三種位址型態〉。DNS 在 Squarespace 後台，憑證簽發後記得開 Enforce HTTPS |
 | ~~聯絡信箱~~ | 已設為 `ai_video@hallucination28.com`（`src/data/site.ts` → `SITE.email`） | 用於聯絡頁、關於頁、隱私權頁的寄信連結與 Organization schema |
 | 收錄準則、作品授權、退出機制 | 設計文件 §9 | 需要一份公開的收錄準則頁（`/about/`）與創作者要求下架時的處理流程 |
