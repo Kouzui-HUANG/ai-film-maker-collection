@@ -34,6 +34,7 @@ export type CreatorRef = {
   role?: string[];
   tools: string[];
   genres: string[];
+  categories: string[];
   listedAt: string;
 };
 
@@ -116,6 +117,7 @@ function toRef(e: CreatorEntry): CreatorRef {
     role: d.role,
     tools: d.tools,
     genres: d.genres,
+    categories: d.categories,
     listedAt: d.listedAt,
   };
 }

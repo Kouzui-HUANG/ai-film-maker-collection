@@ -10,6 +10,7 @@ portrait: "./portrait.jpg"
 portraitAlt: "黃宏瑞的像素風格自畫像：深藍西裝、藍白條紋領帶，雙手抱胸站在白色背景前"
 tools: ["stable-diffusion", "wan", "suno", "capcut"]
 genres: ["short-film", "music-video", "animation"]
+categories: ["social-video", "film", "music-mv", "animation-comics", "lecture-teaching"]
 region: "台北"
 role: ["編劇", "導演", "配樂"]
 sameAs:

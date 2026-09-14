@@ -43,6 +43,7 @@ const creators = defineCollection({
       portraitAlt: z.string(),
       tools: z.array(z.string()).min(1),     // 受控詞彙 → tools.ts
       genres: z.array(z.string()).min(1),    // 受控詞彙 → genres.ts
+      categories: z.array(z.string()).min(1), // 創作者類型分類 → creator-categories.ts
       region: z.string().optional(),         // 台北 / 台中 / 高雄 / 海外
       role: z.array(z.string()).optional(),  // 導演 / 剪輯 / 美術 / 配樂
       sameAs: z

@@ -6,7 +6,7 @@
  *
  *   錯誤（exit 1）
  *     creators  資料夾名 ≠ slug、編號重複或跳號（須 1..N 連續）、spotlight 超過一位、
- *               tools / genres 不在受控詞彙、肖像檔不存在、listedAt / updatedAt 沒加引號、sameAs 不是 http(s)
+ *               tools / genres / categories 不在受控詞彙、肖像檔不存在、listedAt / updatedAt 沒加引號、sameAs 不是 http(s)
  *     works     檔名 ≠ slug、creators reference 解析不到、genre / tools 不在受控詞彙、tools 為空、
  *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號
  *     posts     urlSlug 重複、type / level 不合法、creators reference 解析不到、封面不存在、
@@ -40,6 +40,7 @@ const DIR = {
 };
 const TOOLS_TS = join(ROOT, 'src', 'data', 'tools.ts');
 const GENRES_TS = join(ROOT, 'src', 'data', 'genres.ts');
+const CREATOR_CATEGORIES_TS = join(ROOT, 'src', 'data', 'creator-categories.ts');
 const CONFIG_TS = join(ROOT, 'src', 'content.config.ts');
 
 const EXCERPT_MAX = 180;
@@ -91,6 +92,7 @@ function readVocab(file, constName) {
 }
 const { map: TOOLS, src: toolsSrc } = readVocab(TOOLS_TS, 'TOOLS');
 const { map: GENRES } = readVocab(GENRES_TS, 'GENRES');
+const { map: CREATOR_CATEGORIES } = readVocab(CREATOR_CATEGORIES_TS, 'CREATOR_CATEGORIES');
 const MIN_TOOL_WORKS = Number(toolsSrc.match(/MIN_TOOL_WORKS\s*=\s*(\d+)/)?.[1] ?? 2);
 
 const configSrc = existsSync(CONFIG_TS) ? readFileSync(CONFIG_TS, 'utf-8') : '';
@@ -291,6 +293,7 @@ for (const name of readdirSync(DIR.creators).sort()) {
 
   const tools = checkVocab(where, 'tools', data.tools, TOOLS, 'src/data/tools.ts', { required: true });
   checkVocab(where, 'genres', data.genres, GENRES, 'src/data/genres.ts', { required: true });
+  checkVocab(where, 'categories', data.categories, CREATOR_CATEGORIES, 'src/data/creator-categories.ts', { required: true });
   checkImage(where, full, 'portrait', data.portrait);
 
   checkDateQuoted(where, raw, 'listedAt', { required: true });
@@ -525,7 +528,7 @@ const errors = problems.filter((p) => p.level === 'error');
 const warnings = problems.filter((p) => p.level === 'warn');
 
 console.log(`${bold('內容檢核')} ${dim('src/content/**')}`);
-console.log(dim(`受控詞彙：${TOOLS.size} 個工具、${GENRES.size} 種類型；enum：kind ${EVENT_KINDS.length}、type ${POST_TYPES.length}、level ${LEVELS.length}`));
+console.log(dim(`受控詞彙：${TOOLS.size} 個工具、${GENRES.size} 種作品類型、${CREATOR_CATEGORIES.size} 種創作者分類；enum：kind ${EVENT_KINDS.length}、type ${POST_TYPES.length}、level ${LEVELS.length}`));
 console.log('');
 
 for (const p of problems) {

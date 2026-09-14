@@ -10,6 +10,7 @@ portrait: "./portrait.jpg"
 portraitAlt: "本人 YouTube 頻道頭像：白色細線圓框內是襯線體大寫「DK」，下方小字「PaPa」，襯在深灰底上，背後疊著一圈淡灰的手寫體簽名"
 tools: ["kling", "nano-banana", "midjourney", "suno", "final-cut-pro"]
 genres: ["animation", "short-film", "music-video"]
+categories: ["social-video", "film", "music-mv", "animation-comics", "lecture-teaching"]
 region: "台北"
 role: ["導演", "編劇", "作詞", "剪輯"]
 sameAs:

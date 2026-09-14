@@ -3,9 +3,9 @@
  * /creators/ — 圖鑑總表（本站最重要的單一頁面，設計文件 §6-2）
  *
  * 一頁列完所有創作者，不分頁、不捲動載入。
- * 細線表格：No. │ 肖像 │ 名字 + tagline │ 主力工具 │ 地區 │ 作品數 │ 收錄日
- * 排序（編號 / 收錄日 / 作品數）與篩選（工具 / 類型 / 地區）都在前端做，
- * 網址同步 ?sort=&tool=&genre=&region=，深連結進站可還原篩選態。
+ * 細線表格：No. │ 肖像 │ 名字 + tagline │ 類型分類 │ 地區 │ 作品數 │ 收錄日
+ * 排序（編號 / 收錄日 / 作品數）與篩選（類型分類 / 地區）都在前端做，
+ * 網址同步 ?sort=&category=&region=，深連結進站可還原篩選態。
  *
  * schema：CollectionPage + mainEntity ItemList of Person
  */
@@ -13,8 +13,7 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getSiteData } from '../../data/queries';
 import { SITE, routes, absRoutes } from '../../data/site';
-import { TOOLS, toolLabel, toolHasPage } from '../../data/tools';
-import { GENRES, genreLabel } from '../../data/genres';
+import { CREATOR_CATEGORIES, creatorCategoryLabel } from '../../data/creator-categories';
 import { fmtDate } from '../../data/events';
 
 const d = await getSiteData();
@@ -24,22 +23,18 @@ const creatorCount = creators.length;
 const workCount = d.works.length;
 const lastListed = creators.reduce((max, c) => (c.listedAt > max ? c.listedAt : max), '');
 
-/* 篩選選項：只列實際出現的值，順序沿用受控詞彙定義順序 */
-const presentTools = new Set(creators.flatMap((c) => c.tools));
-const toolOptions = TOOLS.filter((t) => presentTools.has(t.slug)).map((t) => ({ value: t.slug, label: t.label }));
-
-const presentGenres = new Set(creators.flatMap((c) => c.genres));
-const genreOptions = GENRES.filter((g) => presentGenres.has(g.slug)).map((g) => ({ value: g.slug, label: g.label }));
+/* 類型分類固定列出完整的受控詞彙，即使目前尚無創作者也保留選項。 */
+const categoryOptions = CREATOR_CATEGORIES.map((category) => ({ value: category.slug, label: category.label }));
 
 const regionOptions = Array.from(new Set(creators.map((c) => c.region).filter((r): r is string => !!r)));
 
 const noLabel = (n: number) => `No.${String(n).padStart(3, '0')}`;
 
 const title = '創作者圖鑑總表';
-const seoTitle = `創作者圖鑑總表：${creatorCount} 位創作者、工具棧與作品一覽`;
+const seoTitle = `創作者圖鑑總表：${creatorCount} 位創作者、類型分類與作品一覽`;
 const description =
-  `圖鑑總表一頁列出全部 ${creatorCount} 位收錄的台灣 AI 影視創作者：編號、定位、主力工具、地區與作品數；` +
-  '可依工具、作品類型、地區交叉篩選，並依編號、收錄日或作品數排序。';
+  `圖鑑總表一頁列出全部 ${creatorCount} 位收錄的台灣 AI 影視創作者：編號、定位、類型分類、地區與作品數；` +
+  '可依類型分類與地區交叉篩選，並依編號、收錄日或作品數排序。';
 
 const collectionSchema = {
   '@context': 'https://schema.org',
@@ -82,8 +77,8 @@ const collectionSchema = {
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
-          本表一頁列出圖鑑收錄的全部創作者，依收錄編號排列。每列標示其定位、主力工具、所在地區與作品數；點名字進入個人頁，可見完整工具棧、作品、得獎紀錄與相關訪談。
-          工具與類型皆為編輯部人工標註的受控詞彙，可用下方選單交叉篩選、切換排序。
+          本表一頁列出圖鑑收錄的全部創作者，依收錄編號排列。每列標示其定位、類型分類、所在地區與作品數；點名字進入個人頁，可見完整工具棧、作品、得獎紀錄與相關訪談。
+          類型分類由編輯部人工標註，可用下方選單搭配地區交叉篩選、切換排序。
         </p>
         <p class="page-meta">
           共 {creatorCount} 位創作者・{workCount} 部作品・最後收錄 {fmtDate(lastListed)}
@@ -102,17 +97,10 @@ const collectionSchema = {
               </select>
             </label>
             <label class="dir-toolbar__field">
-              <span class="dir-toolbar__label">工具</span>
-              <select class="select" id="dir-tool" name="tool">
-                <option value="">全部工具</option>
-                {toolOptions.map((o) => <option value={o.value}>{o.label}</option>)}
-              </select>
-            </label>
-            <label class="dir-toolbar__field">
-              <span class="dir-toolbar__label">類型</span>
-              <select class="select" id="dir-genre" name="genre">
-                <option value="">全部類型</option>
-                {genreOptions.map((o) => <option value={o.value}>{o.label}</option>)}
+              <span class="dir-toolbar__label">類型分類</span>
+              <select class="select" id="dir-category" name="category">
+                <option value="">全部類型分類</option>
+                {categoryOptions.map((o) => <option value={o.value}>{o.label}</option>)}
               </select>
             </label>
             <label class="dir-toolbar__field">
@@ -135,7 +123,7 @@ const collectionSchema = {
                   <th scope="col" class="dir__no">No.</th>
                   <th scope="col" class="dir__portrait"><span class="visually-hidden">肖像</span></th>
                   <th scope="col" class="dir__who">創作者</th>
-                  <th scope="col" class="dir__tools">主力工具</th>
+                  <th scope="col" class="dir__categories">類型分類</th>
                   <th scope="col" class="dir__region">地區</th>
                   <th scope="col" class="num dir__works">作品</th>
                   <th scope="col" class="dir__listed">收錄日</th>
@@ -148,8 +136,7 @@ const collectionSchema = {
                     data-no={c.no}
                     data-listed={c.listedAt}
                     data-works={c.workCount}
-                    data-tools={c.tools.join(',')}
-                    data-genres={c.genres.join(',')}
+                    data-categories={c.categories.join(',')}
                     data-region={c.region ?? ''}
                   >
                     <td class="dir__no"><span class="no">{noLabel(c.no)}</span></td>
@@ -176,15 +163,11 @@ const collectionSchema = {
                       </a>
                       <p class="dir__tagline">{c.tagline}</p>
                     </td>
-                    <td class="dir__tools">
-                      <ul class="chips" aria-label="主力工具">
-                        {c.tools.map((t) =>
-                          toolHasPage(d.toolCounts, t) ? (
-                            <li><a class="chip" href={routes.tool(t)}>{toolLabel(t)}</a></li>
-                          ) : (
-                            <li><span class="chip chip--plain">{toolLabel(t)}</span></li>
-                          ),
-                        )}
+                    <td class="dir__categories">
+                      <ul class="chips" aria-label="類型分類">
+                        {c.categories.map((category) => (
+                          <li><span class="chip chip--plain">{creatorCategoryLabel(category)}</span></li>
+                        ))}
                       </ul>
                     </td>
                     <td class="dir__region">{c.region ?? '—'}</td>
@@ -203,8 +186,7 @@ const collectionSchema = {
           </div>
 
           <p class="dir__note">
-            表中「工具」為創作者自述的主力工具；作品數以本站收錄為準，合作作品計入每位參與者。
-            類型索引見各創作者頁的資料格網；工具索引頁僅在該工具作品數達門檻時開放。
+            表中「類型分類」是創作者主要投入的內容或技術方向；作品數以本站收錄為準，合作作品計入每位參與者。
           </p>
         </>
       ) : (
@@ -224,7 +206,7 @@ const collectionSchema = {
 </BaseLayout>
 
 <script>
-  /* ── 圖鑑總表：純前端排序 + 篩選，網址同步 ?sort=&tool=&genre=&region= ── */
+  /* ── 圖鑑總表：純前端排序 + 篩選，網址同步 ?sort=&category=&region= ── */
   type SortKey = 'no' | 'listed' | 'works';
 
   const tbody = document.getElementById('dir-body');
@@ -232,17 +214,15 @@ const collectionSchema = {
   const emptyEl = document.getElementById('dir-empty');
   const countEl = document.getElementById('dir-count');
   const sortSel = document.getElementById('dir-sort') as HTMLSelectElement | null;
-  const toolSel = document.getElementById('dir-tool') as HTMLSelectElement | null;
-  const genreSel = document.getElementById('dir-genre') as HTMLSelectElement | null;
+  const categorySel = document.getElementById('dir-category') as HTMLSelectElement | null;
   const regionSel = document.getElementById('dir-region') as HTMLSelectElement | null;
   const clearBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('#dir-clear, [data-dir-clear]'));
 
-  if (tbody && sortSel && toolSel && genreSel && regionSel) {
+  if (tbody && sortSel && categorySel && regionSel) {
     const rows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr.dir__row'));
     const validOf = (sel: HTMLSelectElement) => new Set(Array.from(sel.options).map((o) => o.value));
     const validSort = validOf(sortSel);
-    const validTool = validOf(toolSel);
-    const validGenre = validOf(genreSel);
+    const validCategory = validOf(categorySel);
     const validRegion = validOf(regionSel);
 
     const has = (csv: string | undefined, v: string) => !!csv && csv.split(',').includes(v);
@@ -255,32 +235,28 @@ const collectionSchema = {
         Number(b.dataset.works) - Number(a.dataset.works) || Number(a.dataset.no) - Number(b.dataset.no),
     };
 
-    type State = { sort: SortKey; tool: string; genre: string; region: string };
+    type State = { sort: SortKey; category: string; region: string };
 
     const readState = (): State => ({
       sort: (validSort.has(sortSel.value) ? sortSel.value : 'no') as SortKey,
-      tool: validTool.has(toolSel.value) ? toolSel.value : '',
-      genre: validGenre.has(genreSel.value) ? genreSel.value : '',
+      category: validCategory.has(categorySel.value) ? categorySel.value : '',
       region: validRegion.has(regionSel.value) ? regionSel.value : '',
     });
 
     const writeControls = (s: State) => {
       if (sortSel.value !== s.sort) sortSel.value = s.sort;
-      if (toolSel.value !== s.tool) toolSel.value = s.tool;
-      if (genreSel.value !== s.genre) genreSel.value = s.genre;
+      if (categorySel.value !== s.category) categorySel.value = s.category;
       if (regionSel.value !== s.region) regionSel.value = s.region;
     };
 
     const stateFromUrl = (): State => {
       const q = new URL(window.location.href).searchParams;
       const sort = q.get('sort') ?? 'no';
-      const tool = q.get('tool') ?? '';
-      const genre = q.get('genre') ?? '';
+      const category = q.get('category') ?? '';
       const region = q.get('region') ?? '';
       return {
         sort: (validSort.has(sort) ? sort : 'no') as SortKey,
-        tool: validTool.has(tool) ? tool : '',
-        genre: validGenre.has(genre) ? genre : '',
+        category: validCategory.has(category) ? category : '',
         region: validRegion.has(region) ? region : '',
       };
     };
@@ -292,8 +268,7 @@ const collectionSchema = {
         else url.searchParams.delete(k);
       };
       set('sort', s.sort, 'no');
-      set('tool', s.tool, '');
-      set('genre', s.genre, '');
+      set('category', s.category, '');
       set('region', s.region, '');
       const next = url.pathname + url.search + url.hash;
       if (next !== window.location.pathname + window.location.search + window.location.hash) {
@@ -307,8 +282,7 @@ const collectionSchema = {
       let visible = 0;
       for (const row of rows) {
         const show =
-          (!s.tool || has(row.dataset.tools, s.tool)) &&
-          (!s.genre || has(row.dataset.genres, s.genre)) &&
+          (!s.category || has(row.dataset.categories, s.category)) &&
           (!s.region || row.dataset.region === s.region);
         row.hidden = !show;
         if (show) visible++;
@@ -321,24 +295,24 @@ const collectionSchema = {
       if (wrap) wrap.hidden = visible === 0;
       if (emptyEl) emptyEl.hidden = visible !== 0;
 
-      const filtering = !!(s.tool || s.genre || s.region);
+      const filtering = !!(s.category || s.region);
       for (const b of clearBtns) b.disabled = !filtering && s.sort === 'no';
 
       syncUrl(s);
     };
 
-    for (const sel of [sortSel, toolSel, genreSel, regionSel]) {
+    for (const sel of [sortSel, categorySel, regionSel]) {
       sel.addEventListener('change', () => apply(readState()));
     }
     for (const b of clearBtns) {
       b.addEventListener('click', () => {
-        apply({ sort: 'no', tool: '', genre: '', region: '' });
+        apply({ sort: 'no', category: '', region: '' });
         sortSel.focus();
       });
     }
     window.addEventListener('popstate', () => apply(stateFromUrl()));
 
-    /* 深連結進站：/creators/?tool=runway&sort=works 直接呈現篩選態 */
+    /* 深連結進站：/creators/?category=music-mv&sort=works 直接呈現篩選態 */
     apply(stateFromUrl());
   }
 </script>
@@ -449,7 +423,7 @@ const collectionSchema = {
     line-height: 1.6;
     color: var(--ink-soft);
   }
-  .dir__tools {
+  .dir__categories {
     min-width: 200px;
   }
   .dir__region {
@@ -509,7 +483,7 @@ const collectionSchema = {
     .dir__who {
       min-width: 180px;
     }
-    .dir__tools {
+    .dir__categories {
       min-width: 160px;
     }
   }

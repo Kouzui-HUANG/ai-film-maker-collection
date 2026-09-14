@@ -10,6 +10,7 @@ portrait: "./portrait.jpg"
 portraitAlt: "本人 YouTube 頻道頭像：Q 版鎧甲武士單膝蹲踞、背負長劍並披著藍色披風，身旁一隻戴紅領巾的黃狗仰頭長嚎，襯在深褐色底上"
 tools: ["seedance", "gpt-image", "suno", "wan"]
 genres: ["short-film", "commercial", "music-video"]
+categories: ["social-video", "marketing-ad", "serial-short-drama", "film", "music-mv"]
 region: "台北"
 role: ["導演", "分鏡", "剪輯", "3D 動態"]
 sameAs:

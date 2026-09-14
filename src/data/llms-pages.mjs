@@ -71,7 +71,7 @@ export const SECTIONS = [
     heading: '核心頁面',
     pages: [
       { path: '/', title: '首頁', note: '本期焦點創作者、最新收錄、最新作品、訪談與教學、近期活動' },
-      { path: '/creators/', title: '創作者圖鑑總表', note: '一頁列完所有收錄創作者：編號、定位、主力工具、作品數' },
+      { path: '/creators/', title: '創作者圖鑑總表', note: '一頁列完所有收錄創作者：編號、定位、類型分類、作品數' },
       { path: '/works/', title: '全部作品', note: '所有收錄作品，依發表時間排列' },
       { path: '/posts/', title: '訪談與教學', note: '創作者訪談與 AI 影視教學文章' },
       { path: '/events/', title: '活動與比賽', note: '即將舉行與過往的比賽、工作坊、放映、講座、展覽' },

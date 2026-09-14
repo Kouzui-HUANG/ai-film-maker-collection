@@ -10,6 +10,7 @@ portrait: "./portrait.jpg"
 portraitAlt: "本人 YouTube 頻道頭像：日式動畫筆觸的插畫自畫像，紫髮、深色開襟外套配米白素 T，單手托腮側坐，襯在灰藍色的紙質背景上"
 tools: ["seedance", "kling", "pixverse", "midjourney", "nano-banana", "seedream", "suno", "davinci-resolve"]
 genres: ["short-film", "music-video", "animation"]
+categories: ["marketing-ad", "serial-short-drama", "film", "music-mv", "lecture-teaching"]
 region: "台北"
 role: ["導演", "編劇", "詞曲", "製作"]
 sameAs:

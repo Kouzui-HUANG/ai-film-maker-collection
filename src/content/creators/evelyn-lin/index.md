@@ -9,6 +9,7 @@ portrait: "./portrait.jpg"
 portraitAlt: "暫用佔位圖：暖褐色漸層底上印著收錄編號 No.005，尚未取得本人授權的肖像"
 tools: ["midjourney", "wan", "seedance", "suno", "hailuo"]
 genres: ["short-film"]
+categories: ["social-video", "serial-short-drama"]
 region: "台中"
 role: ["美術", "人物設定", "影像生成"]
 sameAs:
