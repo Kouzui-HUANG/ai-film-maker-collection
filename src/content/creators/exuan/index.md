@@ -7,7 +7,7 @@ tagline: "把文化混種與身份焦慮轉成 AI 影像"
 bio: "以 Exuan 為創作名、公開署名為 Yi Shiuan Chen 的台灣 AI 視覺與影像創作者。她關注文化混種、身份與觀看方式，代表系列《Pastiche》把巴洛克寶塔、哥德式旗袍、殖民建築與漢服等彼此錯置，用 Midjourney 追問演算法時代裡「真實」與文化歸屬如何成立，入選 Artiver AI Art Awards 數位設計決賽。2026 年以 AI 短片持續推進這條敘事線：與數據女巫、Sokushijin 合作《繭房》，於 GMI Cloud AI 影視職人創作大賽拿下第一名；另在 FUTUREMODE BUILDMODE 黑客松獲 AI × Creativity 組肯定。"
 seoTitle: "Exuan（Yi Shiuan Chen）｜台灣 AI 視覺與影像創作者"
 portrait: "./portrait.jpg"
-portraitAlt: "Exuan 的 Instagram 個人檔案照片：黑色長髮、身穿黑色上衣，側身望向鏡頭，灰紫色背景"
+portraitAlt: "Exuan 的個人肖像：黑色長髮、身穿黑色皮外套，微微側首看向鏡頭，灰色背景"
 tools: ["midjourney", "wan"]
 genres: ["experimental", "short-film"]
 categories: ["film", "social-video"]
