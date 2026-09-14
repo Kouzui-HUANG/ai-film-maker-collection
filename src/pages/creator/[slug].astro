@@ -59,7 +59,7 @@ const socialLinks = Object.entries(sameAs ?? {})
 
 /* 得獎依年份倒序 */
 const awardRows = [...(awards ?? [])].sort((a, b) => b.year - a.year);
-const topResultRe = /首獎|金獎|最佳|冠軍|大獎/;
+const topResultRe = /首獎|第一名|金獎|最佳|冠軍|大獎/;
 
 /* 靜態資產 → 絕對 URL：site.ts 的 absAsset()（Astro 圖片 src 在有 base 時已含 base，只補 origin） */
 const pageUrl = absRoutes.creator(slug);
