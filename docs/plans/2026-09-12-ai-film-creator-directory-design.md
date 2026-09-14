@@ -164,7 +164,12 @@ const works = defineCollection({
     thumbAlt: z.string(),
     synopsis: z.string(),                       // 100–200 字
     note: z.string().optional(),                // 製作手記／技術說明
-    awards: z.array(z.string()).optional(),
+    awards: z.array(z.object({
+      year: z.number().int(),
+      title: z.string(),
+      result: z.string(),
+      status: z.enum(['winner', 'finalist', 'selection']),
+    })).optional(),
     draft: z.boolean().optional(),
   }),
 });

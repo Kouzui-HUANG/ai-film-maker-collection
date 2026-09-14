@@ -11,6 +11,7 @@
 import { Image } from 'astro:assets';
 import type { Work } from '../data/queries';
 import { fmtDuration } from '../data/queries';
+import { getWorkAwardBadge } from '../data/awards';
 import { genreLabel } from '../data/genres';
 import { routes } from '../data/site';
 
@@ -26,7 +27,7 @@ const { title, slug, year, genre, durationSec, thumb, thumbAlt, awards } = work.
 
 const duration = fmtDuration(durationSec);
 const meta = [String(year), genreLabel(genre), duration].filter(Boolean).join('・');
-const hasAward = (awards?.length ?? 0) > 0;
+const awardBadge = getWorkAwardBadge(awards);
 ---
 
 <article class="card" data-work-card>
@@ -42,7 +43,12 @@ const hasAward = (awards?.length ?? 0) > 0;
         loading={loading}
         decoding="async"
       />
-      <span class="card__badge badge" hidden={!hasAward}>AWARD</span>
+      <span
+        class="card__badge badge"
+        data-award-status={awardBadge?.status}
+        aria-label={awardBadge?.ariaLabel}
+        hidden={!awardBadge}
+      >{awardBadge?.label}</span>
     </figure>
     <h3 class="card__title">{title}</h3>
   </a>
@@ -93,6 +99,14 @@ const hasAward = (awards?.length ?? 0) > 0;
 
   .card__badge[hidden] {
     display: none;
+  }
+
+  .card__badge[data-award-status='finalist'],
+  .card__badge[data-award-status='selection'] {
+    color: var(--ink);
+    background: var(--paper-raised);
+    border-left: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
   }
 
   .card__title {

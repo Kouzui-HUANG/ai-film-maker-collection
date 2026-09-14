@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getImage } from 'astro:assets';
 import type { Work } from '../../../data/queries';
 import { fmtDuration } from '../../../data/queries';
+import { getWorkAwardBadge } from '../../../data/awards';
 import { genreLabel } from '../../../data/genres';
 import { routes } from '../../../data/site';
 import { getMoreLists, chunkCount, chunkSlice } from '../../../data/listings';
@@ -27,13 +28,16 @@ async function toCard(work: Work) {
   const { title, slug, year, genre, durationSec, thumb, thumbAlt, awards } = work.data;
   const img = await getImage({ src: thumb, ...IMAGE_OPTS });
   const meta = [String(year), genreLabel(genre), fmtDuration(durationSec)].filter(Boolean).join('・');
+  const awardBadge = getWorkAwardBadge(awards);
 
   return {
     href: routes.work(slug),
     title,
     creators: work.creators.map((c) => ({ name: c.name, href: routes.creator(c.slug) })),
     meta,
-    award: (awards?.length ?? 0) > 0,
+    awardLabel: awardBadge?.label ?? '',
+    awardStatus: awardBadge?.status ?? '',
+    awardAriaLabel: awardBadge?.ariaLabel ?? '',
     alt: thumbAlt,
     src: img.src,
     srcset: img.srcSet?.attribute ?? '',

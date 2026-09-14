@@ -417,7 +417,7 @@ async function main() {
     'thumbAlt: "TODO"   # 描述縮圖畫面（無障礙與 SEO）',
     'synopsis: "TODO"   # 100–200 字作品簡介',
     'note: ""   # 製作手記／技術說明（選填）',
-    'awards: []   # 得獎與入圍（選填），例：["台北 AI 影像節 短片競賽 評審團獎"]',
+    'awards: []   # 得獎／入圍／官方入選（選填；結構與 status 見 src/content/works/README.md）',
     '---',
     '',
   ].join('\n');

@@ -4,8 +4,10 @@
  * 上方一列類型 / 工具 chips 當索引入口；schema：CollectionPage + ItemList。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import AwardWorkCard from '../../components/AwardWorkCard.astro';
 import MoreList from '../../components/MoreList.astro';
 import { getSiteData } from '../../data/queries';
+import { getWinningAward } from '../../data/awards';
 import { WORKS_KEY } from '../../data/listings';
 import { GENRES } from '../../data/genres';
 import { TOOLS, toolHasPage } from '../../data/tools';
@@ -13,6 +15,7 @@ import { SITE, routes, absRoutes } from '../../data/site';
 
 const d = await getSiteData();
 const works = d.works;
+const winningWorks = works.filter((work) => getWinningAward(work.data.awards));
 const workCount = works.length;
 const creatorCount = new Set(works.flatMap((w) => w.creators.map((c) => c.id))).size;
 
@@ -27,7 +30,7 @@ const toolChips = TOOLS
 
 const title = '全部作品';
 const lead =
-  '收錄於本圖鑑的全部 AI 影視作品，依發表時間由新至舊排列。每部作品標註創作者、類型、時長與主要工具；點入可觀看影片、閱讀劇情簡介與製作手記。';
+  '頁首精選取得競賽名次或獎項的 AI 影視作品；下方完整清單依發表時間由新至舊排列，點入可觀看影片、閱讀劇情簡介與製作手記。';
 const description = `台灣 AI 影視創作者的 ${workCount} 部作品總覽：短片、廣告、MV、紀錄片、動畫、實驗片與概念預告，標註創作者、類型、時長與使用工具，依發表時間排列。`;
 
 const collectionSchema = {
@@ -72,6 +75,23 @@ const collectionSchema = {
         <p class="page-meta">共 {workCount} 部作品・{creatorCount} 位創作者</p>
       </header>
 
+      {winningWorks.length > 0 && (
+        <section class="award-showcase" aria-labelledby="award-showcase-title">
+          <header class="award-showcase__head">
+            <div>
+              <h2 class="section-eyebrow" id="award-showcase-title">Awards・得獎作品</h2>
+              <p class="award-showcase__lead">取得競賽名次或實際獎項的作品。</p>
+            </div>
+            <span class="listed-chip">共 {winningWorks.length} 部</span>
+          </header>
+          <div class="award-showcase__grid">
+            {winningWorks.map((work, i) => (
+              <AwardWorkCard work={work} loading={i < 2 ? 'eager' : 'lazy'} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {(genreChips.length > 0 || toolChips.length > 0) && (
         <nav class="works-index" aria-label="作品索引">
           {genreChips.length > 0 && (
@@ -106,8 +126,14 @@ const collectionSchema = {
       )}
 
       {workCount > 0 ? (
-        <h2 class="visually-hidden">作品列表</h2>
-        <MoreList listKey={WORKS_KEY} works={works} />
+        <section class="all-works" aria-labelledby="all-works-title">
+          <header class="section-head">
+            <h2 class="section-eyebrow" id="all-works-title">All works・完整作品列表</h2>
+            <span class="listed-chip">依發表時間排列</span>
+          </header>
+          <div class="rule-hair all-works__rule"></div>
+          <MoreList listKey={WORKS_KEY} works={works} />
+        </section>
       ) : (
         <div class="coming">
           <p class="coming__kanji">收錄中</p>
@@ -119,6 +145,35 @@ const collectionSchema = {
 </BaseLayout>
 
 <style>
+  .award-showcase {
+    margin: 32px 0 40px;
+    padding: 20px;
+    background: var(--accent-wash);
+    border-top: 3px solid var(--accent);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .award-showcase__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .award-showcase__lead {
+    margin-top: 8px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+
+  .award-showcase__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
   /* 索引入口：類型 / 工具 chips 各一列，細線夾住 */
   .works-index {
     display: flex;
@@ -152,7 +207,46 @@ const collectionSchema = {
     font-variant-numeric: tabular-nums;
   }
 
+  .all-works__rule {
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .award-showcase__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
   @media (max-width: 640px) {
+    .award-showcase {
+      margin: 28px calc(var(--gutter) * -1) 32px;
+      padding: 18px var(--gutter);
+    }
+
+    .award-showcase__head {
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .award-showcase__lead {
+      max-width: 18em;
+    }
+
+    .award-showcase__grid {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 0 var(--gutter) 10px 0;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: thin;
+      scrollbar-color: var(--rule-soft) transparent;
+    }
+
+    .award-showcase__grid :global([data-award-card]) {
+      flex: 0 0 min(82vw, 340px);
+      scroll-snap-align: start;
+    }
+
     .works-index {
       margin-bottom: 28px;
     }

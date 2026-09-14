@@ -1,0 +1,151 @@
+---
+/** /works/ 頁首用的得獎作品卡：放大劇照，並直接說明獎項與競賽名稱。 */
+import { Image } from 'astro:assets';
+import type { Work } from '../data/queries';
+import { getWinningAward } from '../data/awards';
+import { routes } from '../data/site';
+
+interface Props {
+  work: Work;
+  loading?: 'lazy' | 'eager';
+}
+
+const { work, loading = 'lazy' } = Astro.props;
+const { title, slug, thumb, thumbAlt, awards } = work.data;
+const winner = getWinningAward(awards);
+
+if (!winner) {
+  throw new Error(`[AwardWorkCard] ${slug} 沒有 status: winner 的獎項紀錄`);
+}
+---
+
+<article class="award-card" data-award-card>
+  <a class="award-card__link" href={routes.work(slug)}>
+    <figure class="award-card__figure frame frame--work">
+      <Image
+        src={thumb}
+        alt={thumbAlt}
+        width={640}
+        height={360}
+        widths={[480, 640, 960, 1280]}
+        sizes="(max-width: 640px) 82vw, (max-width: 900px) 55vw, (max-width: 1240px) 25vw, 320px"
+        loading={loading}
+        decoding="async"
+      />
+      <span class="award-card__badge badge" aria-label="得獎作品">WINNER</span>
+    </figure>
+
+    <div class="award-card__body">
+      <p class="award-card__result">{winner.result}</p>
+      <h3 class="award-card__title">{title}</h3>
+      <p class="award-card__creators">{work.creators.map((creator) => creator.name).join('、')}</p>
+      <p class="award-card__event"><span class="award-card__year">{winner.year}</span>・{winner.title}</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .award-card {
+    min-width: 0;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-soft);
+  }
+
+  .award-card__link {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(180px, 0.8fr);
+    height: 100%;
+    color: inherit;
+  }
+
+  .award-card__figure {
+    align-self: center;
+    border: 0;
+    border-right: 1px solid var(--rule-soft);
+  }
+
+  .award-card__figure img {
+    transition: transform 500ms var(--ease-out);
+  }
+
+  .award-card__link:hover .award-card__figure img {
+    transform: scale(1.025);
+  }
+
+  .award-card__badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .award-card__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .award-card__result {
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    line-height: 1.55;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+
+  .award-card__title {
+    margin-top: 8px;
+    font-size: var(--fs-lg);
+    line-height: 1.4;
+    transition: color 160ms var(--ease-out);
+  }
+
+  .award-card__link:hover .award-card__title {
+    color: var(--accent);
+  }
+
+  .award-card__creators {
+    margin-top: 8px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+
+  .award-card__event {
+    margin-top: auto;
+    padding-top: 14px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+    color: var(--muted);
+    border-top: 1px dashed var(--rule-soft);
+  }
+
+  .award-card__year {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 640px) {
+    .award-card__link {
+      display: block;
+    }
+
+    .award-card__figure {
+      border-right: 0;
+      border-bottom: 1px solid var(--rule-soft);
+    }
+
+    .award-card__body {
+      min-height: 168px;
+      padding: 14px;
+    }
+
+    .award-card__title {
+      font-size: var(--fs-md);
+    }
+  }
+</style>

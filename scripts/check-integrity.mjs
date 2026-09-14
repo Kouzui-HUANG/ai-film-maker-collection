@@ -8,7 +8,7 @@
  *     creators  資料夾名 ≠ slug、編號重複或跳號（須 1..N 連續）、spotlight 超過一位、
  *               tools / genres / categories 不在受控詞彙、肖像檔不存在、listedAt / updatedAt 沒加引號、sameAs 不是 http(s)
  *     works     檔名 ≠ slug、creators reference 解析不到、genre / tools 不在受控詞彙、tools 為空、
- *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號
+ *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號、awards 格式或狀態不合法
  *     posts     urlSlug 重複、type / level 不合法、creators reference 解析不到、封面不存在、
  *               date / updated 沒加引號、excerpt 超過 180 字、tools 不在受控詞彙
  *     events    檔名 ≠ slug、kind 不合法、startDate / endDate / deadline 沒加引號、封面不存在、officialUrl 不是 http(s)
@@ -104,6 +104,7 @@ function readEnum(field, fallback) {
 const EVENT_KINDS = readEnum('kind', ['competition', 'workshop', 'screening', 'talk', 'exhibition']);
 const POST_TYPES = readEnum('type', ['interview', 'tutorial']);
 const LEVELS = readEnum('level', ['beginner', 'intermediate', 'advanced']);
+const WORK_AWARD_STATUSES = readEnum('status', ['winner', 'finalist', 'selection']);
 
 /* ── 檔案讀取 ───────────────────────────────────────────────── */
 const skipName = (n) => n.startsWith('.') || n.startsWith('_') || n === 'README.md';
@@ -394,6 +395,23 @@ for (const file of listMd(DIR.works)) {
   if (typeof data.synopsis !== 'string' || !data.synopsis.trim()) err(where, 'synopsis 未填');
   else if (/^TODO\b/i.test(data.synopsis.trim())) warn(where, 'synopsis 還是 TODO（new-work.mjs 骨架尚未補完）');
   else if (data.synopsis.length < 40) warn(where, `synopsis 只有 ${data.synopsis.length} 字，建議 100–200 字`);
+
+  if (data.awards !== undefined && !Array.isArray(data.awards)) {
+    err(where, 'awards 須為陣列');
+  } else if (Array.isArray(data.awards)) {
+    data.awards.forEach((award, i) => {
+      if (!award || typeof award !== 'object' || Array.isArray(award)) {
+        err(where, `awards[${i}] 須為 { year, title, result, status }`);
+        return;
+      }
+      if (!Number.isInteger(award.year)) err(where, `awards[${i}].year 須為整數`);
+      if (typeof award.title !== 'string' || !award.title.trim()) err(where, `awards[${i}].title 未填`);
+      if (typeof award.result !== 'string' || !award.result.trim()) err(where, `awards[${i}].result 未填`);
+      if (!WORK_AWARD_STATUSES.includes(award.status)) {
+        err(where, `awards[${i}].status「${award.status ?? '（未填）'}」不合法（${WORK_AWARD_STATUSES.join(' / ')}）`);
+      }
+    });
+  }
 
   checkToolMentions(where, tools, `${data.title ?? ''}\n${data.synopsis ?? ''}\n${data.note ?? ''}\n${body}`);
 }

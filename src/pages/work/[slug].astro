@@ -21,6 +21,7 @@ import {
   type Work,
 } from '../../data/queries';
 import { fmtDate } from '../../data/events';
+import { formatWorkAward, getWorkAwardBadge } from '../../data/awards';
 import { GENRE_BY_SLUG, genreLabel } from '../../data/genres';
 import { toolLabel, toolHasPage } from '../../data/tools';
 import { SITE, routes, absRoutes, absAsset } from '../../data/site';
@@ -43,6 +44,11 @@ const gDef = GENRE_BY_SLUG[genre];
 const gLabel = genreLabel(genre);
 const duration = fmtDuration(durationSec);
 const awardList = awards ?? [];
+const awardRows = awardList.map((award) => ({
+  award,
+  text: formatWorkAward(award),
+  badge: getWorkAwardBadge([award])!,
+}));
 
 const toolChips = tools.map((s) => ({ slug: s, label: toolLabel(s), hasPage: toolHasPage(d.toolCounts, s) }));
 const noteParas = (note ?? '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
@@ -84,7 +90,7 @@ const videoSchema = {
   genre: gLabel,
   keywords: tools.map(toolLabel).join(', '),
   inLanguage: 'zh-Hant-TW',
-  ...(awardList.length ? { award: awardList } : {}),
+  ...(awardRows.length ? { award: awardRows.map((row) => row.text) } : {}),
   creator: creators.map((c) => ({
     '@type': 'Person',
     '@id': absRoutes.creatorId(c.slug),
@@ -187,7 +193,7 @@ const videoSchema = {
           </dd>
         </div>
         <div class="data-grid__cell">
-          <dt class="data-grid__label">得獎</dt>
+          <dt class="data-grid__label">獎項紀錄</dt>
           <dd class="data-grid__value data-grid__value--num">
             {awardList.length > 0 ? <a class="work__grid-link" href="#awards">{awardList.length} 筆</a> : '—'}
           </dd>
@@ -210,7 +216,16 @@ const videoSchema = {
           <section class="work__section" id="awards" aria-labelledby="work-awards">
             <h2 id="work-awards" class="work__h2">得獎與入圍</h2>
             <ul class="work__awards">
-              {awardList.map((a) => <li>{a}</li>)}
+              {awardRows.map((row) => (
+                <li>
+                  <span
+                    class="work__award-badge badge"
+                    data-award-status={row.badge.status}
+                    aria-label={row.badge.ariaLabel}
+                  >{row.badge.label}</span>
+                  <span>{row.text}</span>
+                </li>
+              ))}
             </ul>
           </section>
         )}
@@ -372,8 +387,19 @@ const videoSchema = {
   }
 
   .work__awards li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 12px;
     padding: 10px 0;
     border-bottom: 1px dashed var(--rule-soft);
+  }
+
+  .work__award-badge[data-award-status='finalist'],
+  .work__award-badge[data-award-status='selection'] {
+    color: var(--ink);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-soft);
   }
 
   .work__awards li:last-child {

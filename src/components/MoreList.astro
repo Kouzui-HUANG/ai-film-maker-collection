@@ -64,7 +64,9 @@ const EAGER_COUNT = 3;
     title: string;
     creators: CardCreator[];
     meta: string;
-    award: boolean;
+    awardLabel: string;
+    awardStatus: 'winner' | 'finalist' | 'selection' | '';
+    awardAriaLabel: string;
     alt: string;
     src: string;
     srcset: string;
@@ -116,7 +118,14 @@ const EAGER_COUNT = 3;
       }
 
       const badge = el.querySelector<HTMLElement>('.card__badge');
-      if (badge) badge.hidden = !data.award;
+      if (badge) {
+        badge.hidden = !data.awardLabel;
+        badge.textContent = data.awardLabel;
+        if (data.awardStatus) badge.dataset.awardStatus = data.awardStatus;
+        else delete badge.dataset.awardStatus;
+        if (data.awardAriaLabel) badge.setAttribute('aria-label', data.awardAriaLabel);
+        else badge.removeAttribute('aria-label');
+      }
 
       const title = el.querySelector<HTMLElement>('.card__title');
       if (title) title.textContent = data.title;

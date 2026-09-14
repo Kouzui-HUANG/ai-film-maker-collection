@@ -95,10 +95,14 @@ d.creatorById / d.workById / d.postByUrlSlug / d.eventById
   肖像一律 .frame--portrait；整張卡是一個 <a href={routes.creator(slug)}>
 
 <WorkCard work={Work} showCreators?={boolean=true} loading?="lazy"|"eager" />
-  16:9 全彩縮圖(.frame--work) + 標題 + 創作者名（多人全列、各自連到創作者頁）+ 年份・類型・時長
+  16:9 全彩縮圖(.frame--work) + 獎項狀態角標 + 標題 + 創作者名（多人全列、各自連到創作者頁）+ 年份・類型・時長
   根元素必須是 <article class="card" data-work-card>，內部固定 hook：
     .card__link  .card__figure img  .card__title  .card__creators  .card__meta
   （MoreList 會 clone 第一張當模板）
+
+<AwardWorkCard work={Work} loading?="lazy"|"eager" />
+  只給 /works/ 頁首得獎作品專區使用；呼叫端必須保證作品至少有一筆 awards.status = winner。
+  桌機為橫式大卡，手機由頁面容器排成可左右捲動的卡片列。
 
 <PostCard post={Post} variant="row" | "stacked" />
   封面 .frame--post + type badge（訪談/教學）+ 標題 + excerpt(2 行截) + 作者・日期・閱讀分鐘 + level
