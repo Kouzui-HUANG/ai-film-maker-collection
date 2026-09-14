@@ -11,6 +11,7 @@ portraitAlt: "剪片貓² 的頻道吉祥物：戴著耳機的橘色虎斑貓，
 tools: ["suno", "midjourney", "kling"]
 genres: ["music-video", "short-film"]
 categories: ["social-video", "film", "music-mv"]
+region: "台中"
 role: ["剪輯", "導演"]
 sameAs:
   youtube: "https://www.youtube.com/@CutCa2"

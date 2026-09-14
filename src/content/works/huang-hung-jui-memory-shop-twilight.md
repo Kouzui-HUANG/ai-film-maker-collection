@@ -11,5 +11,10 @@ videoUrl: "https://www.youtube.com/watch?v=uY5PunTzxqg"
 thumb: "./thumbs/huang-hung-jui-memory-shop-twilight.jpg"
 thumbAlt: "夕陽下的貨櫃回收場，短髮少女穿米色針織外套回望鏡頭，遠處貨櫃上有青色霓虹字"
 synopsis: "一間販賣記憶的店，有人賣掉眼淚，有人買走笑容。麻痺的心只是在角落看著「價值」被定義的世界，直到螢幕一角閃爍的破損檔案開始呼喚自己——夏草的氣味、向日葵的唱片、生澀而溫柔的哼唱，那些沒能變成商品而被丟棄的時間。日文原創詞曲的 AI MV，講的是把自己從雜訊的海底撈回來。"
-note: "詞曲全為日文原創，歌曲以 Suno 生成；畫面延續他在 Stable Diffusion 階段建立的角色設定，做成一鏡到底的黃昏色調。是頻道上觀看數最高的一支。"
+note: "詞曲全為日文原創，歌曲以 Suno 生成；畫面延續他在 Stable Diffusion 階段建立的角色設定，做成一鏡到底的黃昏色調。作品以 Tomorrowland Of Light《光之彼端：未來之詩》為賽題，獲 GMI Cloud Taiwan 舉辦的 2025 Bouquet wiz AI MV 專業賽第一名，也是頻道上觀看數最高的一支。"
+awards:
+  - year: 2025
+    title: "Bouquet wiz AI MV 專業賽"
+    result: "第一名"
+    status: "winner"
 ---
