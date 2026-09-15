@@ -37,7 +37,7 @@ export const SITE = {
   /** 作品按讚計數 API（Google Apps Script Web App）。留空則按讚按鈕自動隱藏 */
   likesApiUrl: '',
   /** GA4 Measurement ID。留空則 production build 不載入 gtag */
-  gaId: '',
+  gaId: 'G-ME9SV1BZ4X',
 } as const;
 
 /**
