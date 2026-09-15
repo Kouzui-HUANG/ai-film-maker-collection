@@ -2,19 +2,20 @@
 /**
  * /privacy/ — 隱私權政策
  *
- * 本站為 GitHub Pages 託管的靜態站：不設會員、不設表單、自身不設置 cookie。
+ * 本站為 GitHub Pages 託管的靜態站：不設會員、自身不設置 cookie。
+ * 唯一的表單是外部託管的推薦收錄 Google 表單（SITE.recommendFormUrl），不在本站網域內。
  * 需要揭露的第三方：GitHub Pages、Google Analytics（若啟用）、Google Fonts、
- * YouTube／Vimeo 嵌入播放器、按讚計數用的 Google Apps Script。
+ * YouTube／Vimeo 嵌入播放器、按讚計數用的 Google Apps Script、推薦收錄用的 Google 表單。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, routes, absUrl } from '../data/site';
 import { fmtDate } from '../data/events';
 
-const updated = '2026-09-12';
+const updated = '2026-09-15';
 const pageUrl = absUrl('/privacy/');
 const title = '隱私權政策';
 const description =
-  '台灣AI影視創作者圖鑑隱私權政策：本站為靜態網站，不設會員、不蒐集帳號資料；說明 GitHub Pages 託管、Google Analytics、Google Fonts、YouTube／Vimeo 嵌入播放與匿名按讚計數涉及的資料處理。';
+  '台灣AI影視創作者圖鑑隱私權政策：本站為靜態網站，不設會員、不蒐集帳號資料；說明 GitHub Pages 託管、Google Analytics、Google Fonts、YouTube／Vimeo 嵌入播放、匿名按讚計數與推薦收錄表單涉及的資料處理。';
 
 const breadcrumbs = [{ name: '隱私權政策', item: pageUrl }];
 
@@ -42,8 +43,9 @@ const gaEnabled = !!SITE.gaId;
 
         <p>
           歡迎使用<strong>{SITE.name}</strong>（以下簡稱「本站」，網址：{SITE.url}）。
-          本站是一份年鑑式的靜態網站，不設會員、不設留言與投稿表單，自身不設置 Cookie，也不蒐集帳號或聯絡資料。
-          本政策依中華民國《個人資料保護法》（下稱個資法）訂定，說明本站在託管、流量分析、字型載入、影片嵌入與按讚計數過程中，
+          本站是一份年鑑式的靜態網站，不設會員、不設留言，自身不設置 Cookie，瀏覽本站不需要提供任何個人資料。
+          唯一會蒐集資料的是推薦收錄表單，該表單託管於 Google，不在本站網域內，填寫與否完全自願。
+          本政策依中華民國《個人資料保護法》（下稱個資法）訂定，說明本站在託管、流量分析、字型載入、影片嵌入、按讚計數與推薦收錄過程中，
           可能涉及的資料處理方式。請於使用本站前詳閱；繼續使用本站即表示您已閱讀並同意本政策。
         </p>
 
@@ -51,7 +53,7 @@ const gaEnabled = !!SITE.gaId;
         <p>本站本身不主動蒐集任何個人資料。以下三種情況會有資料產生：</p>
         <ol>
           <li>您瀏覽本站時，託管服務與流量分析工具自動記錄的技術性資料（IP 位址、瀏覽器類型、造訪頁面與時間），詳見第二、三條。</li>
-          <li>您以電子郵件與編輯部聯絡時，主動提供的姓名、信箱與來信內容，詳見第八條。</li>
+          <li>您填寫推薦收錄表單或以電子郵件與編輯部聯絡時，主動提供的稱呼、信箱與內容，詳見第八條。</li>
           <li>經創作者本人確認後刊出的圖鑑條目資料，詳見第九條。</li>
         </ol>
 
@@ -105,16 +107,24 @@ const gaEnabled = !!SITE.gaId;
         <h2>七、Cookie 與本機儲存</h2>
         <ul>
           <li><strong>本站本身：</strong>不設置任何 Cookie；僅在您按讚時於 localStorage 寫入一個旗標（見第六條）。</li>
-          <li><strong>第三方：</strong>Google Analytics（若啟用）、YouTube／Vimeo 播放器（您點擊播放後）可能設置 Cookie，受其各自政策約束。</li>
+          <li><strong>第三方：</strong>Google Analytics（若啟用）、YouTube／Vimeo 播放器（您點擊播放後）、推薦收錄表單（您開啟表單後）可能設置 Cookie，受其各自政策約束。</li>
           <li>您可透過瀏覽器設定拒絕或刪除 Cookie 與網站資料；本站的閱讀功能不受影響。</li>
         </ul>
 
-        <h2>八、與編輯部的電子郵件往來</h2>
+        <h2>八、推薦收錄表單與電子郵件往來</h2>
         <p>
-          本站不設聯絡表單。當您透過 <a href={routes.contact()}>聯絡／推薦收錄</a> 頁面的電子郵件與編輯部聯繫
+          <strong>推薦收錄表單。</strong>本站的推薦收錄使用 Google 表單，表單本身與其回應均託管於 Google，不在本站網域內。
+          您填寫時提供的稱呼、電子郵件地址、被推薦者的公開資訊與您對其創作的描述，會存放於編輯部的 Google 帳號中，
+          並受 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google 隱私權政策</a> 約束。
+          Google 也可能在您填表過程中記錄技術性資料與設置 Cookie。若您不願使用該表單，可改以電子郵件提供相同內容。
+        </p>
+        <p>
+          <strong>電子郵件。</strong>當您透過 <a href={routes.contact()}>聯絡／推薦收錄</a> 頁面的電子郵件與編輯部聯繫
           （推薦收錄、更正、下架、合作洽詢），我們會取得您的姓名、電子郵件地址與來信內容。
-          這些資料只用於處理該次請求與後續必要的往來，不用於行銷、不轉交第三方；處理完畢後保留於編輯部信箱以備查驗，
-          您可隨時來信要求刪除。
+        </p>
+        <p>
+          以上兩種管道取得的資料，都只用於審閱該次推薦、處理該次請求與後續必要的往來，不用於行銷、不轉交第三方，
+          也不會公開填表人的身分；處理完畢後保留於編輯部信箱與表單回應中以備查驗，您可隨時來信要求刪除。
         </p>
 
         <h2>九、圖鑑條目中的創作者資料</h2>
@@ -126,7 +136,7 @@ const gaEnabled = !!SITE.gaId;
 
         <h2>十、資料利用之期間、地區、對象及方式</h2>
         <ul>
-          <li><strong>期間：</strong>來信資料於蒐集目的消滅或您要求刪除前保留，最長不超過三年；創作者條目資料於下架後即自公開頁面移除。</li>
+          <li><strong>期間：</strong>來信與表單回應資料於蒐集目的消滅或您要求刪除前保留，最長不超過三年；創作者條目資料於下架後即自公開頁面移除。</li>
           <li><strong>地區：</strong>中華民國境內，以及第三方服務提供商所在地（GitHub、Google、Vimeo 之伺服器可能位於境外）。</li>
           <li><strong>對象：</strong>本站編輯部，以及依法有調查權之機關。</li>
           <li><strong>方式：</strong>電子檔案處理。本站不會將任何資料出售、出租或交換予第三方。</li>

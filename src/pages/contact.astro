@@ -3,7 +3,8 @@
  * /contact/ — 聯絡／推薦收錄
  *
  * 兩個用途：推薦收錄（讀者推薦／創作者自薦）與更正／下架。
- * 不做表單（設計文件 §10）；一律 mailto 到 SITE.email。
+ * 推薦收錄走 Google 表單（SITE.recommendFormUrl，留空則自動退回 mailto），
+ * 更正／下架與其他洽詢一律 mailto 到 SITE.email。
  * schema：ContactPage。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -12,7 +13,7 @@ import { SITE, routes, absUrl } from '../data/site';
 const pageUrl = absUrl('/contact/');
 const title = '聯絡／推薦收錄';
 const description =
-  '推薦台灣 AI 影視創作者進入圖鑑，或申請條目更正與下架。來信請附姓名／團隊名、社群連結、三部公開作品連結、使用工具與所在地。';
+  '推薦台灣 AI 影視創作者進入圖鑑，或申請條目更正與下架。推薦請填線上表單，附姓名／團隊名、社群連結、三部公開作品連結與創作風格；更正與下架請來信編輯部。';
 
 const contactSchema = {
   '@context': 'https://schema.org',
@@ -31,6 +32,10 @@ const breadcrumbs = [{ name: '聯絡／推薦收錄', item: pageUrl }];
 /* 兩種來信各帶預填主旨，方便編輯部分流 */
 const mailtoRecommend = `mailto:${SITE.email}?subject=${encodeURIComponent('【推薦收錄】創作者姓名／團隊名')}`;
 const mailtoCorrect = `mailto:${SITE.email}?subject=${encodeURIComponent('【更正／下架】創作者姓名（收錄編號）')}`;
+
+/* 推薦收錄：有表單就走表單、mailto 降為備援；表單留空則整個退回原本的 mailto 流程 */
+const recommendFormUrl = SITE.recommendFormUrl;
+const hasRecommendForm = !!recommendFormUrl;
 
 /* 編輯部社群：只列非空值 */
 const SOCIAL_LABEL: Record<string, string> = {
@@ -60,7 +65,7 @@ const socials = Object.entries(SITE.social)
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
-          本站不設表單、不設會員。推薦收錄與更正／下架都以電子郵件處理，
+          本站不設會員、不做自助上架。推薦收錄請填線上表單，更正／下架以電子郵件處理，
           一般於七個工作日內回覆。收錄與否依 <a href={routes.about()}>收錄準則</a> 審閱，不收費、不接受付費收錄。
         </p>
       </header>
@@ -72,27 +77,51 @@ const socials = Object.entries(SITE.social)
           <p class="section-eyebrow">Recommend・推薦收錄</p>
           <h2 id="recommend-title" class="contact-card__title">推薦一位創作者，或推薦您自己</h2>
           <p class="contact-card__lead">
-            讀者推薦與創作者自薦走同一條路。來信請附下列資料，編輯部依收錄準則審閱後回覆；
-            進入圖鑑前，條目文字會先交由創作者本人確認。
+            讀者推薦與創作者自薦走同一條路。{hasRecommendForm ? '填表約五分鐘' : '來信請附下列資料'}，
+            編輯部依收錄準則審閱後回覆；進入圖鑑前，條目文字會先交由創作者本人確認。
           </p>
           <ol class="checklist">
             <li><strong>姓名／團隊名</strong><span>中文為主，另附英文名或藝名（若有）。</span></li>
             <li><strong>社群連結</strong><span>YouTube、Instagram、X、Threads、Vimeo 或個人網站，至少一個。</span></li>
             <li><strong>三部公開作品連結</strong><span>YouTube 或 Vimeo 網址，需開放嵌入播放。</span></li>
-            <li><strong>使用工具</strong><span>每部作品的主要 AI 工具，含影片、圖像與聲音生成。</span></li>
+            <li><strong>創作風格</strong><span>作品類型、視覺調性、常拍的題材，以及 AI 在製作流程中的位置。</span></li>
             <li><strong>所在地</strong><span>台北／台中／高雄等縣市；旅居海外請註明國家。</span></li>
           </ol>
-          <p class="contact-card__actions">
-            <a
-              href={mailtoRecommend}
-              class="btn btn--accent"
-              data-ga-cta="contact_email"
-              data-ga-location="contact_recommend"
-            >
-              寫信推薦收錄
-              <span aria-hidden="true">→</span>
-            </a>
-          </p>
+          {hasRecommendForm ? (
+            <div class="contact-card__actions">
+              <a
+                href={recommendFormUrl}
+                class="btn btn--accent"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ga-cta="recommend_form"
+                data-ga-location="contact_recommend"
+              >
+                填寫推薦收錄表單
+                <span aria-hidden="true">↗</span>
+              </a>
+              <p class="contact-card__fallback">
+                不方便填表單？
+                也可以<a
+                  href={mailtoRecommend}
+                  data-ga-cta="contact_email"
+                  data-ga-location="contact_recommend_fallback"
+                >寫信給編輯部</a>，兩邊走同一套審閱流程。
+              </p>
+            </div>
+          ) : (
+            <p class="contact-card__actions">
+              <a
+                href={mailtoRecommend}
+                class="btn btn--accent"
+                data-ga-cta="contact_email"
+                data-ga-location="contact_recommend"
+              >
+                寫信推薦收錄
+                <span aria-hidden="true">→</span>
+              </a>
+            </p>
+          )}
         </section>
 
         <!-- ② 更正／下架 -->
@@ -242,6 +271,20 @@ const socials = Object.entries(SITE.social)
   .contact-card__actions {
     margin-top: auto;
     padding-top: 4px;
+  }
+
+  /* 表單為主按鈕時，mailto 降為按鈕下方的備援小字 */
+  .contact-card__fallback {
+    margin-top: 12px;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .contact-card__fallback a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   /* 直接聯絡 */

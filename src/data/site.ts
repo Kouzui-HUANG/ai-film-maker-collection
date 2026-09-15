@@ -36,6 +36,8 @@ export const SITE = {
   },
   /** 作品按讚計數 API（Google Apps Script Web App）。留空則按讚按鈕自動隱藏 */
   likesApiUrl: '',
+  /** 推薦收錄表單（Google 表單）。留空則 contact 頁只顯示 mailto */
+  recommendFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfFvU6PEZlge_XE_DT7ZVR50tL0ROCKsTlabWl6pvIEexC2DQ/viewform',
   /** GA4 Measurement ID。留空則 production build 不載入 gtag */
   gaId: 'G-ME9SV1BZ4X',
 } as const;
