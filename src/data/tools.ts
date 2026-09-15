@@ -72,6 +72,9 @@ export const TOOLS: ToolDef[] = [
   /* ── 其他 ─────────────────────────────────────────────── */
   { slug: 'blender', label: 'Blender', category: 'other', note: '開源 3D 軟體，用於建立場景參考、鏡頭預覽或與 AI 生成畫面合成。' },
   { slug: 'unreal-engine', label: 'Unreal Engine', category: 'other', vendor: 'Epic Games', note: '即時渲染引擎，虛擬製作與 AI 生成素材混用的場景控制工具。' },
+  { slug: '3d-rendering', label: '3D 建模・渲染', category: 'other', note: '以三維模型鎖定建築、產品與攝影機位置，再把可控的結構和運鏡交給 AI 延伸人物、氣氛與特效。' },
+  { slug: 'motion-capture', label: '動態捕捉', category: 'other', note: '把真人表演轉成虛擬角色的姿態與動作，常見於虛擬代言人、即時互動與數位主持系統。' },
+  { slug: 'gaussian-splatting', label: 'Gaussian Splatting', category: 'other', note: '由實拍影像重建可自由取景的三維場景，能作為 AI 角色合成與虛擬製作的空間底稿。' },
 ];
 
 export const TOOL_BY_SLUG: Record<string, ToolDef> = Object.fromEntries(TOOLS.map((t) => [t.slug, t]));
