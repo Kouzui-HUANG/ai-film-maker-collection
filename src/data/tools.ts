@@ -45,6 +45,8 @@ export const TOOLS: ToolDef[] = [
   { slug: 'vidu', label: 'Vidu', category: 'video', vendor: '生數科技', note: '影片生成模型，參考圖轉影片的角色一致性強，二次元與動漫風格的 MV、OP 片頭常用。' },
   { slug: 'pixverse', label: 'PixVerse', category: 'video', vendor: 'PixVerse', note: '影片生成模型，對嘴（lip sync）可直接吃整段影片而非單張圖，在鏡頭運動中仍能對上口型，AI MV 的歌唱段落常用。' },
   { slug: 'topmediai', label: 'TopMediai', category: 'video', vendor: 'TopMediai', note: '整合 AI 音樂、圖像、影片與人聲處理的創作平台，適合從歌曲延伸角色、場景與音樂錄影帶的一站式工作流。' },
+  { slug: 'jimeng', label: 'Jimeng（即夢 AI）', category: 'video', vendor: '字節跳動', note: '整合圖像、影片與音樂生成的創作平台；台灣創作者常以它補足多模型工作流中的動態、配樂與快速視覺迭代。' },
+  { slug: 'ltx-studio', label: 'LTX Studio', category: 'video', vendor: 'Lightricks', note: '面向敘事影像的 AI 製作平台，涵蓋分鏡、鏡頭生成與首尾幀控制，適合以一致構圖串接長時間跨度的短片。' },
 
   /* ── 圖像生成 ─────────────────────────────────────────── */
   { slug: 'midjourney', label: 'Midjourney', category: 'image', vendor: 'Midjourney', note: '概念圖、角色設定與劇照級關鍵影格的主力工具，多數作品的視覺起點。' },
