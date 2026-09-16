@@ -4,7 +4,7 @@ seoTitle: arena.ai 影片模型排行榜怎麼看｜Bradley-Terry 評分機制�
 excerpt: arena.ai 的 image-to-video 與 video-edit 兩張榜，是目前最接近「盲測公投」的模型比較表。本文拆解它的 Bradley-Terry 評分機制、教你先看信賴區間再看名次，並說明為什麼榜首不等於最適合你的片。
 type: tutorial
 urlSlug: arena-ai-video-leaderboard
-author: 圖鑑編輯部
+author: "黃宏瑞"
 date: "2026-09-14"
 cover: ./cover.jpg
 coverAlt: 深褐底上的橫條圖示意，七條由長到短的長條各帶信賴區間誤差線，排名第四的那條以靛藍色標出並框上虛線，下緣標註「TOP SCORE ≠ BEST FIT」
