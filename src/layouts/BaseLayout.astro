@@ -170,7 +170,15 @@ const navIsActive = (navHref: string) => {
     <meta name="robots" content={noindex ? 'noindex, follow' : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
     <meta name="theme-color" content="#1b1714" />
     <link rel="canonical" href={canonicalUrl} />
+    <!--
+      SVG 給現代瀏覽器；PNG / ICO 給不支援 SVG 的分享預覽與舊式抓取器。
+      部分平台只會嘗試讀取網站根目錄的 /favicon.ico，因此保留明確 fallback。
+    -->
+    <link rel="icon" href={href('/favicon.ico')} sizes="any" />
     <link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
+    <link rel="icon" type="image/png" sizes="32x32" href={href('/favicon-32x32.png')} />
+    <link rel="icon" type="image/png" sizes="16x16" href={href('/favicon-16x16.png')} />
+    <link rel="apple-touch-icon" sizes="180x180" href={href('/apple-touch-icon.png')} />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.name} RSS`} href={href('/rss.xml')} />
 
     <!-- Open Graph -->
@@ -180,6 +188,8 @@ const navIsActive = (navHref: string) => {
     <meta property="og:description" content={pageDesc} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:secure_url" content={ogImageUrl} />
+    <meta property="og:image:alt" content={`${pageTitle} 分享縮圖`} />
     <meta property="og:locale" content="zh_TW" />
     {ogType === 'article' && article && (
       <>
@@ -196,6 +206,7 @@ const navIsActive = (navHref: string) => {
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDesc} />
     <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={`${pageTitle} 分享縮圖`} />
 
     <!-- Non-blocking font loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -578,12 +589,12 @@ const navIsActive = (navHref: string) => {
         font-weight: 900;
         font-size: var(--fs-md);
         letter-spacing: 0.05em;
-        color: var(--paper);
+        color: var(--ink);
       }
       .mob-drawer__close {
         background: none;
         border: none;
-        color: var(--paper);
+        color: var(--ink);
         font-size: 1.1rem;
         cursor: pointer;
         padding: 4px 8px;
@@ -609,12 +620,12 @@ const navIsActive = (navHref: string) => {
         align-items: center;
         gap: 8px;
         padding: 16px 20px;
-        color: var(--paper);
+        color: var(--ink);
         transition: background 160ms var(--ease-out);
       }
       .mob-drawer__link:hover {
         background: rgba(255, 255, 255, 0.07);
-        color: var(--paper);
+        color: var(--ink);
       }
       .mob-drawer__cn {
         font-family: var(--font-serif);
