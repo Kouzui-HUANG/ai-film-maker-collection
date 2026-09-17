@@ -117,6 +117,7 @@ node scripts/new-work.mjs https://www.youtube.com/watch?v=XXXXXXXXXXX --creator 
 
 1. 建立 `src/content/events/<slug>.md` 與 `covers/<slug>.jpg`（建議 1600×900，全彩）。
 2. `kind`：`competition` / `workshop` / `screening` / `talk` / `exhibition`；`startDate` / `endDate` / `deadline` 加引號；線上活動 `location: "線上"` 並設 `isOnline: true`；`officialUrl` 必填。
+   海外活動另填 `country`（ISO 3166-1 兩碼，如 `"JP"`）；`fee` 不是新台幣時填 `currency`（ISO 4217，如 `"USD"`）。兩者省略時 Event schema 會標成 TW／TWD。
 3. upcoming / ongoing / past 由 build 時依台北日期自動判定，過期活動會自動從首頁與 `/events/` 上半區移到「已結束」——這也是為什麼要每日重建（見下節）。
 
 ## 部署到 GitHub Pages
@@ -170,7 +171,7 @@ DNS 側在 Squarespace 網域後台（`account.squarespace.com/domains` → 選�
 
 建站時的示範資料（六位虛構創作者、十四部作品、五篇文章、六個活動）已於 2026-09-13 全數移除，需要時可從 git 歷史取回（commit `af23822` 之前）。
 
-目前 `src/content/` 只有實際收錄的創作者與作品；`posts/`（訪談與教學）與 `events/`（活動與比賽）為空，對應頁面會顯示「收錄中」空狀態，首頁的活動區塊則整區不渲染。
+目前 `src/content/` 只收實際的創作者、作品、文章與活動。`posts/` 或 `events/` 為空時，對應頁面會顯示「收錄中」空狀態，首頁的活動區塊則整區不渲染。
 
 新增條目請照〈內容維護流程〉的步驟，並注意：
 

@@ -12,11 +12,13 @@
  *               press 格式不合法或 date 沒加引號、headline 超過一部
  *     posts     urlSlug 重複、type / level 不合法、creators reference 解析不到、封面不存在、
  *               date / updated 沒加引號、excerpt 超過 180 字、tools 不在受控詞彙
- *     events    檔名 ≠ slug、kind 不合法、startDate / endDate / deadline 沒加引號、封面不存在、officialUrl 不是 http(s)
+ *     events    檔名 ≠ slug、kind 不合法、startDate / endDate / deadline 沒加引號、封面不存在、officialUrl 不是 http(s)、
+ *               country 不是 ISO 3166-1 兩碼、currency 不是 ISO 4217 三碼
  *
  *   警告（exit 0）
  *     工具標籤在該條目內文找不到（防誤植）、同一支影片收在多部作品、press 連結重複、headline 一部都沒有、
- *     posts 資料夾名 ≠ urlSlug、endDate < startDate、deadline > startDate、new-work.mjs 骨架的 TODO 還沒補…
+ *     posts 資料夾名 ≠ urlSlug、endDate < startDate、deadline > startDate、海外活動 fee 有金額卻沒填 currency、
+ *     new-work.mjs 骨架的 TODO 還沒補…
  *
  * 用法
  *   npm run check                              # = node scripts/check-integrity.mjs
@@ -559,6 +561,11 @@ for (const file of listMd(DIR.events)) {
   if (!isHttp(data.officialUrl)) err(where, `officialUrl 不是 http(s) URL：${JSON.stringify(data.officialUrl)}`);
   if (data.isOnline === true && data.location !== '線上') warn(where, 'isOnline: true 但 location 不是「線上」');
   if (data.isOnline !== true && data.location === '線上') warn(where, 'location 為「線上」但沒有 isOnline: true');
+  if (data.country !== undefined && !/^[A-Z]{2}$/.test(String(data.country))) err(where, `country「${data.country}」須為 ISO 3166-1 兩碼大寫（如 JP）`);
+  if (data.currency !== undefined && !/^[A-Z]{3}$/.test(String(data.currency))) err(where, `currency「${data.currency}」須為 ISO 4217 三碼大寫（如 USD）`);
+  if (data.country !== undefined && data.country !== 'TW' && data.currency === undefined && /\d/.test(String(data.fee ?? ''))) {
+    warn(where, `海外活動（country: ${data.country}）的 fee 含金額但沒填 currency，Event schema 會標成 TWD`);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════

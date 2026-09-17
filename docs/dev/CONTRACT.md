@@ -22,7 +22,7 @@
 | `src/components/Analytics.astro` | GA4（`SITE.gaId` 空則不載） |
 | `src/components/ShareLike.astro` | 按讚＋分享：`<ShareLike slug="work:<slug>" title={..} url={absUrl} location="work_footer" />` |
 | `src/pages/robots.txt.ts` | robots 端點 |
-| `src/content/**` | 實際收錄的創作者與作品（示範資料已於 2026-09-13 移除）；posts 與 events 目前為空 |
+| `src/content/**` | 實際收錄的創作者、作品、文章與活動（示範資料已於 2026-09-13 移除） |
 
 ## 1. 不可違反的規則
 
@@ -142,7 +142,7 @@ d.creatorById / d.workById / d.postByUrlSlug / d.eventById
 | `/works/` `/tool/` `/genre/` | `CollectionPage` + `ItemList`（url + name） |
 | 訪談 | `Article`（headline / description / author(Person or Organization) / datePublished / dateModified / image / publisher / `about: [{ '@id': creatorId }]` / inLanguage zh-Hant-TW / wordCount / timeRequired）＋ FAQPage（`buildFaqSchema`）；`ogType="article"` |
 | 教學 | `extractHowToSteps(body).length >= 2` → `HowTo`（name / description / step[] HowToStep{name,text} / tool[] HowToTool{name}）否則 `Article`；FAQPage 照抽 |
-| `/event/<slug>/` | `Event`（name / description / startDate / endDate / `eventAttendanceMode`(isOnline ? Online : Offline) / `eventStatus: EventScheduled` / `location`(isOnline ? VirtualLocation{url} : Place{name}) / `organizer`(Organization{name}) / `offers`(fee: 免費→price 0；有數字→price+priceCurrency TWD；`url: officialUrl`，`availability`) / `image`） |
+| `/event/<slug>/` | `Event`（name / description / startDate / endDate / `eventAttendanceMode`(isOnline ? Online : Offline) / `eventStatus: EventScheduled` / `location`(isOnline ? VirtualLocation{url} : Place{name, address.addressCountry = `country` ?? TW}) / `organizer`(Organization{name}) / `offers`(fee: 免費→price 0；有數字→price+priceCurrency = `currency` ?? TWD；`url: officialUrl`，`availability`) / `image`） |
 
 ## 7. noindex 清單
 

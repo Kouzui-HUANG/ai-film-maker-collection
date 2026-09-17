@@ -156,9 +156,17 @@ const events = defineCollection({
       deadline: dateStr.optional(),                      // 報名／投件截止
       location: z.string(),                              // 場地名稱，線上填「線上」
       isOnline: z.boolean().optional(),
+      country: z
+        .string()
+        .regex(/^[A-Z]{2}$/, 'country 須為 ISO 3166-1 兩碼大寫，如 "JP"')
+        .optional(),                                     // 舉辦國；省略視為 TW（海外活動才填）
       organizer: z.string(),
       officialUrl: z.string().url(),
-      fee: z.string().optional(),                        // "免費" / "NT$1,200"
+      fee: z.string().optional(),                        // "免費" / "NT$1,200" / "US$49"
+      currency: z
+        .string()
+        .regex(/^[A-Z]{3}$/, 'currency 須為 ISO 4217 三碼大寫，如 "USD"')
+        .optional(),                                     // fee 的幣別；省略視為 TWD
       cover: image(),
       coverAlt: z.string(),
       summary: z.string(),
