@@ -87,7 +87,7 @@ ai-film-maker-collection/
 ### 新增創作者
 
 1. 建立 `src/content/creators/<slug>/`，放 `index.md` 與 `portrait.jpg`（建議 800×1000，4:5）。
-2. `index.md` 的 frontmatter 照現有條目填：`no`（圖鑑編號，**不可重複、不可跳號**，接在現有最大號之後）、`name` / `nameEn` / `slug` / `tagline`（40 字內）/ `bio`（150–250 字）/ `seoTitle`（選填，45 字內；`<title>` 會再加站名後綴）/ `portrait` / `portraitAlt` / `tools` / `genres` / `region` / `role` / `sameAs`（社群連結，必須是完整 http(s) URL）/ `awards` / `listedAt`（收錄日）/ `updatedAt`（選填，資料更新日）。中文標題與名稱之間不留半形空格（子標題用「・」或「：」）。
+2. `index.md` 的 frontmatter 照現有條目填：`no`（圖鑑編號，**不可重複、不可跳號**，接在現有最大號之後）、`name` / `nameEn` / `slug` / `tagline`（40 字內）/ `bio`（150–250 字）/ `seoTitle`（選填，45 字內；`<title>` 會再加站名後綴）/ `portrait` / `portraitAlt` / `tools` / `genres` / `region` / `role` / `sameAs`（社群連結：youtube / instagram / x / threads / facebook / vimeo / website，必須是完整 http(s) URL；其他 key 會被 schema 靜默丟掉）/ `email`（選填，公開聯絡信箱，本人提供或同意公開才填，純位址不加 `mailto:`）/ `awards` / `listedAt`（收錄日）/ `updatedAt`（選填，資料更新日）。中文標題與名稱之間不留半形空格（子標題用「・」或「：」）。
 3. 正文（`---` 之後）寫「創作方法」等段落，會顯示在創作者頁 bio 之下。
 4. `npm run check`。
 

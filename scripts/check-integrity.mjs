@@ -6,7 +6,8 @@
  *
  *   錯誤（exit 1）
  *     creators  資料夾名 ≠ slug、編號重複或跳號（須 1..N 連續）、
- *               tools / genres / categories 不在受控詞彙、肖像檔不存在、listedAt / updatedAt 沒加引號、sameAs 不是 http(s)
+ *               tools / genres / categories 不在受控詞彙、肖像檔不存在、listedAt / updatedAt 沒加引號、sameAs 不是 http(s)、
+ *               sameAs 用了 schema 沒有的 key（zod 會靜默丟掉，頁面上就少一個連結）、email 不是純信箱位址
  *     works     檔名 ≠ slug、creators reference 解析不到、genre / tools 不在受控詞彙、tools 為空、
  *               縮圖不存在、videoUrl 不是 YouTube / Vimeo、releasedAt 沒加引號、awards 格式或狀態不合法、
  *               press 格式不合法或 date 沒加引號、headline 超過一部
@@ -108,6 +109,11 @@ const EVENT_KINDS = readEnum('kind', ['competition', 'workshop', 'screening', 't
 const POST_TYPES = readEnum('type', ['interview', 'tutorial']);
 const LEVELS = readEnum('level', ['beginner', 'intermediate', 'advanced']);
 const WORK_AWARD_STATUSES = readEnum('status', ['winner', 'finalist', 'selection']);
+const SAME_AS_KEYS = (() => {
+  const m = configSrc.match(/\bsameAs:\s*z\s*\.object\(\{([\s\S]*?)\}\)/);
+  const list = m ? [...m[1].matchAll(/^\s*(\w+):/gm)].map((x) => x[1]) : [];
+  return list.length ? list : ['youtube', 'instagram', 'x', 'threads', 'facebook', 'vimeo', 'website'];
+})();
 
 /* ── 檔案讀取 ───────────────────────────────────────────────── */
 const skipName = (n) => n.startsWith('.') || n.startsWith('_') || n === 'README.md';
@@ -307,8 +313,16 @@ for (const name of readdirSync(DIR.creators).sort()) {
   }
 
   if (data.sameAs !== undefined) {
-    if (typeof data.sameAs !== 'object' || data.sameAs === null || Array.isArray(data.sameAs)) err(where, 'sameAs 須為物件（youtube / instagram / x / threads / vimeo / website）');
-    else for (const [k, v] of Object.entries(data.sameAs)) if (!isHttp(v)) err(where, `sameAs.${k} 不是 http(s) URL：${JSON.stringify(v)}`);
+    if (typeof data.sameAs !== 'object' || data.sameAs === null || Array.isArray(data.sameAs)) err(where, `sameAs 須為物件（${SAME_AS_KEYS.join(' / ')}）`);
+    else {
+      for (const [k, v] of Object.entries(data.sameAs)) {
+        if (!SAME_AS_KEYS.includes(k)) err(where, `sameAs.${k} 不是可用的 key（${SAME_AS_KEYS.join(' / ')}）；要新平台先加進 src/content.config.ts`);
+        else if (!isHttp(v)) err(where, `sameAs.${k} 不是 http(s) URL：${JSON.stringify(v)}`);
+      }
+    }
+  }
+  if (data.email !== undefined && !(typeof data.email === 'string' && /^[^\s@:]+@[^\s@]+\.[^\s@]+$/.test(data.email))) {
+    err(where, `email 須為純信箱位址（如 name@example.com，不加 mailto:）：${JSON.stringify(data.email)}`);
   }
   if (Array.isArray(data.awards)) {
     data.awards.forEach((a, i) => {

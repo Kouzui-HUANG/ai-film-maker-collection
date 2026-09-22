@@ -52,10 +52,12 @@ const creators = defineCollection({
           instagram: z.string().url().optional(),
           x: z.string().url().optional(),
           threads: z.string().url().optional(),
+          facebook: z.string().url().optional(),
           vimeo: z.string().url().optional(),
           website: z.string().url().optional(),
         })
         .optional(),
+      email: z.string().email().optional(),  // 公開聯絡信箱：本人提供或同意公開才填，純位址不加 mailto:
       awards: z
         .array(
           z.object({

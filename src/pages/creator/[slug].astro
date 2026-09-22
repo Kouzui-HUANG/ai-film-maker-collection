@@ -30,7 +30,7 @@ const d = await getSiteData();
 const creator = d.creatorById.get(slug);
 if (!creator) throw new Error(`[creator] 找不到創作者「${slug}」`);
 
-const { name, nameEn, tagline, bio, region, role, tools, genres, awards, sameAs, listedAt, updatedAt } = creator.data;
+const { name, nameEn, tagline, bio, region, role, tools, genres, awards, sameAs, email, listedAt, updatedAt } = creator.data;
 const works = creator.works;
 const posts = creator.posts;
 const noLabel = `No.${String(creator.no).padStart(3, '0')}`;
@@ -50,6 +50,7 @@ const SOCIAL_LABEL: Record<string, string> = {
   instagram: 'Instagram',
   x: 'X',
   threads: 'Threads',
+  facebook: 'Facebook',
   vimeo: 'Vimeo',
   website: '網站',
 };
@@ -86,6 +87,7 @@ const personSchema = {
   ...(region ? { homeLocation: { '@type': 'Place', name: region } } : {}),
   knowsAbout: tools.map(toolLabel),
   ...(awardRows.length ? { award: awardRows.map((a) => `${a.year} ${a.title}（${a.result}）`) } : {}),
+  ...(email ? { email } : {}),
   sameAs: socialLinks.map((s) => s.url),
   mainEntityOfPage: { '@type': 'ProfilePage', '@id': pageUrl },
 };
@@ -240,7 +242,7 @@ const breadcrumbs = [
             </div>
           </dl>
 
-          {socialLinks.length > 0 && (
+          {(socialLinks.length > 0 || email) && (
             <ul class="profile__social" aria-label="社群連結">
               {socialLinks.map((s) => (
                 <li>
@@ -257,6 +259,20 @@ const breadcrumbs = [
                   </a>
                 </li>
               ))}
+              {/* 信箱排最後、直接印出位址：mailto 不另開視窗，也方便沒設郵件程式的讀者複製 */}
+              {email && (
+                <li>
+                  <a
+                    class="profile__social-link profile__social-link--mail"
+                    href={`mailto:${email}`}
+                    data-ga-cta="creator_email"
+                    data-ga-location="creator_head"
+                    aria-label={`寄信給${name}：${email}`}
+                  >
+                    {email}
+                  </a>
+                </li>
+              )}
             </ul>
           )}
         </div>
@@ -506,6 +522,12 @@ const breadcrumbs = [
   }
   .profile__social-arrow {
     font-size: 0.85em;
+  }
+  /* 信箱印的是位址本身：字距收窄好讀，太長時可斷行、不撐破手機版寬 */
+  .profile__social-link--mail {
+    max-width: 100%;
+    letter-spacing: 0.04em;
+    overflow-wrap: anywhere;
   }
 
   /* 資料格網：本頁只調欄數與外距 */

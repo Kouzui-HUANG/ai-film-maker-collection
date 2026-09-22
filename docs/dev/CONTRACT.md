@@ -136,7 +136,7 @@ d.creatorById / d.workById / d.postByUrlSlug / d.eventById
 
 | 頁 | schema（傳給 BaseLayout `schemas` prop） |
 |---|---|
-| `/creator/<slug>/` | `Person`（`@id` = creatorId、`name`、`alternateName`(nameEn)、`description`(tagline)、`image`、`url`、`jobTitle`(role join)、`homeLocation`(region)、`knowsAbout`(工具 label[])、`award`(awards 文字[])、`sameAs`[]）＋ `ItemList` of `VideoObject`（該創作者作品，每個 `creator: [{ '@id': creatorId }]`）；`ogType="profile"` |
+| `/creator/<slug>/` | `Person`（`@id` = creatorId、`name`、`alternateName`(nameEn)、`description`(tagline)、`image`、`url`、`jobTitle`(role join)、`homeLocation`(region)、`knowsAbout`(工具 label[])、`award`(awards 文字[])、`email`(有填才輸出)、`sameAs`[]）＋ `ItemList` of `VideoObject`（該創作者作品，每個 `creator: [{ '@id': creatorId }]`）；`ogType="profile"` |
 | `/creators/` | `CollectionPage` + `mainEntity: ItemList` of `Person`（`{ '@type':'Person', '@id', name, url }`） |
 | `/work/<slug>/` | `VideoObject`（`name` / `description`(synopsis) / `thumbnailUrl`(absolute) / `uploadDate`(releasedAt ?? `${year}-01-01`) / `duration`(isoDuration) / `embedUrl` / `sameAs`(watchUrl；**不填 contentUrl**，schema.org 定義它是媒體檔本身) / `genre` / `keywords`(工具) / `creator: [{'@type':'Person','@id':…,'name':…}]` / `publisher: {'@id': org}`）；`ogType="video.other"` |
 | `/works/` `/tool/` `/genre/` | `CollectionPage` + `ItemList`（url + name） |
