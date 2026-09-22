@@ -8,14 +8,16 @@ bio: "日文系出身、東京大學教育學研究所畢業，以「幻詠 Gen 
 seoTitle: "黃宏瑞 Huang Hung-jui｜幻詠 Gen Ai Studio 主理人・台灣 AI 影像創作者"
 portrait: "./portrait.jpg"
 portraitAlt: "黃宏瑞的像素風格自畫像：深藍西裝、藍白條紋領帶，雙手抱胸站在白色背景前"
-tools: ["stable-diffusion", "wan", "suno", "capcut"]
+tools: ["stable-diffusion", "wan", "seedance", "suno", "capcut"]
 genres: ["short-film", "music-video", "animation"]
 categories: ["social-video", "film", "music-mv", "animation-comics", "lecture-teaching"]
 region: "台北"
 role: ["編劇", "導演", "配樂"]
 sameAs:
   youtube: "https://www.youtube.com/@Hallucination-prompt"
+  facebook: "https://www.facebook.com/profile.php?id=61572168475382"
   website: "https://vocus.cc/salon/hallucination"
+email: "stair587@gmail.com"
 awards:
   - year: 2026
     title: "GMI Cloud × Wan × DV ASIA・AI 影視職人創作大賽"
@@ -30,7 +32,7 @@ awards:
     title: "Artiver AI Art Awards"
     result: "入選"
 listedAt: "2026-09-13"
-updatedAt: "2026-09-14"
+updatedAt: "2026-09-22"
 ---
 
 ## 從提示詞走到分鏡
@@ -41,7 +43,7 @@ updatedAt: "2026-09-14"
 
 ## 一人編制
 
-編劇、分鏡、生成、剪輯、配樂，基本上一個人做完。剪輯用 CapCut 收，配樂全部 Suno 生成——《絡繰月詠》是「本來只想做歌，但歌太好聽了」，才反過來補成 MV。這種「先有音樂再有畫面」的順序，讓他的 MV 節奏感明顯比一般 AI 作品扎實。
+編劇、分鏡、生成、剪輯、配樂，基本上一個人做完。影片生成近來以 Wan 與 Seedance 為主，剪輯用 CapCut 收，配樂全部 Suno 生成——《絡繰月詠》是「本來只想做歌，但歌太好聽了」，才反過來補成 MV。這種「先有音樂再有畫面」的順序，讓他的 MV 節奏感明顯比一般 AI 作品扎實。
 
 例外是 2026 年的《間合》。那是 GMI Cloud × Wan × DV ASIA 的 AI 影視職人創作大賽現場限時賽，四人團隊、抽題即做，他擔任隊長與主編劇，負責把劇本結構與角色動機定下來，再分工生成與後製。八分半的成片拿下第二名——也是他目前唯一一部團隊作品。
 
