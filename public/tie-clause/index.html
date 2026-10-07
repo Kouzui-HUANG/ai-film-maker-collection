@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>平手條款～閨蜜室友投黨不投人～</title>
+<meta name="description" content="都會政治喜劇《平手條款～閨蜜室友投黨不投人～》第一集企劃：大綱、後續發展、三位主角設定與第一集劇本全文。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=LXGW+WenKai+TC&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: 一本裝訂成冊的企劃書。開場是酒吧夜裡三張杯墊選票（辦／不辦／空白）；下方單欄閱讀，最寬 72rem，分頁籤黏在頂端；角色檔是「定裝照＋檔案」兩欄，手機改單欄；劇本放在自己的白紙上。 */
+:root{
+  --paper:#F2F2EE;
+  --sheet:#FFFFFF;
+  --ink:#1B1A17;
+  --ink-2:#46443F;
+  --muted:#727067;
+  --rule:#DAD7CF;
+  --amber:#945810;
+  --amber-soft:#F3E6D1;
+  --stamp:#B03A2C;
+  --blue:#3B5B8C;
+  --blue-soft:#E2E9F3;
+  --white:#7F7A70;
+  --white-soft:#EDEBE5;
+  --white-dot:#FFFFFF;
+  --green:#4A7454;
+  --green-soft:#E1ECE3;
+  --night:#171614;
+  --night-ink:#F1EDE5;
+  --night-muted:#A9A397;
+  --night-line:#3A3732;
+  --glow:#E2A04B;
+  --coaster:#F6F2E8;
+  --coaster-ring:#E1D9C8;
+  --coaster-ink:#2B2925;
+  --shadow:rgba(0,0,0,.42);
+  --crease-dark:rgba(0,0,0,.10);
+  --crease-light:rgba(255,255,255,.55);
+  --lb-bg:rgba(12,11,10,.92);
+  --font-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --font-body:"Noto Sans TC","PingFang TC","Heiti TC","Microsoft JhengHei",sans-serif;
+  --font-hand:"LXGW WenKai TC","Kaiti TC","BiauKai","DFKai-SB",serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141412;
+    --sheet:#1C1B18;
+    --ink:#EDEAE3;
+    --ink-2:#C9C5BB;
+    --muted:#9A968C;
+    --rule:#34322D;
+    --amber:#E3A24E;
+    --amber-soft:#382A17;
+    --stamp:#E7735F;
+    --blue:#95AEDA;
+    --blue-soft:#1E2734;
+    --white:#D2CDC2;
+    --white-soft:#28271F;
+    --white-dot:#F1EEE7;
+    --green:#92BF9B;
+    --green-soft:#1C2A21;
+    --night:#0E0D0C;
+    --night-ink:#F1EDE5;
+    --night-muted:#A9A397;
+    --night-line:#2E2B27;
+    --glow:#E2A04B;
+    --coaster:#ECE6D8;
+    --coaster-ring:#CEC5B1;
+    --coaster-ink:#2B2925;
+    --shadow:rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141412;
+  --sheet:#1C1B18;
+  --ink:#EDEAE3;
+  --ink-2:#C9C5BB;
+  --muted:#9A968C;
+  --rule:#34322D;
+  --amber:#E3A24E;
+  --amber-soft:#382A17;
+  --stamp:#E7735F;
+  --blue:#95AEDA;
+  --blue-soft:#1E2734;
+  --white:#D2CDC2;
+  --white-soft:#28271F;
+  --white-dot:#F1EEE7;
+  --green:#92BF9B;
+  --green-soft:#1C2A21;
+  --night:#0E0D0C;
+  --night-ink:#F1EDE5;
+  --night-muted:#A9A397;
+  --night-line:#2E2B27;
+  --glow:#E2A04B;
+  --coaster:#ECE6D8;
+  --coaster-ring:#CEC5B1;
+  --coaster-ink:#2B2925;
+  --shadow:rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16.5px;line-height:1.8}
+img{max-width:100%}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+p{margin:0 0 1em}
+.wrap{max-width:72rem;margin-inline:auto;padding-inline:clamp(16px,4vw,40px)}
+.stack{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(18px,3vw,36px)}
+.panel{background:var(--sheet);border:1px solid var(--rule);padding:clamp(18px,2.6vw,28px)}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,3vw,36px)}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(16px,2.4vw,28px)}
+@media (max-width:860px){.grid-3{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.grid-2{grid-template-columns:minmax(0,1fr)}}
+.cap{margin:0;font-family:var(--font-mono);font-size:12px;line-height:1.6;color:var(--muted)}
+.plain-list{margin:0;padding-left:1.2em}
+.plain-list li+li{margin-top:8px}
+
+/* character tints: used only for small identity marks */
+.is-blue{--c:var(--blue);--c-soft:var(--blue-soft);--c-dot:var(--blue)}
+.is-white{--c:var(--white);--c-soft:var(--white-soft);--c-dot:var(--white-dot)}
+.is-green{--c:var(--green);--c-soft:var(--green-soft);--c-dot:var(--green)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--c-dot);box-shadow:inset 0 0 0 1.5px var(--c);flex:0 0 auto}
+
+/* hero */
+.hero{background-color:var(--night);background-image:radial-gradient(110% 75% at 78% -12%,color-mix(in srgb,var(--glow) 26%,transparent),transparent 62%);color:var(--night-ink)}
+.hero-inner{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);align-items:center;padding-block:clamp(44px,7vw,92px) clamp(36px,6vw,76px)}
+@media (max-width:840px){.hero-inner{grid-template-columns:minmax(0,1fr)}}
+.hero-inner>div{container-type:inline-size}
+.hero-eyebrow{margin:0;font-size:13px;letter-spacing:.2em;color:var(--glow)}
+.hero-title{margin:.12em 0 0;font-family:var(--font-display);font-weight:900;font-size:clamp(64px,12.5vw,150px);font-size:min(clamp(64px,12.5vw,150px),23cqi);line-height:1.02;letter-spacing:.05em}
+.hero-title .sub{display:block;margin-top:.4em;font-size:.27em;font-weight:700;line-height:1.3;letter-spacing:.06em}
+.hero-en{margin:8px 0 0;font-family:var(--font-mono);font-size:12px;letter-spacing:.34em;color:var(--night-muted)}
+.hero-tagline{margin:26px 0 12px;font-family:var(--font-display);font-weight:700;font-size:clamp(21px,2.6vw,29px);line-height:1.4;text-wrap:balance}
+.hero-logline{margin:0;max-width:34em;opacity:.86}
+.datechips{display:flex;flex-wrap:wrap;gap:8px 10px;margin:24px 0 0;padding:0;list-style:none}
+.datechips li{font-family:var(--font-mono);font-size:12.5px;line-height:1.4;padding:7px 11px;border:1px solid var(--night-line)}
+.datechips b{font-family:var(--font-body);font-weight:500;letter-spacing:.06em;color:var(--glow);margin-right:.6em}
+.counter{position:relative;margin:0;padding:12px 0 20px}
+.counter::after{content:"";position:absolute;left:4%;right:4%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--glow),transparent);opacity:.55}
+.coasters{display:flex;justify-content:center;align-items:center;gap:clamp(6px,1.8vw,16px)}
+.coaster{position:relative;flex:0 1 auto;width:clamp(92px,14vw,168px);max-width:31%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;color:var(--coaster-ink);font-family:var(--font-hand);font-size:clamp(26px,4vw,46px);line-height:1;background:radial-gradient(circle,var(--coaster) 0 60%,var(--coaster-ring) 61% 63%,var(--coaster) 64%);box-shadow:0 14px 28px var(--shadow)}
+.coaster::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(104deg,transparent 49.2%,var(--crease-dark) 50%,var(--crease-light) 50.8%,transparent 52%);pointer-events:none}
+.coaster:nth-child(1){transform:rotate(-9deg) translateY(8px)}
+.coaster:nth-child(2){transform:rotate(5deg) translateY(-10px)}
+.coaster:nth-child(3){transform:rotate(-3deg) translateY(12px)}
+.counter-cap{margin:24px 0 0;text-align:center;font-family:var(--font-mono);font-size:12.5px;letter-spacing:.06em;color:var(--night-muted)}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--rule)}
+.tabs-inner{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs-inner::-webkit-scrollbar{display:none}
+.tabs a{flex:0 0 auto;padding:15px 12px 13px;font-size:14.5px;letter-spacing:.08em;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current="true"]{color:var(--ink);border-bottom-color:var(--amber)}
+
+/* sections */
+.block{padding-block:clamp(52px,7vw,92px);border-bottom:1px solid var(--rule)}
+.kicker{margin:0 0 10px;font-family:var(--font-mono);font-size:12px;letter-spacing:.24em;color:var(--amber)}
+.h2{margin:0 0 24px;font-family:var(--font-display);font-weight:900;font-size:clamp(28px,4vw,44px);line-height:1.25;text-wrap:balance}
+.h3{margin:0 0 12px;font-family:var(--font-display);font-weight:700;font-size:clamp(19px,2.1vw,23px);line-height:1.4;text-wrap:balance}
+.h3 .sub{margin-left:.6em;font-family:var(--font-body);font-weight:400;font-size:14px;color:var(--muted)}
+.h4{margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.lede{max-width:40em;font-size:17.5px;color:var(--ink-2)}
+.measure{max-width:40em}
+.sub-head{margin:clamp(40px,5vw,60px) 0 18px}
+
+/* pitch */
+.thesis{margin:0 0 40px;max-width:28em;font-family:var(--font-display);font-weight:700;font-size:clamp(22px,3vw,32px);line-height:1.55;text-wrap:balance}
+.thesis span{display:block;margin-bottom:10px;font-family:var(--font-body);font-weight:500;font-size:13px;letter-spacing:.18em;color:var(--muted)}
+.spec{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 18px;margin:0;align-content:start}
+.spec dt{font-size:13.5px;letter-spacing:.08em;color:var(--muted);padding-top:2px}
+.spec dd{margin:0}
+.why{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.why li{display:flex;gap:12px;align-items:flex-start}
+.mark{flex:0 0 auto;display:inline-grid;place-items:center;width:26px;height:26px;margin-top:2px;border:1.5px solid var(--stamp);border-radius:50%;color:var(--stamp);font-family:var(--font-display);font-weight:700;font-size:14px;line-height:1}
+
+/* world */
+.sleeve{background:var(--amber-soft);border:1px dashed var(--amber);padding:clamp(20px,3vw,30px)}
+.rules{list-style:none;margin:14px 0 4px;padding:0;font-family:var(--font-hand);font-size:clamp(20px,2.4vw,24px);line-height:1.75}
+.rules li{display:flex;gap:.5em}
+.rules .n{color:var(--amber)}
+.rules .empty{color:var(--muted)}
+.tally{margin:18px 0 6px;font-family:var(--font-hand);font-size:19px;line-height:1.6;letter-spacing:.08em;color:var(--ink-2);word-break:break-all}
+.lease-rows{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0 0 20px}
+.lease-rows dt{font-size:13.5px;color:var(--muted);padding-top:2px}
+.lease-rows dd{margin:0}
+.lease-end{display:block;margin:4px 0 22px;font-family:var(--font-display);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:.06em}
+.seals{display:flex;flex-wrap:wrap;gap:14px 26px;margin-bottom:18px}
+.seal-item{display:flex;align-items:center;gap:10px;font-size:15px}
+.seal{display:grid;place-items:center;width:40px;height:40px;border:2px solid var(--stamp);color:var(--stamp);font-family:var(--font-display);font-weight:900;font-size:19px;transform:rotate(-5deg)}
+.seal-item:nth-child(2) .seal{transform:rotate(3deg)}
+.seal-item:nth-child(3) .seal{transform:rotate(-2deg)}
+
+/* episode */
+.synopsis p{max-width:40em}
+.scenes{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.scenes li{display:grid;grid-template-columns:3.4em minmax(0,1fr) 8.5em;gap:6px 20px;padding:16px 0;border-bottom:1px solid var(--rule)}
+.sc-no{font-family:var(--font-mono);font-weight:500;color:var(--amber);padding-top:1px}
+.sc-place{margin:0;font-size:13.5px;letter-spacing:.06em;color:var(--muted)}
+.sc-what{margin:2px 0 4px}
+.sc-out{margin:0;color:var(--ink-2)}
+.sc-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-top:2px}
+.turn{font-family:var(--font-mono);font-size:12.5px;line-height:1.5;padding:1px 9px;border:1px solid var(--rule);border-radius:999px;white-space:nowrap}
+.dur{display:block;width:100%;height:4px;background:var(--rule);position:relative}
+.dur i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--s) / 45 * 100%);background:var(--amber)}
+.secs{font-family:var(--font-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+  .scenes li{grid-template-columns:2.8em minmax(0,1fr)}
+  .sc-side{grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap}
+  .dur{width:110px}
+}
+.total{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px 14px;padding-top:12px;font-family:var(--font-mono);font-size:13px;color:var(--ink-2)}
+.chain{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px 8px;align-items:center}
+.chain .step{padding:8px 12px;background:var(--sheet);border:1px solid var(--rule);font-size:15px;line-height:1.5}
+.chain .arr{color:var(--amber);font-family:var(--font-mono)}
+.slip{display:flex;flex-direction:column;gap:12px}
+.slip p{margin:0}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.slip q{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.55;quotes:"「" "」"}
+.table-wrap{overflow-x:auto;border:1px solid var(--rule);background:var(--sheet)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:15px;line-height:1.7}
+th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+th{font-size:13px;letter-spacing:.12em;color:var(--muted);font-weight:700;background:var(--paper)}
+tbody tr:last-child td{border-bottom:0}
+td.name{white-space:nowrap;font-weight:700}
+td.name .dot{margin-right:8px;vertical-align:-1px}
+
+/* cast */
+.dossier{padding-block:48px;border-top:1px solid var(--rule)}
+.dossier:first-of-type{border-top:0;padding-top:16px}
+.d-top{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:clamp(22px,3.6vw,48px);align-items:start;margin-bottom:34px}
+@media (max-width:860px){.d-top{grid-template-columns:minmax(0,1fr)}.d-id{order:-1}}
+/* 9:16 與 1:1 並排：欄寬按 9:16 分，兩張圖就一樣高 */
+.d-media{display:grid;grid-template-columns:minmax(0,9fr) minmax(0,16fr);gap:14px;width:100%;max-width:600px}
+.ph{margin:0;min-width:0}
+.ph-box{position:relative;overflow:hidden;max-width:100%;border:1px dashed var(--c);background:repeating-linear-gradient(135deg,var(--c-soft) 0 11px,var(--sheet) 11px 22px)}
+.ph-916 .ph-box{aspect-ratio:9/16;width:100%}
+.ph-11 .ph-box{aspect-ratio:1/1;width:100%}
+.ph-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.ph-face{position:absolute;inset:0;display:grid;place-items:center}
+.ph-initial{font-family:var(--font-display);font-weight:900;font-size:clamp(52px,7vw,104px);line-height:1;color:var(--c)}
+.ph-ratio{position:absolute;left:10px;top:10px;font-family:var(--font-mono);font-size:11.5px;line-height:1.4;padding:2px 7px;background:var(--sheet);color:var(--ink-2);border:1px solid var(--rule)}
+.has-photo{border-style:solid}
+.has-photo .ph-face,.has-photo .ph-ratio{display:none}
+.ph figcaption{margin-top:10px;font-size:13px;line-height:1.5;color:var(--muted)}
+.ph figcaption code{display:block;margin-top:2px;font-family:var(--font-mono);font-size:11.5px;overflow-wrap:anywhere;color:var(--ink-2)}
+.d-code{margin:0;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.d-name{margin:2px 0;font-family:var(--font-display);font-weight:900;font-size:clamp(32px,4.4vw,46px);line-height:1.15;letter-spacing:.06em}
+.d-meta{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted)}
+.d-quote{margin:0 0 22px;font-family:var(--font-display);font-weight:700;font-size:clamp(19px,2.2vw,22px);color:var(--c)}
+.d-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px}
+@media (max-width:640px){.d-grid{grid-template-columns:minmax(0,1fr)}}
+.d-grid p{margin:0}
+.d-grid .h4{margin-bottom:4px}
+.d-grid .pair-line{display:block}
+.d-grid .pair-line+.pair-line{margin-top:6px}
+.d-id .d-quote{margin:18px 0 22px}
+.look{padding:14px 16px;background:var(--sheet);border:1px solid var(--rule)}
+.look p{margin:0}
+.look .h4{margin-bottom:4px}
+.tag{margin-left:8px;font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.08em;padding:1px 6px;border:1px solid var(--rule);color:var(--ink-2)}
+.support{margin-top:12px}
+
+/* bonds */
+.tri{display:block;width:100%;max-width:580px;height:auto;margin:0 auto 36px}
+.tri .edge{stroke:var(--rule);stroke-width:2}
+.tri text{font-family:var(--font-body)}
+.tri .name{font-size:24px;font-weight:700;fill:var(--ink)}
+.tri .code{font-size:16px;fill:var(--ink-2)}
+.tri .lab{font-size:17px;fill:var(--muted);paint-order:stroke;stroke:var(--paper);stroke-width:7px;stroke-linejoin:round}
+.tri .center{font-size:17px;fill:var(--ink-2)}
+.tri .n-blue{fill:var(--blue-soft);stroke:var(--blue);stroke-width:2}
+.tri .n-white{fill:var(--white-soft);stroke:var(--white);stroke-width:2}
+.tri .n-green{fill:var(--green-soft);stroke:var(--green);stroke-width:2}
+.pair dl{margin:0;display:grid;gap:12px}
+.pair dt{font-size:13px;letter-spacing:.12em;color:var(--muted)}
+.pair dd{margin:0}
+
+/* future */
+.feature{background:var(--amber-soft);border-color:var(--amber)}
+.feature .h3{margin-bottom:10px}
+.season{display:flex;flex-direction:column;gap:12px}
+.season .h3{margin:0}
+.season .h3 small{display:block;margin-top:4px;font-family:var(--font-mono);font-size:12px;font-weight:400;letter-spacing:.06em;color:var(--muted)}
+.eps{margin:0;padding:0;list-style:none;counter-reset:ep}
+.eps li{display:grid;grid-template-columns:1.8em minmax(0,1fr);gap:6px;padding:9px 0;border-bottom:1px dashed var(--rule);line-height:1.65}
+.eps li::before{counter-increment:ep;content:counter(ep);font-family:var(--font-mono);color:var(--amber)}
+.eps b{font-weight:700}
+.endq{margin:0 0 10px;font-family:var(--font-display);font-weight:700;font-size:clamp(19px,2.4vw,25px);line-height:1.6;text-wrap:balance}
+
+/* script */
+.scene-index{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px;padding:0;list-style:none}
+.scene-index a{display:inline-block;font-family:var(--font-mono);font-size:13px;padding:5px 10px;border:1px solid var(--rule);background:var(--sheet);text-decoration:none;color:var(--ink-2)}
+.scene-index a:hover{border-color:var(--amber);color:var(--ink)}
+.sheet{max-width:48rem;margin-inline:auto;background:var(--sheet);border:1px solid var(--rule);padding:clamp(24px,5vw,64px) clamp(18px,5vw,72px);font-family:var(--font-display);font-size:16.5px;line-height:1.95}
+.sheet-head{margin:0 0 2.4em;text-align:center}
+.sheet-head .t{margin:0;font-weight:900;font-size:clamp(24px,3.4vw,32px);letter-spacing:.12em}
+.sheet-head .t .sub{display:block;margin-top:.2em;font-size:.56em;font-weight:700;letter-spacing:.08em}
+.sheet-head .s{margin:6px 0 0;font-family:var(--font-body);font-size:13.5px;letter-spacing:.1em;color:var(--muted)}
+.scene{scroll-margin-top:84px}
+.scene+.scene{margin-top:3em}
+.slug{display:flex;flex-wrap:wrap;gap:.2em .8em;align-items:baseline;margin:0 0 1.1em;padding-bottom:.5em;border-bottom:1px solid var(--rule);font-family:var(--font-body);font-weight:700;font-size:15.5px;letter-spacing:.04em;line-height:1.6}
+.slug .sn{font-family:var(--font-mono);font-weight:500;color:var(--amber)}
+.act{margin:0 0 1em}
+.dlg{margin:1.3em 0;text-align:center}
+.cue{margin:0;display:inline-flex;align-items:center;gap:.55em;font-family:var(--font-body);font-weight:700;font-size:14.5px;letter-spacing:.24em}
+.par{margin:0;color:var(--muted);font-size:15px}
+.ln{margin:.15em auto 0;max-width:24em;text-align:left}
+.ln+.ln{margin-top:0}
+.title-card{margin:2em 0 0;text-align:center;font-family:var(--font-body);font-size:14px;letter-spacing:.3em;color:var(--muted)}
+.cut{margin:1.6em 0 0;text-align:right;font-family:var(--font-body);font-weight:700;font-size:14px;letter-spacing:.24em}
+.endcard{max-width:48rem;margin:0 auto;padding:clamp(44px,7vw,84px) 16px;background:var(--night);color:var(--night-ink);text-align:center;font-size:clamp(20px,3vw,30px);letter-spacing:.14em;line-height:1.6;text-wrap:balance}
+.endcard small{display:block;margin-bottom:14px;font-family:var(--font-mono);font-size:12px;letter-spacing:.3em;color:var(--night-muted)}
+
+/* production */
+.prod p{margin:0 0 10px}
+.files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px;margin:12px 0 0;padding:0;list-style:none;font-family:var(--font-mono);font-size:12.5px}
+.files li{overflow-wrap:anywhere}
+@media (max-width:420px){.files{grid-template-columns:minmax(0,1fr)}}
+.foot{padding-block:36px 56px;font-size:13px;line-height:1.7;color:var(--muted)}
+.foot p{margin:0}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 60px) 16px calc(env(safe-area-inset-bottom,0px) + 24px);background:var(--lb-bg);cursor:zoom-out}
+.lightbox[hidden]{display:none}
+.lightbox img{max-width:min(100%,1100px);max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px);object-fit:contain;background:var(--sheet)}
+.lb-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;padding:7px 14px;font:inherit;font-size:14px;line-height:1.4;color:var(--night-ink);background:transparent;border:1px solid var(--night-line);cursor:pointer}
+.lb-close:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+@media print{
+  .tabs,.lightbox{display:none}
+  .hero,.endcard{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .scene{break-inside:avoid-page}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <p class="hero-eyebrow">都會喜劇｜帶狀短劇｜第一集企劃</p>
+      <h1 class="hero-title">平手條款<span class="sub">～閨蜜室友投黨不投人～</span></h1>
+      <p class="hero-en">TIE CLAUSE · EP.01</p>
+      <p class="hero-tagline">2028後她們還會是好友嗎？</p>
+      <p class="hero-logline">三個大學後各分東西的高中閨蜜，回台北看房撞在一起，當天就合租下一間租到 2028 年 1 月的老公寓。凡事都要排好的 PM 林佳穎想把入厝趴和 11/28 開票夜辦成同一場，卻在排日期的閒聊裡發現三個人投三個黨。她們用了九年的「三票制」，從來沒有平手條款。</p>
+      <ul class="datechips" aria-label="關鍵日期">
+        <li><b>故事日</b>2026.10.03 六</li>
+        <li><b>投票日</b>2026.11.28 六</li>
+        <li><b>租約到期</b>2028.01.31</li>
+      </ul>
+    </div>
+    <figure class="counter">
+      <div class="coasters" role="img" aria-label="三張杯墊選票：一張寫辦，一張寫不辦，第三張空白">
+        <div class="coaster">辦</div>
+        <div class="coaster">不辦</div>
+        <div class="coaster"></div>
+      </div>
+      <figcaption class="counter-cap">S09　入厝趴照辦嗎？　辦 1・不辦 1・空白 1</figcaption>
+    </figure>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="企劃目錄">
+  <div class="wrap tabs-inner">
+    <a href="#pitch">企劃</a>
+    <a href="#world">世界觀</a>
+    <a href="#ep1">第一集</a>
+    <a href="#cast">角色</a>
+    <a href="#bonds">關係</a>
+    <a href="#future">後續</a>
+    <a href="#script">劇本</a>
+    <a href="#production">製作</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- 企劃概要 -->
+<section class="block" id="pitch">
+  <div class="wrap">
+    <p class="kicker">PITCH</p>
+    <h2 class="h2">企劃概要</h2>
+    <p class="thesis"><span>主題論證</span>把不同顏色的人留在同一個客廳，必須以放棄「投出一個結果」為代價。</p>
+    <div class="grid-2">
+      <div class="measure">
+        <h3 class="h3">這是什麼樣的戲</h3>
+        <p>一部用室友喜劇包裝的政治劇。三個 24、25 歲的台北上班族女生，政治傾向分別偏國民黨、民眾黨和民進黨，因為一張租約被綁在同一間公寓，從 2026 年九合一一路住到 2028 年總統大選。</p>
+        <p>笑點來自每個人的雙標、口頭禪和職業病。每一集讓三個人各有一次說對、一次被戳破、一次被心疼。沒有哪一黨是正確答案，旁白和字卡也不替任何一方下結論。</p>
+        <h3 class="h3" style="margin-top:28px">為什麼是現在</h3>
+        <ul class="why">
+          <li><span class="mark" aria-hidden="true">卜</span><span>2026 年 11 月 28 日九合一投票，同一天還有核電公投。</span></li>
+          <li><span class="mark" aria-hidden="true">卜</span><span>台北市長是國民黨現任對上民進黨挑戰者。民眾黨依藍白合作「現任優先」沒推台北市長，支持民眾黨的人，市長票沒有地方去。</span></li>
+          <li><span class="mark" aria-hidden="true">卜</span><span>2028 年 1 月總統大選。三個 2001、2002 年出生的女生，那時第二次投總統。</span></li>
+          <li><span class="mark" aria-hidden="true">卜</span><span>三個人的政治都是繼承來的：客廳裡從沒關過的電視、一場她沒趕上的學運、爸媽的反義詞。</span></li>
+        </ul>
+      </div>
+      <dl class="spec panel">
+        <dt>類型</dt><dd>都會喜劇，溫而不甜，笑中帶刺</dd>
+        <dt>形式</dt><dd>帶狀短劇，每集約 5 分鐘</dd>
+        <dt>畫面</dt><dd>16:9 橫式，YouTube 播出</dd>
+        <dt>製作</dt><dd>AI 生成為主，角色外觀全片鎖定</dd>
+        <dt>第一集</dt><dd>〈入厝日：11 月 28 日〉，9 場</dd>
+        <dt>主場景</dt><dd>大同區老公寓、赤峰街小酒吧</dd>
+        <dt>主角</dt><dd>林佳穎（小藍）、周宜蓁（小白）、張詩涵（小綠）</dd>
+        <dt>政治指涉</dt><dd>講真實黨名；不點名、不露臉任何真實候選人</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- 世界觀 -->
+<section class="block" id="world">
+  <div class="wrap">
+    <p class="kicker">WORLD</p>
+    <h2 class="h2">一張租約，一部閨蜜憲法</h2>
+    <div class="stack">
+      <div class="grid-2">
+        <article class="sleeve">
+          <h3 class="h3">三票制</h3>
+          <p class="cap">2017 年高一・寫在一張珍奶杯套上</p>
+          <ol class="rules">
+            <li><span class="n">①</span>什麼都可以投</li>
+            <li><span class="n">②</span>二比一就算數</li>
+            <li><span class="n">③</span>輸的那個，另外兩個請她喝</li>
+            <li><span class="n">④</span>投完不准翻舊帳</li>
+            <li class="empty"><span class="n">⑤</span>平手的時候（沒有寫）</li>
+          </ol>
+          <p class="tally" role="img" aria-label="正字記票，共四百一十三次">正正正正正正正正正正 正正正正正正正正正正 正正正正正正正正正正 正正正正正正正正正正 正正正正正正正正正正 正正正正正正正正正正 正正正正正正正正正正 正正正正正正正正正正 正正下</p>
+          <p class="cap" style="margin-bottom:14px">佳穎鐵製鉛筆盒蓋內側的記票：413 次，每個「正」是五次</p>
+          <p style="margin:0">高一分組時被剩下的三個人發明的。三個人投二選一，永遠有多數，所以從來沒有平手過，也就從來沒人想到要寫第五條。</p>
+        </article>
+        <article class="panel">
+          <h3 class="h3">房屋租賃契約（節錄）</h3>
+          <dl class="lease-rows">
+            <dt>標的</dt><dd>台北市大同區老公寓四樓，三房一廳，沒有電梯</dd>
+            <dt>租金</dt><dd>每月三萬六千元，三人各一萬二</dd>
+            <dt>押金</dt><dd>兩個月（押二付一）</dd>
+            <dt>承租</dt><dd>三人共同承租</dd>
+            <dt>特約</dt><dd>任一人提前退租，須經三人同意</dd>
+          </dl>
+          <p class="cap">租期</p>
+          <span class="lease-end">至二〇二八年一月三十一日</span>
+          <div class="seals">
+            <span class="seal-item"><span class="seal" aria-hidden="true">林</span>林佳穎</span>
+            <span class="seal-item"><span class="seal" aria-hidden="true">周</span>周宜蓁</span>
+            <span class="seal-item"><span class="seal" aria-hidden="true">張</span>張詩涵</span>
+          </div>
+          <p class="cap">房東只肯整層出租，當晚十點前要答覆。三個人都租不起整層，當天就互簽。</p>
+        </article>
+      </div>
+      <div class="grid-2">
+        <article class="panel">
+          <h3 class="h3">時間與地點</h3>
+          <ul class="plain-list">
+            <li>2026 年 10 月 3 日（週六）白天，大同區一間沒有電梯的老公寓，四樓門口。</li>
+            <li>同一天晚上，赤峰街巷子裡八個座位的吧台小酒吧。</li>
+            <li>距離 11 月 28 日投票還有 56 天，距離 11 月 18 日民調封關還有 46 天。</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h3 class="h3">為什麼九年閨蜜從沒聊過政治</h3>
+          <ul class="plain-list">
+            <li>三票制只處理二選一，永遠有多數，不需要攤牌。</li>
+            <li>2020 年 1 月 11 日總統大選開票夜，學測前一週，三人表決「不看開票，考完再說」。考完就沒再說了。</li>
+            <li>大學分在台中、台南、台北，又碰上疫情遠距。</li>
+            <li>三個人活在三套演算法裡：LINE 家族群組、IG、Threads。</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 第一集 -->
+<section class="block" id="ep1">
+  <div class="wrap">
+    <p class="kicker">EPISODE 01</p>
+    <h2 class="h2">第一集〈入厝日：11 月 28 日〉</h2>
+    <div class="grid-2 synopsis">
+      <div>
+        <p>十月初的週六，三個大學後各分東西的高中閨蜜，在大同區一間老公寓的四樓門口撞在一起。三個人都想搶這間房，房東卻只肯整層出租，今晚十點前就要答覆。凡事都要排好的林佳穎當場算出「一人一萬二」，三人當天簽下一份租到 2028 年 1 月 31 日的共同租約。</p>
+        <p>當晚在赤峰街的小酒吧慶祝，三人搬出高中發明的「三票制」：二比一就算數，輸的人另外兩個請喝。413 次，從來沒有平手過。佳穎排入厝趴，大家第一個都有空的週六偏偏是 11 月 28 日投票日，她乾脆提議投完票回來一起看開票。2020 年她們表決不看開票，說好考完再說，然後就再也沒說過。</p>
+        <p>這一次她們說了。核電公投、市長選票、三個口誤，三人才發現彼此偏的是國民黨、民進黨和民眾黨。宜蓁的黨在台北沒推市長，她說要退租；佳穎和詩涵第一次投了一樣的票，兩個人都不同意。最後一次三票制表決入厝趴照不照辦，開出「辦」「不辦」和一張空白。規則裡沒有平手條款。三個人同時把酒推給「輸的人」，杯子在吧台中間撞在一起，沒有人拿。</p>
+      </div>
+      <dl class="spec panel">
+        <dt>片長</dt><dd>約 5 分鐘（依台詞量預估 5 分 25 秒）</dd>
+        <dt>場次</dt><dd>9 場，S04–S09 是同一間酒吧的連續戲</dd>
+        <dt>角色</dt><dd>3 位主角、酒保、林爸（畫外音）</dd>
+        <dt>場景</dt><dd>老公寓（樓梯間、空屋）、赤峰街小酒吧，加一段黃昏街景過場</dd>
+        <dt>語言</dt><dd>國語為主，林爸講台語</dd>
+        <dt>結尾</dt><dd>字卡「2028後她們還會是好友嗎？」</dd>
+      </dl>
+    </div>
+
+    <h3 class="h3 sub-head">場次表</h3>
+    <ol class="scenes">
+      <li>
+        <span class="sc-no">S01</span>
+        <div><p class="sc-place">內・大同區老公寓・四樓樓梯間・日</p><p class="sc-what">三人搶同一間房撞在一起；房東只肯整層租，今晚就要答覆。</p><p class="sc-out">佳穎算出「一人一萬二」，對手變室友。</p></div>
+        <div class="sc-side"><span class="turn">－→＋</span><span class="dur" style="--s:40"><i></i></span><span class="secs">≈40 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S02</span>
+        <div><p class="sc-place">內・同公寓・空屋客廳・日</p><p class="sc-what">分房吵三種公平，宜蓁付不出押金；佳穎一手排平，三人簽下「退租要三人同意」的租約。</p><p class="sc-out">簽成了，佳穎說「我來排」。</p></div>
+        <div class="sc-side"><span class="turn">＋</span><span class="dur" style="--s:40"><i></i></span><span class="secs">≈40 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S03</span>
+        <div><p class="sc-place">外・捷運月台／巷口／公車上・黃昏</p><p class="sc-what">林爸傳語音說電視會轉小聲，佳穎回「不是因為電視啦」；宜蓁、詩涵各自報平安。</p><p class="sc-out">「室友都不是藍的」「三個都是我們這邊的」，觀眾聞到火藥味。</p></div>
+        <div class="sc-side"><span class="turn">角色＋／觀眾－</span><span class="dur" style="--s:20"><i></i></span><span class="secs">≈20 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S04</span>
+        <div><p class="sc-place">內・赤峰街小酒吧・夜</p><p class="sc-what">佳穎要請客被擋，三人拿出高中的三票制表決。</p><p class="sc-out">二比一，佳穎輸了、被請一杯；「從來沒有平手過」。</p></div>
+        <div class="sc-side"><span class="turn">－→＋</span><span class="dur" style="--s:40"><i></i></span><span class="secs">≈40 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S05</span>
+        <div><p class="sc-place">同上・夜（接續）</p><p class="sc-what">佳穎排入厝趴，唯一空檔是 11/28 投票日；想起 2020 年表決不看開票，從此沒再聊。</p><p class="sc-out">詩涵舉杯：「那就現在說。」</p></div>
+        <div class="sc-side"><span class="turn">＋</span><span class="dur" style="--s:30"><i></i></span><span class="secs">≈30 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S06</span>
+        <div><p class="sc-place">同上・夜（接續）</p><p class="sc-what">佳穎從「簡單的」核電公投說起，詩涵說溜「藍白多數」；佳穎抓包，自己又說溜「剛好是國民黨」。</p><p class="sc-out">同一句「看黨，不看事」打回佳穎。</p></div>
+        <div class="sc-side"><span class="turn">－</span><span class="dur" style="--s:35"><i></i></span><span class="secs">≈35 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S07</span>
+        <div><p class="sc-place">同上・夜（接續）</p><p class="sc-what">宜蓁倒向詩涵，說溜「我們黨」；佳穎搶著抱她「歡迎回家」，又想用「秩序」收場。</p><p class="sc-out">「妳要的秩序，我家餐桌天天有。」全場沒人說話。</p></div>
+        <div class="sc-side"><span class="turn">－</span><span class="dur" style="--s:35"><i></i></span><span class="secs">≈35 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S08</span>
+        <div><p class="sc-place">同上・夜（接續）</p><p class="sc-what">宜蓁的市長票沒地方去，提出退租；佳穎、詩涵投「不同意」。</p><p class="sc-out">藍綠第一次投一樣，是為了留住她；詩涵說出 2020 那晚的真話。</p></div>
+        <div class="sc-side"><span class="turn">＋</span><span class="dur" style="--s:35"><i></i></span><span class="secs">≈35 秒</span></div>
+      </li>
+      <li>
+        <span class="sc-no">S09</span>
+        <div><p class="sc-place">同上・夜（接續）</p><p class="sc-what">佳穎用老方法表決入厝趴照辦嗎。</p><p class="sc-out">一比一比一，規則沒有平手條款；三杯酒撞在吧台中間，沒人拿。</p></div>
+        <div class="sc-side"><span class="turn">－／＋</span><span class="dur" style="--s:45"><i></i></span><span class="secs">≈45 秒</span></div>
+      </li>
+    </ol>
+    <p class="total"><span>字卡 ≈5 秒</span><span>合計約 5 分 25 秒（預估，依表演節奏調整）</span></p>
+
+    <h3 class="h3 sub-head">「不經意」的觸發鏈</h3>
+    <ol class="chain">
+      <li class="step">排入厝趴</li><li class="arr" aria-hidden="true">→</li>
+      <li class="step">第一個大家都有空的週六是 11/28</li><li class="arr" aria-hidden="true">→</li>
+      <li class="step">「投完票回來，一起看開票」</li><li class="arr" aria-hidden="true">→</li>
+      <li class="step">想起 2020 年「考完再說」</li><li class="arr" aria-hidden="true">→</li>
+      <li class="step">「那就現在說」</li><li class="arr" aria-hidden="true">→</li>
+      <li class="step">先說「簡單的」核電公投</li><li class="arr" aria-hidden="true">→</li>
+      <li class="step">三個口誤</li>
+    </ol>
+
+    <h3 class="h3 sub-head">三個口誤（依出現順序）</h3>
+    <div class="grid-3">
+      <article class="panel slip is-green">
+        <p class="who"><span class="dot"></span>詩涵（小綠）・S06</p>
+        <q>這是立法院藍白多數丟出來的。</q>
+        <p>她說自己不反核，只是不爽是誰提的。佳穎立刻抓到她看黨不看事。</p>
+      </article>
+      <article class="panel slip is-blue">
+        <p class="who"><span class="dot"></span>佳穎（小藍）・S06</p>
+        <q>……剛好是國民黨。</q>
+        <p>「我沒有藍綠，我看政績。」看政績就是現任，現任是國民黨。詩涵把「看黨，不看事」原句還給她。</p>
+      </article>
+      <article class="panel slip is-white">
+        <p class="who"><span class="dot"></span>宜蓁（小白）・S07</p>
+        <q>我們黨在台北沒推人。</q>
+        <p>她不投國民黨，也不投民進黨。「我們黨？」「民眾黨。」佳穎馬上抱住她說歡迎回家。</p>
+      </article>
+    </div>
+
+    <h3 class="h3 sub-head">三方平衡帳本</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">角色</th><th scope="col">說對（觀眾點頭）</th><th scope="col">被戳破（觀眾笑）</th><th scope="col">被心疼（觀眾安靜）</th></tr></thead>
+        <tbody>
+          <tr class="is-blue"><td class="name"><span class="dot"></span>林佳穎</td><td>「這是帳單，不是意識形態。」也是她先抓到詩涵「看黨，不看事」。</td><td>「我看政績」，結果「剛好是國民黨」；同一句「看黨，不看事」被打回來。</td><td>「我爸每次開票，都一個人看到最後。」</td></tr>
+          <tr class="is-white"><td class="name"><span class="dot"></span>周宜蓁</td><td>「我不是回家，我是聯合治理。」「那叫合作，不叫合併。」「妳要的秩序，我家餐桌天天有。」</td><td>說溜「我們黨」，而她的黨在台北沒推市長。</td><td>「這次，又沒地方去了。」「那天晚上，我不知道該替誰高興。」</td></tr>
+          <tr class="is-green"><td class="name"><span class="dot"></span>張詩涵</td><td>「妳們在立法院，本來就跟國民黨一起投。」</td><td>說溜「藍白多數」，被抓到看黨不看事。</td><td>「2020那晚，我其實很想看。」「開出來我要是哭了，不想給妳們看。」</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 角色 -->
+<section class="block" id="cast">
+  <div class="wrap">
+    <p class="kicker">CAST</p>
+    <h2 class="h2">三位主角</h2>
+    <p class="lede">三人 2017 年在台北同一所公立女中念高一，分組時都被剩下。大學分在台中、台南、台北。2026 年秋天，三個人都在台北工作。每人兩張角色參考圖：9:16 臉部特寫、1:1 定裝三視圖（正面、側面、背面），點圖片可以放大。</p>
+
+    <article class="dossier is-blue" id="jiaying">
+      <div class="d-top">
+        <div class="d-media">
+          <figure class="ph ph-916">
+            <div class="ph-box" data-photo="images/jiaying-9x16" data-alt="林佳穎 臉部特寫">
+              <div class="ph-face"><span class="ph-initial">佳</span></div>
+              <span class="ph-ratio">9:16</span>
+            </div>
+            <figcaption>臉部特寫<code>images/jiaying-9x16.png</code></figcaption>
+          </figure>
+          <figure class="ph ph-11">
+            <div class="ph-box" data-photo="images/jiaying-1x1" data-alt="林佳穎 定裝三視圖">
+              <div class="ph-face"><span class="ph-initial">佳</span></div>
+              <span class="ph-ratio">1:1</span>
+            </div>
+            <figcaption>定裝三視圖<code>images/jiaying-1x1.png</code></figcaption>
+          </figure>
+        </div>
+        <div class="d-id">
+          <p class="d-code"><span class="dot"></span>小藍｜高中綽號「總務」</p>
+          <h3 class="d-name">林佳穎</h3>
+          <p class="d-meta">25 歲・2001 年生｜內湖 B2B 軟體公司 PM｜戶籍萬華</p>
+          <p class="d-quote">「我沒有藍綠，我看政績。」</p>
+          <div class="look"><p class="h4">外觀鎖定<span class="tag">AI</span></p><p>齊肩黑直髮、白色短袖襯衫紮進深灰色西裝褲、黑色樂福鞋、帆布托特包（裡面有一個掉漆的鐵製鉛筆盒）。</p></div>
+        </div>
+      </div>
+      <div class="d-grid">
+          <div><p class="h4">名字</p><p>她出生那年工廠接單掉了一大截，家裡找命理館挑了「穎」：稻穗的尖端，脫穎而出，有收成。高一當總務股長，追班費追到全班怕。</p></div>
+          <div><p class="h4">家庭</p><p>阿公在萬華開了林記彩色印刷，後來工廠搬到中和印刷聚落。客廳電視從她出生就沒關過，每晚十點五十五分是《新聞夜總會》的聲音，她在旁邊寫功課。爸爸看政論、開票都自己看到最後，從不跟她聊政治。</p></div>
+          <div><p class="h4">政治從哪裡來</p><p>她的藍是自己從客廳的背景音、阿公那句「以前一天開兩班」，還有家裡訂單起起落落的故事裡拼起來的。自稱經濟選民，結果每次都剛好是國民黨。</p></div>
+          <div><p class="h4">現在</p><p>台中企管畢業，大四在台商包材公司實習，跑過東莞的工廠，熟悉對岸的供應鏈和產業。現在是內湖 B2B 軟體公司 PM，三人中薪水最高。回台北兩年，一直住家裡。</p></div>
+          <div><p class="h4">說對｜盲點</p><p><span class="pair-line">說對：電費是帳單，不是意識形態；傳產在 AI 熱潮裡的冷是真的。</span><span class="pair-line">盲點：嘴上沒有藍綠，每次都剛好同一邊；懷念「以前比較有秩序」，沒想過那個秩序在別人家長什麼樣子。</span></p></div>
+          <div><p class="h4">喜劇引擎</p><p>PM 上身。訂位、分房、分帳到個位數，什麼都要排好。三票制最常是她提議，也最常是她輸。口頭禪「我來排。」</p></div>
+          <div><p class="h4">想要｜害怕</p><p><span class="pair-line">想要：把入厝趴和開票夜辦成同一場，三個人坐在同一個客廳。</span><span class="pair-line">害怕：像爸爸一樣，一個人看完開票。</span></p></div>
+          <div><p class="h4">她以為</p><p>宜蓁是外省公教家庭，一定跟她同一國；詩涵整天罵教育部，是中間選民。</p></div>
+      </div>
+    </article>
+
+    <article class="dossier is-white" id="yizhen">
+      <div class="d-top">
+        <div class="d-media">
+          <figure class="ph ph-916">
+            <div class="ph-box" data-photo="images/yizhen-9x16" data-alt="周宜蓁 臉部特寫">
+              <div class="ph-face"><span class="ph-initial">蓁</span></div>
+              <span class="ph-ratio">9:16</span>
+            </div>
+            <figcaption>臉部特寫<code>images/yizhen-9x16.png</code></figcaption>
+          </figure>
+          <figure class="ph ph-11">
+            <div class="ph-box" data-photo="images/yizhen-1x1" data-alt="周宜蓁 定裝三視圖">
+              <div class="ph-face"><span class="ph-initial">蓁</span></div>
+              <span class="ph-ratio">1:1</span>
+            </div>
+            <figcaption>定裝三視圖<code>images/yizhen-1x1.png</code></figcaption>
+          </figure>
+        </div>
+        <div class="d-id">
+          <p class="d-code"><span class="dot"></span>小白｜高中綽號「周董」</p>
+          <h3 class="d-name">周宜蓁</h3>
+          <p class="d-meta">24 歲・2002 年生｜中山區品牌工作室設計師｜戶籍文山</p>
+          <p class="d-quote">「我不是回家。我是聯合治理。」</p>
+          <div class="look"><p class="h4">外觀鎖定<span class="tag">AI</span></p><p>耳下短髮、黑色寬版短袖 T 恤、深色寬褲、舊帆布鞋。</p></div>
+        </div>
+      </div>
+      <div class="d-grid">
+          <div><p class="h4">名字</p><p>國中老師媽媽從《詩經》「之子于歸，宜其家人」取名，希望她跟家裡處得好。她偏偏是家裡最格格不入的人。班上有三個宜蓁，大家只好叫她的姓。</p></div>
+          <div><p class="h4">家庭</p><p>外省第三代。爸爸是中央部會科長，媽媽是國中老師，兩人都支持國民黨。從小高壓教育，成績單要排名，「設計能吃嗎？」是家裡的口頭禪。</p></div>
+          <div><p class="h4">政治從哪裡來</p><p>2014 年她國一，爸媽支持的人落選，爸爸當場關掉電視，她偷偷覺得爸爸討厭的人很酷。2018 年年改上路，媽媽少領，她也開始討厭民進黨。工作室接過民眾黨的設計案、合作愉快，2024 年她第一次覺得自己的票有地方去。今年民眾黨在台北沒推市長，她的市長票只能投爸媽的黨、投詩涵的黨，或投廢票。</p></div>
+          <div><p class="h4">現在</p><p>國中前獎狀貼滿冰箱，高中報復性不讀書，考上台南的設計系，跟家裡的關係在那時到最低點。後來算是和解，但「死都不搬回家」。現在正在趕一位民眾黨議員參選人（虛構）的造勢背板。</p></div>
+          <div><p class="h4">說對｜盲點</p><p><span class="pair-line">說對：藍白是合作，不是合併；威權的秩序對被管的人一點都不浪漫。</span><span class="pair-line">盲點：「兩邊都討厭」常被她拿來擋掉對自家的批評；她的第三條路，在台北連市長候選人都沒有。</span></p></div>
+          <div><p class="h4">喜劇引擎</p><p>短、冷、反諷，一句話戳破氣氛。誰用長輩口氣說話，她就換邊站。</p></div>
+          <div><p class="h4">想要｜害怕</p><p><span class="pair-line">想要：搬出來，離爸媽的規矩越遠越好。</span><span class="pair-line">害怕：她的票、她這個人，哪邊都放不進去。</span></p></div>
+          <div><p class="h4">她以為</p><p>佳穎講台語、家裡開工廠，是綠的；詩涵罵體制，跟她同一國。</p></div>
+      </div>
+    </article>
+
+    <article class="dossier is-green" id="shihan">
+      <div class="d-top">
+        <div class="d-media">
+          <figure class="ph ph-916">
+            <div class="ph-box" data-photo="images/shihan-9x16" data-alt="張詩涵 臉部特寫">
+              <div class="ph-face"><span class="ph-initial">涵</span></div>
+              <span class="ph-ratio">9:16</span>
+            </div>
+            <figcaption>臉部特寫<code>images/shihan-9x16.png</code></figcaption>
+          </figure>
+          <figure class="ph ph-11">
+            <div class="ph-box" data-photo="images/shihan-1x1" data-alt="張詩涵 定裝三視圖">
+              <div class="ph-face"><span class="ph-initial">涵</span></div>
+              <span class="ph-ratio">1:1</span>
+            </div>
+            <figcaption>定裝三視圖<code>images/shihan-1x1.png</code></figcaption>
+          </figure>
+        </div>
+        <div class="d-id">
+          <p class="d-code"><span class="dot"></span>小綠｜高中綽號「涵涵」</p>
+          <h3 class="d-name">張詩涵</h3>
+          <p class="d-meta">24 歲・2002 年生｜教育 NGO 據點主任｜戶籍南港</p>
+          <p class="d-quote">「那就現在說。」</p>
+          <div class="look"><p class="h4">外觀鎖定<span class="tag">AI</span></p><p>長髮綁低馬尾、卡其色棉麻襯衫袖子捲到手肘、淺色牛仔褲、白色運動鞋、帆布包上別著一枚褪色的太陽花徽章。</p></div>
+        </div>
+      </div>
+      <div class="d-grid">
+          <div><p class="h4">名字</p><p>爸媽各出一個字。台鐵工程師爸爸想要書卷氣的「詩」；外婆算命說缺水，媽媽挑了「涵」，包涵的涵。她對弱勢孩子最包涵，對朋友的票最難包涵。</p></div>
+          <div><p class="h4">家庭</p><p>爸爸是外省籍的台鐵電務技術官僚，自稱「最後一代台鐵公務員」；媽媽是本省人，原本是家庭主婦，後來當保母，客廳永遠有別人的寶寶。家裡從不談政治。</p></div>
+          <div><p class="h4">政治從哪裡來</p><p>太陽花那年她國小六年級，表姊在議場裡，送她一枚太陽花徽章，那是她追認的起點。2024 年 5 月大四，她親自站上青島東路參加青鳥行動，那才是她自己的運動。支持民進黨，也對民進黨失望過，但更怕親中的政黨破壞民主制度；她覺得民眾黨越來越靠向國民黨，是對學運精神的背叛。</p></div>
+          <div><p class="h4">現在</p><p>三人中唯一在台北念大學（社工系）。畢業後在教育不平等 NGO 的台東據點待了兩年，今年秋天調回台北，升據點主任，底下兩個人。</p></div>
+          <div><p class="h4">說對｜盲點</p><p><span class="pair-line">說對：民眾黨在立法院確實常跟國民黨一起投。</span><span class="pair-line">盲點：她說溜嘴的「藍白多數」，暴露她也是看誰提案、不看內容；她把朋友兩年的沉默當成同意。</span></p></div>
+          <div><p class="h4">喜劇引擎</p><p>社工話術上身，生氣時會說「我只是會不舒服」；什麼事都要開一份 Google 共筆。</p></div>
+          <div><p class="h4">想要｜害怕</p><p><span class="pair-line">想要：三個人終於能一起看開票、把話說開。</span><span class="pair-line">害怕：在朋友面前哭。</span></p></div>
+          <div><p class="h4">她以為</p><p>三個人都是她們這邊的。</p></div>
+      </div>
+    </article>
+
+    <div class="grid-2 support">
+      <article class="panel">
+        <h3 class="h3">林爸<span class="sub">58 歲・畫外音</span></h3>
+        <p style="margin:0">中和印刷廠老闆。客廳電視從女兒出生就沒關過；他從不跟佳穎聊政治，開票都自己一個人看到最後。第一集只有一則台語語音：「搬出去嘛好。電視我會關較細聲咧。」</p>
+      </article>
+      <article class="panel">
+        <h3 class="h3">酒保<span class="sub">30 多歲</span></h3>
+        <p style="margin:0">赤峰街小酒吧的酒保，全片唯一的旁觀者。第一次聽到「輸的那個，一杯」，他就記住了規則；最後一場是他問出「這次輸的是哪位？」</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 關係 -->
+<section class="block" id="bonds">
+  <div class="wrap">
+    <p class="kicker">BONDS</p>
+    <h2 class="h2">三角關係</h2>
+    <svg class="tri" viewBox="0 0 640 460" role="img" aria-labelledby="tri-t tri-d">
+      <title id="tri-t">三角關係圖</title>
+      <desc id="tri-d">宜蓁在上，佳穎在左下，詩涵在右下。三條邊分別是藍白、白綠、藍綠，每一對都有一個聯盟點和一個衝突點。</desc>
+      <line class="edge" x1="320" y1="92" x2="120" y2="360"/>
+      <line class="edge" x1="320" y1="92" x2="520" y2="360"/>
+      <line class="edge" x1="120" y1="360" x2="520" y2="360"/>
+      <text class="lab" x="220" y="232" text-anchor="middle">藍白</text>
+      <text class="lab" x="420" y="232" text-anchor="middle">白綠</text>
+      <text class="lab" x="320" y="366" text-anchor="middle">藍綠</text>
+      <text class="center" x="320" y="252" text-anchor="middle">每一對</text>
+      <text class="center" x="320" y="280" text-anchor="middle">都有一個聯盟點</text>
+      <text class="center" x="320" y="308" text-anchor="middle">和一個衝突點</text>
+      <circle class="n-white" cx="320" cy="92" r="46"/>
+      <circle class="n-blue" cx="120" cy="360" r="46"/>
+      <circle class="n-green" cx="520" cy="360" r="46"/>
+      <text class="code" x="320" y="98" text-anchor="middle">小白</text>
+      <text class="code" x="120" y="366" text-anchor="middle">小藍</text>
+      <text class="code" x="520" y="366" text-anchor="middle">小綠</text>
+      <text class="name" x="320" y="32" text-anchor="middle">周宜蓁</text>
+      <text class="name" x="120" y="442" text-anchor="middle">林佳穎</text>
+      <text class="name" x="520" y="442" text-anchor="middle">張詩涵</text>
+    </svg>
+    <div class="grid-3">
+      <article class="panel pair">
+        <h3 class="h3">藍白｜佳穎 × 宜蓁</h3>
+        <dl>
+          <dt>聯盟</dt><dd>核電公投都投同意，都受不了詩涵說教；佳穎一直以為宜蓁跟她同一國。</dd>
+          <dt>衝突</dt><dd>佳穎一句「歡迎回家」，比敵意更讓宜蓁抓狂；「妳要的秩序，我家餐桌天天有。」</dd>
+          <dt>信物</dt><dd>三票制的第一次投票，宜蓁把計算紙撕成三張選票，佳穎拿喝完的珍奶杯當票箱。</dd>
+        </dl>
+      </article>
+      <article class="panel pair">
+        <h3 class="h3">白綠｜宜蓁 × 詩涵</h3>
+        <dl>
+          <dt>聯盟</dt><dd>都不投國民黨；同婚、房價站同一邊。</dd>
+          <dt>衝突</dt><dd>民眾黨在立法院跟國民黨一起投；「『我們黨』？」</dd>
+          <dt>信物</dt><dd>2018 年宜蓁離家那晚，睡在詩涵家的保母房，旁邊是兩張嬰兒床。詩涵的媽媽一句都沒問，多煮了一碗粥。</dd>
+        </dl>
+      </article>
+      <article class="panel pair">
+        <h3 class="h3">藍綠｜佳穎 × 詩涵</h3>
+        <dl>
+          <dt>聯盟</dt><dd>都把政治當真，都嫌白的騎牆；為了不讓宜蓁搬走，第一次投一樣的票。</dd>
+          <dt>衝突</dt><dd>一個看政績，一個看程序；「看黨，不看事」互相回力鏢。</dd>
+          <dt>信物</dt><dd>2020 年開票夜在佳穎家讀書，表決不看開票，詩涵輸了，整晚盯著門縫透進來的電視光。佳穎看見了，沒說。</dd>
+        </dl>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 後續 -->
+<section class="block" id="future">
+  <div class="wrap">
+    <p class="kicker">BEYOND EP.01</p>
+    <h2 class="h2">後續發展可能</h2>
+    <p class="lede">第一集只確定一件事，沒有人搬走。租約比 2028 年總統大選還晚到期，她們注定要在同一個客廳看兩次開票。</p>
+    <div class="stack">
+      <article class="panel feature">
+        <p class="kicker" style="margin-bottom:6px">第二集鉤子</p>
+        <h3 class="h3">〈搬家日〉三家爸媽在樓梯口撞在一起</h3>
+        <p>搬家那天，三家爸媽同時出現在樓下幫忙搬。家長交叉法則是每個人的爸媽，都比較喜歡她的「政敵」。</p>
+        <ul class="plain-list">
+          <li>宜蓁那位支持國民黨的老師媽媽，最疼「懂事的」佳穎。</li>
+          <li>林爸跟詩涵用台語聊印刷和火車，聊得最開心。</li>
+          <li>詩涵家那間永遠有寶寶哭聲的客廳，是宜蓁真正的避風港。</li>
+        </ul>
+      </article>
+
+      <div class="grid-3">
+        <article class="season">
+          <h3 class="h3">S1〈開票夜〉<small>2026.10–12・倒數 11/28</small></h3>
+          <ol class="eps">
+            <li><span><b>〈入厝日〉</b>本集。</span></li>
+            <li><span><b>〈搬家日〉</b>三家爸媽同時出現在樓下，在樓梯口撞在一起。</span></li>
+            <li><span><b>〈遙控器〉</b>客廳只放得下一台電視，三個人看三種新聞。</span></li>
+            <li><span><b>〈背板〉</b>宜蓁的造勢背板發到中和的印刷廠趕工，那間廠是佳穎家，林爸什麼黨的單都接。</span></li>
+            <li><span><b>〈電費〉</b>第一張電費單寄來，詩涵還沒決定公投怎麼投。</span></li>
+            <li><span><b>〈封關〉</b>11/18 民調封關，三人在客廳做了一份「室友民調」，哪裡都不能發。</span></li>
+            <li><span><b>〈回家投票〉</b>11/28 白天，三人各回萬華、文山、南港的戶籍地投票。</span></li>
+            <li><span><b>〈開票夜〉</b>一比一比一的入厝趴，到底辦不辦。季終。</span></li>
+          </ol>
+        </article>
+        <article class="season">
+          <h3 class="h3">S2〈休兵年〉<small>2027・沒有全國大選</small></h3>
+          <ul class="plain-list">
+            <li>〈室友公約〉修憲。要加「平手條款」，必須三比零。</li>
+            <li>三人各自帶「敵營」男友回家。</li>
+            <li>林記的訂單斷炊，三人各用專業救工廠：PM 導入系統、設計師重做品牌、NGO 主任寫產業轉型的補助計畫。</li>
+            <li>2028 前的提名與合作談判，讓三個人各自的「我們」開始變形。</li>
+          </ul>
+        </article>
+        <article class="season">
+          <h3 class="h3">S3〈2028〉<small>2027 底–2028.01.31</small></h3>
+          <ul class="plain-list">
+            <li>一月總統大選，一月底租約到期，開票夜和退租日落在同一個月。</li>
+            <li>房東通知，重建後原租戶可以優先承租。要不要再一起簽？</li>
+            <li>三個人第二次投總統。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="grid-2">
+        <article class="panel">
+          <h3 class="h3">每集公式</h3>
+          <p style="margin:0">開場一次「二選一」家務投票，像誰倒垃圾、要不要養貓，結果二比一。每集輪到不同的人當那個「一」，三組配對輪流結盟，誰都不會連兩集被孤立。</p>
+        </article>
+        <article class="panel">
+          <h3 class="h3">終局問題</h3>
+          <p class="endq">三票制沒有平手條款，要修憲必須三比零。到 2028 年 1 月，她們會不會投出第一個三比零？</p>
+          <p class="cap">劇集不回答誰當選，只回答這一票。</p>
+        </article>
+      </div>
+
+      <div>
+        <h3 class="h3">秘密階梯</h3>
+        <p class="measure">三個人各有兩層秘密，份量對等，分季揭露。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">角色</th><th scope="col">S1 揭露</th><th scope="col">S2–S3 揭露</th></tr></thead>
+            <tbody>
+              <tr class="is-blue"><td class="name"><span class="dot"></span>林佳穎</td><td>幫宜蓁墊的押金，是她原本要拿給爸爸工廠週轉的錢。</td><td>公司派她對接一家中國 SaaS 的合作案，她得在「懂中國」和「被當成親中」之間選。</td></tr>
+              <tr class="is-white"><td class="name"><span class="dot"></span>周宜蓁</td><td>頂加被檢舉，檢舉人是她爸。他想讓女兒搬回家。</td><td>爸爸第一次付錢請她做設計，是退休公務員同學會的會刊，還說「價錢照市價」。</td></tr>
+              <tr class="is-green"><td class="name"><span class="dot"></span>張詩涵</td><td>核電公投她其實打算投同意，理由早就寫在共筆裡，只是沒分享。</td><td>NGO 派她去市府社會局爭取經費，她得請佳穎教她「怎麼跟藍的講話」。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 劇本 -->
+<section class="block" id="script">
+  <div class="wrap">
+    <p class="kicker">SCREENPLAY</p>
+    <h2 class="h2">第一集劇本全文</h2>
+    <ul class="scene-index" aria-label="場次">
+      <li><a href="#s01">S01</a></li><li><a href="#s02">S02</a></li><li><a href="#s03">S03</a></li>
+      <li><a href="#s04">S04</a></li><li><a href="#s05">S05</a></li><li><a href="#s06">S06</a></li>
+      <li><a href="#s07">S07</a></li><li><a href="#s08">S08</a></li><li><a href="#s09">S09</a></li>
+    </ul>
+
+    <article class="sheet">
+      <header class="sheet-head">
+        <p class="t">平手條款<span class="sub">～閨蜜室友投黨不投人～</span></p>
+        <p class="s">第一集〈入厝日：11 月 28 日〉・約 5 頁・9 場</p>
+      </header>
+
+      <section class="scene" id="s01">
+        <h3 class="slug"><span class="sn">S01</span><span>內・大同區老公寓・四樓樓梯間・日</span></h3>
+        <p class="act">沒有電梯的老公寓。四樓鐵門旁貼著一張手寫的出租紙條。</p>
+        <p class="act">林佳穎（25）爬上最後一階：齊肩黑直髮，白色短袖襯衫紮進深灰色西裝褲，肩上一個帆布托特包。她伸手按門鈴。</p>
+        <p class="act">另一根手指同時按上來。周宜蓁（24）：耳下短髮、黑色寬版短袖Ｔ恤。兩根手指疊在同一顆門鈴上。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">……林佳穎？</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">周宜蓁？妳也來看房？</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">我……幫朋友看。</p></div>
+        <p class="act">鐵門從裡面拉開。張詩涵（24）站在門內：長髮綁低馬尾，卡其色棉麻襯衫袖子捲到手肘，帆布包上別著一枚褪色的太陽花徽章。她手上拉著一條捲尺。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">我已經量完窗戶了。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">張詩涵？</p></div>
+        <p class="act">捲尺「唰」一聲收回去。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">我比較急。我回台北兩年了，還住家裡。</p><p class="ln">我家電視從我出生就沒關過。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">我更急。頂加被檢舉，下個月要拆。</p><p class="ln">死都不搬回家。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">我剛從台東調回來。我媽家現在有兩個寶寶——</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">妳的？</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">她收托的。</p></div>
+        <p class="act">佳穎的手機震了一下。她看著螢幕。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="par">（念出來）</p><p class="ln">房東說：「整層租，不分租。三房三萬六，</p><p class="ln">押二付一。今晚十點前回我。」</p></div>
+        <p class="act">三個人互看。佳穎的手指在褲管上點了三下。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">一人一萬二。</p></div>
+        <p class="title-card">黑畫面。片名：平手條款～閨蜜室友投黨不投人～。</p>
+      </section>
+
+      <section class="scene" id="s02">
+        <h3 class="slug"><span class="sn">S02</span><span>內・同公寓・空屋客廳・日</span></h3>
+        <p class="act">空蕩蕩的客廳，木頭地板。三扇房門都開著。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">按收入分啦，妳薪水最高。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">按坪數。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">我只要東邊那間。其他隨便。</p></div>
+        <p class="act">佳穎把三扇門看過一圈。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">我住最大間，付最多。按坪數，也按收入。</p><p class="ln">東邊給宜蓁。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">總務，妳一點都沒變。</p></div>
+        <p class="act">宜蓁看著手機裡的銀行App，把手機螢幕朝下，放在地板上。</p>
+        <p class="act">佳穎低頭按了幾下自己的手機。地板上，宜蓁的手機震了一下。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">押金轉給妳了。下個月再還。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">……我會還。</p></div>
+        <p class="act">三人坐在地板上，租約攤在中間。佳穎用筆尖指著一行字。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">提前退租，要三個人同意。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">我們高中連畢旅誰睡中間都投過了。</p></div>
+        <p class="act">三支筆輪流簽名。詩涵把租約拿起來。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">租到2028年1月……總統大選都選完了欸。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">那我們是一起看兩次開票的交情。</p></div>
+        <p class="act">佳穎蓋上筆蓋。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">我來排。</p></div>
+      </section>
+
+      <section class="scene" id="s03">
+        <h3 class="slug"><span class="sn">S03</span><span>外・捷運月台／巷口／公車上・黃昏</span></h3>
+        <p class="act">捷運月台。佳穎（齊肩黑直髮、白襯衫、托特包）的手機播出一則語音訊息。</p>
+        <div class="dlg"><p class="cue">林爸（畫外音）</p><p class="par">（台語）</p><p class="ln">搬出去嘛好。電視我會關較細聲咧。</p><p class="ln par">（搬出去也好。電視我會轉小聲一點。）</p></div>
+        <p class="act">佳穎看著手機，打了一行字。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎（畫外音）</p><p class="ln">不是因為電視啦。</p></div>
+        <p class="act">巷口。宜蓁（耳下短髮、黑Ｔ）一邊走一邊打字。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁（畫外音）</p><p class="ln">室友都不是藍的。我終於逃出我家了。</p></div>
+        <p class="act">公車上。詩涵（低馬尾、帆布包）靠著車窗打字。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵（畫外音）</p><p class="ln">跟兩個高中閨蜜合租！三個都是我們這邊的。</p></div>
+      </section>
+
+      <section class="scene" id="s04">
+        <h3 class="slug"><span class="sn">S04</span><span>內・赤峰街小酒吧・夜</span></h3>
+        <p class="act">八個座位的吧台。三人還穿著白天那套衣服，由左到右坐著：佳穎、宜蓁、詩涵。</p>
+        <p class="act">佳穎把折好的租約放在宜蓁面前。宜蓁把酒杯直接擺上去。佳穎拿起杯子，墊一張杯墊，再放回去。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">今天我請。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">不行。妳已經幫我墊押金了。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">那……老方法？</p></div>
+        <p class="act">佳穎從托特包拿出一個掉漆的鐵製鉛筆盒，把筆倒出來，打開蓋子。</p>
+        <p class="act">蓋子內側貼著一張褪色的珍奶杯套，上面有四行麥克筆字。杯套旁邊畫滿一排一排的「正」字。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">妳還留著？高一被剩下的三個人，發明的鬼東西。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="par">（指著杯套）</p><p class="ln">二比一就算數。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="par">（指著下一行）</p><p class="ln">輸的那個，另外兩個請她喝。</p></div>
+        <p class="act">三人各撕一張杯墊，寫字，折好，丟進鉛筆盒。宜蓁一張一張打開。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">二比一。妳輸了。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">老闆，輸的那個，一杯。我們請。</p></div>
+        <p class="act">酒保（三十多歲，黑色圍裙）把一杯酒放到佳穎面前。</p>
+        <p class="act">佳穎拿起筆，在蓋子內側補上一劃。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">四百一十三次。從來沒有平手過。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">三個人投二選一，是要怎麼平手。</p></div>
+      </section>
+
+      <section class="scene" id="s05">
+        <h3 class="slug"><span class="sn">S05</span><span>內・同上・夜（接續）</span></h3>
+        <p class="act">佳穎滑開手機行事曆。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">好，入厝趴。二十四號宜蓁要交造勢背板……</p><p class="ln">大家都有空的週六——十一月二十八號。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">那天投票欸。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">完美。投完票回來辦入厝，一起看開票。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">終於要一起看開票了。2020那次，</p><p class="ln">我們還投票表決不看。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">說好考完再說。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">考完就……沒再說了。</p></div>
+        <p class="act">酒保放下一碟花生。沒有人伸手。</p>
+        <p class="act">詩涵舉起杯子。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">那就現在說。</p></div>
+        <p class="act">三個杯子輕輕碰了一下。</p>
+      </section>
+
+      <section class="scene" id="s06">
+        <h3 class="slug"><span class="sn">S06</span><span>內・同上・夜（接續）</span></h3>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">先說簡單的：核電公投。電費三個人分欸——</p><p class="ln">這是帳單，不是意識形態。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">同意啊。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">……我還沒決定。</p></div>
+        <p class="act">佳穎和宜蓁同時轉頭看她。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">我不是反核。我只是會不舒服——</p><p class="ln">這是立法院藍白多數丟出來的。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">「藍白多數」？那就是看黨，不看事。</p></div>
+        <p class="act">詩涵拿起杯子，沒有喝。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">……那妳市長投誰？</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">我沒有藍綠。我看政績。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">看政績，那就是現任。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">現任是國民黨。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">……剛好是國民黨。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">那就是看黨，不看事。</p></div>
+        <p class="act">佳穎張開嘴，又閉上。她喝了一口酒。</p>
+      </section>
+
+      <section class="scene" id="s07">
+        <h3 class="slug"><span class="sn">S07</span><span>內・同上・夜（接續）</span></h3>
+        <p class="act">宜蓁把高腳椅往詩涵那邊挪了一點。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">我也不投國民黨。那是我爸媽的黨。</p></div>
+        <p class="act">詩涵的手搭上宜蓁的肩膀。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">對嘛。所以妳投民進黨？</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">也不要。我們黨在台北沒推人。</p></div>
+        <p class="act">詩涵的手停在宜蓁肩上。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">……「我們黨」？</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">民眾黨。</p></div>
+        <p class="act">佳穎的手從另一邊搭上宜蓁的肩膀。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">藍白有合作嘛。現任優先——歡迎回家。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">我不是回家。我是聯合治理。</p></div>
+        <p class="act">詩涵把手收回去。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">妳們在立法院，本來就跟國民黨一起投。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">那叫合作，不叫合併。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">好了啦。我只是覺得，以前比較有秩序——</p></div>
+        <p class="act">宜蓁把佳穎的手從自己肩上拿下來，放回吧台上。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">妳要的秩序，我家餐桌天天有。</p></div>
+        <p class="act">沒有人說話。酒保擦著一個已經乾了的杯子。</p>
+      </section>
+
+      <section class="scene" id="s08">
+        <h3 class="slug"><span class="sn">S08</span><span>內・同上・夜（接續）</span></h3>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">……所以妳市長到底投誰？</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">投我爸媽的黨，投她的黨，或投廢票。</p></div>
+        <p class="act">宜蓁把杯子在杯墊上轉了一圈。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">2024年，我第一次覺得我的票有地方去。</p><p class="ln">這次，又沒地方去了。</p></div>
+        <p class="act">宜蓁從口袋拿出新鑰匙，放在租約上。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">我退租好了。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">不同意。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">我也不同意。</p></div>
+        <p class="act">宜蓁看佳穎，再看詩涵。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">……妳們終於投一樣了。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">老闆，輸的那個，一杯。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">我們請。</p></div>
+        <p class="act">酒保把一杯酒放到宜蓁面前。</p>
+        <p class="act">詩涵轉向佳穎。</p>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">2020那晚，我其實很想看。</p></div>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">我知道。妳一直在看門縫。</p></div>
+      </section>
+
+      <section class="scene" id="s09">
+        <h3 class="slug"><span class="sn">S09</span><span>內・同上・夜（接續）</span></h3>
+        <p class="act">佳穎把鉛筆盒推到三人中間。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">老方法。十一月二十八號，入厝趴照辦嗎？</p></div>
+        <p class="act">三人各撕一張杯墊，寫字，折好，丟進鉛筆盒。</p>
+        <p class="act">佳穎一張一張打開。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">辦。……不辦。</p></div>
+        <p class="act">第三張杯墊。佳穎翻到背面，再翻回來。兩面都是白的。</p>
+        <p class="act">宜蓁看著吧台上的鑰匙。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">我爸每次開票，都一個人看到最後。</p></div>
+        <div class="dlg"><p class="cue is-green"><span class="dot"></span>詩涵</p><p class="ln">開出來我要是哭了，不想給妳們看。</p></div>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">那天晚上，我不知道該替誰高興。</p></div>
+        <p class="act">沒有人說話。</p>
+        <div class="dlg"><p class="cue is-white"><span class="dot"></span>宜蓁</p><p class="ln">……平手要怎樣？</p></div>
+        <p class="act">佳穎看著蓋子內側的杯套。手指從第一行滑到第四行，停在最下面。</p>
+        <div class="dlg"><p class="cue is-blue"><span class="dot"></span>佳穎</p><p class="ln">沒有寫。</p></div>
+        <p class="act">酒保拿著酒瓶走過來。</p>
+        <div class="dlg"><p class="cue">酒保</p><p class="ln">這次輸的是哪位？</p></div>
+        <p class="act">三個人同時把自己面前的杯子往吧台中間推。三個杯子撞在一起——叮。</p>
+        <p class="act">沒有人拿起來。</p>
+        <p class="act">三個杯子和一把鑰匙，壓在那份租約上。租約露出一行字：租期至二〇二八年一月三十一日。</p>
+        <p class="cut">切黑。</p>
+      </section>
+    </article>
+
+    <p class="endcard" style="margin-top:28px"><small>字卡</small>2028後她們還會是好友嗎？</p>
+  </div>
+</section>
+
+<!-- 製作 -->
+<section class="block" id="production">
+  <div class="wrap">
+    <p class="kicker">PRODUCTION</p>
+    <h2 class="h2">製作與風險</h2>
+    <div class="grid-2">
+      <article class="panel prod">
+        <h3 class="h3">AI 生成備註</h3>
+        <ul class="plain-list">
+          <li>全片發生在同一天，三位主角不換裝，以角色檔的「外觀鎖定」為準。</li>
+          <li>酒吧座位固定：由左到右佳穎、宜蓁、詩涵。宜蓁坐中間，S07 兩人從兩側搭她的肩。</li>
+          <li>動作行都寫成單鏡可執行的畫面；全片沒有兩人以上同時說話。</li>
+          <li>文字道具一律用實體道具或後製合成：房東 LINE、銀行 App、珍奶杯套、杯墊選票、租約上的到期日。AI 生成的中文容易變亂碼。</li>
+          <li>必知資訊都由台詞送達，畫面上的字只是補強。</li>
+        </ul>
+      </article>
+      <article class="panel prod">
+        <h3 class="h3">角色圖怎麼換</h3>
+        <p>角色圖放在這個 HTML 檔旁邊的 images 資料夾。要換圖，用同樣的檔名覆蓋就好，jpg、png、webp 都可以，重新整理頁面就會換上。</p>
+        <ul class="files">
+          <li>jiaying-9x16</li><li>jiaying-1x1</li>
+          <li>yizhen-9x16</li><li>yizhen-1x1</li>
+          <li>shihan-9x16</li><li>shihan-1x1</li>
+        </ul>
+      </article>
+      <article class="panel prod">
+        <h3 class="h3">法律與平衡</h3>
+        <ul class="plain-list">
+          <li>不點名、不露臉任何真實候選人；畫面上不出現真實號次、看板、黨徽。</li>
+          <li>劇中不引用民調。11/18 00:00 至 11/28 16:00 是民調封關期（選罷法第 53 條），這段期間與投票日當天，不做涉及選舉的宣傳。</li>
+          <li>不呼籲投給誰，也不呼籲公投投哪一邊。</li>
+          <li>每集維持三方等量：說對、被戳破、被心疼各一次。</li>
+        </ul>
+      </article>
+      <article class="panel prod">
+        <h3 class="h3">事實依據</h3>
+        <ul class="plain-list">
+          <li>2026/11/28 九合一，同日併投全國性公投第 22 案（核電）。</li>
+          <li>台北市長：國民黨現任尋求連任，民進黨提名挑戰者；民眾黨依 2026/3/18 藍白合作協議「現任者優先」未提名。</li>
+          <li>選舉投票年齡 20 歲、公投 18 歲；沒有不在籍投票。</li>
+          <li>太陽花學運 2014 年 3 月，三人當時國小六年級；青鳥行動 2024 年 5 月。</li>
+          <li>《新聞夜總會》：TVBS，2001–2013 年，週一至五 22:55。</li>
+        </ul>
+        <p class="cap" style="margin-top:12px">查證至 2026 年 9 月下旬，上線前請再確認一次。</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="wrap foot">
+  <p>《平手條款～閨蜜室友投黨不投人～》第一集企劃・2026 年 10 月 5 日版</p>
+  <p>劇本文字檔：outputs/平手條款_第一集劇本.md</p>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="角色圖放大" hidden>
+  <button type="button" class="lb-close">關閉</button>
+  <img alt="">
+</div>
+
+<script>
+(function(){
+  /*LOADER-START*/
+  // 角色圖：images 資料夾裡有同名圖檔就自動換上
+  var exts=['jpg','jpeg','png','webp'];
+  document.querySelectorAll('.ph-box[data-photo]').forEach(function(box){
+    var base=box.getAttribute('data-photo'), i=0, img=new Image();
+    img.alt=box.getAttribute('data-alt')||'';
+    img.decoding='async';
+    img.onload=function(){ img.tabIndex=0; box.appendChild(img); box.classList.add('has-photo'); };
+    img.onerror=function(){ i++; if(i<exts.length){ img.src=base+'.'+exts[i]; } };
+    img.src=base+'.'+exts[0];
+  });
+  /*LOADER-END*/
+
+  // 角色圖放大
+  var lb=document.getElementById('lightbox');
+  if(lb){
+    var lbImg=lb.querySelector('img'), lbBtn=lb.querySelector('button'), lastImg=null;
+    var openLb=function(img){ lastImg=img; lbImg.src=img.currentSrc||img.src; lbImg.alt=img.alt; lb.hidden=false; lbBtn.focus(); };
+    var closeLb=function(){ lb.hidden=true; lbImg.removeAttribute('src'); if(lastImg){ lastImg.focus(); } };
+    document.addEventListener('click',function(e){ var img=e.target.closest ? e.target.closest('.ph-box img') : null; if(img){ openLb(img); } });
+    lb.addEventListener('click',closeLb);
+    document.addEventListener('keydown',function(e){
+      if(!lb.hidden && e.key==='Escape'){ closeLb(); return; }
+      if(lb.hidden && (e.key==='Enter' || e.key===' ') && e.target.matches && e.target.matches('.ph-box img')){ e.preventDefault(); openLb(e.target); }
+    });
+  }
+
+  // 分頁籤：標示目前閱讀的段落
+  var links=[].slice.call(document.querySelectorAll('.tabs a'));
+  var bar=document.querySelector('.tabs-inner');
+  if(!('IntersectionObserver' in window) || !bar) return;
+  var byId={};
+  links.forEach(function(a){ byId[a.getAttribute('href').slice(1)]=a; });
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var a=byId[e.target.id]; if(!a) return;
+      links.forEach(function(l){ l.removeAttribute('aria-current'); });
+      a.setAttribute('aria-current','true');
+      var br=bar.getBoundingClientRect(), ar=a.getBoundingClientRect();
+      if(ar.left<br.left || ar.right>br.right){ bar.scrollLeft += (ar.left-br.left) - 16; }
+    });
+  },{rootMargin:'-40% 0px -55% 0px'});
+  Object.keys(byId).forEach(function(id){ var s=document.getElementById(id); if(s) obs.observe(s); });
+})();
+</script>
+</body>
+</html>
