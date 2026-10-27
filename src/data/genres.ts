@@ -55,6 +55,7 @@ export const EVENT_KIND_LABEL: Record<string, string> = {
 export const POST_TYPE_LABEL: Record<string, { label: string; labelEn: string }> = {
   interview: { label: '訪談', labelEn: 'INTERVIEW' },
   tutorial: { label: '教學', labelEn: 'TUTORIAL' },
+  column: { label: '專欄', labelEn: 'COLUMN' },
 };
 
 export const LEVEL_LABEL: Record<string, string> = {

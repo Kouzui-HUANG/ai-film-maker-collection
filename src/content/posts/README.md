@@ -1,4 +1,4 @@
-# posts/ — 訪談與教學（一篇一資料夾）
+# posts/ — 專欄、訪談與教學（一篇一資料夾）
 
 ```
 posts/<slug>/
@@ -6,9 +6,9 @@ posts/<slug>/
 └── cover.jpg    # 封面，建議 1600×900；grayscale(0.5)，hover 回全彩
 ```
 
-- `type: interview`（→ Article schema + about 指回 Person）或 `type: tutorial`（→ HowTo 或 Article）
+- `type: interview`（→ Article schema + about 指回 Person）、`type: tutorial`（→ HowTo 或 Article）或 `type: column`（專欄：平台、產業動態等編輯部長文 → Article + mentions 指回 Person；影展與比賽仍寫進 events 內文）
 - 路由用 `urlSlug`，資料夾名建議與之相同
-- 訪談對象填 `creators`；教學涉及的工具填 `tools`（受控詞彙）
+- 訪談對象、專欄提到的收錄創作者填 `creators`；教學涉及的工具填 `tools`（受控詞彙）
 - FAQ 版式（自動抽成 FAQPage schema）：`## 常見問題` 之下，`**問句？**` 接 `**答**：答覆`（冒號在粗體外；`**答：**答覆` 會以字面星號渲染）
 - HowTo 版式（教學文自動抽成 HowTo schema）：`## 操作步驟` 之下，`### Step 1：xxx` 各步驟
 - 示範資料已於 2026-09-13 全數移除；目前尚無文章（`/posts/` 會顯示空狀態）

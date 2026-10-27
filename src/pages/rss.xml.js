@@ -1,8 +1,8 @@
 /**
  * /rss.xml — 全站 RSS
  *
- * items = posts（訪談／教學）+ works（作品）混排，依日期倒序，cap 30。
- *   - post：description = excerpt、categories = 訪談／教學、enclosure = cover、dc:creator = author
+ * items = posts（訪談／教學／專欄）+ works（作品）混排，依日期倒序，cap 30。
+ *   - post：description = excerpt、categories = 訪談／教學／專欄、enclosure = cover、dc:creator = author
  *   - work：description = synopsis、categories = 類型 label、enclosure = thumb、dc:creator = 創作者名
  * link 一律 absRoutes；atom:link self 用 absUrl('/rss.xml')。
  */

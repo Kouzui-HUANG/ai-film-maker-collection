@@ -118,7 +118,7 @@ const works = defineCollection({
     }),
 });
 
-/* ── 訪談與教學（共用版型，type 分流） ──────────── */
+/* ── 專欄、訪談與教學（共用版型，type 分流） ────── */
 const posts = defineCollection({
   loader: glob({
     pattern: ['**/*.md', '!**/README.md', '!**/_*.md'],
@@ -130,7 +130,7 @@ const posts = defineCollection({
       title: z.string(),
       seoTitle: z.string().optional(),
       excerpt: z.string().max(180, 'excerpt 硬上限 180 字'),
-      type: z.enum(['interview', 'tutorial']),           // → Article vs HowTo schema
+      type: z.enum(['interview', 'tutorial', 'column']), // 訪談／教學／專欄 → Article vs HowTo schema
       urlSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'urlSlug 須為全小寫 kebab-case'),
       author: z.string(),
       date: dateStr,
@@ -138,8 +138,8 @@ const posts = defineCollection({
       cover: image(),
       coverAlt: z.string(),
       readMin: z.number().int().positive(),
-      creators: z.array(reference('creators')).optional(), // 訪談對象
-      tools: z.array(z.string()).optional(),               // 教學涉及的工具
+      creators: z.array(reference('creators')).optional(), // 訪談對象／專欄與教學提到的收錄創作者
+      tools: z.array(z.string()).optional(),               // 教學涉及或專欄提及的工具
       level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
       draft: z.boolean().optional(),
     }),

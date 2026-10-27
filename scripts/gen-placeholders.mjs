@@ -124,7 +124,7 @@ if (!ONLY_PUBLIC && existsSync(pdir)) {
     const data = fm(readFileSync(idx, 'utf-8'));
     const rel = String(data.cover ?? './cover.jpg').replace(/^\.\//, '');
     const [from, to] = pick(PALETTES.post, i);
-    const kind = data.type === 'tutorial' ? 'TUTORIAL' : 'INTERVIEW';
+    const kind = { tutorial: 'TUTORIAL', column: 'COLUMN' }[data.type] ?? 'INTERVIEW';
     if (await write(join(pdir, folder, rel), { w: 1600, h: 900, from, to, label: kind, sub: String(data.date ?? ''), kind: 'COVER' })) made++;
   }
 }

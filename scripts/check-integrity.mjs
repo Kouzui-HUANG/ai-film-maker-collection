@@ -106,7 +106,7 @@ function readEnum(field, fallback) {
   return list.length ? list : fallback;
 }
 const EVENT_KINDS = readEnum('kind', ['competition', 'workshop', 'screening', 'talk', 'exhibition']);
-const POST_TYPES = readEnum('type', ['interview', 'tutorial']);
+const POST_TYPES = readEnum('type', ['interview', 'tutorial', 'column']);
 const LEVELS = readEnum('level', ['beginner', 'intermediate', 'advanced']);
 const WORK_AWARD_STATUSES = readEnum('status', ['winner', 'finalist', 'selection']);
 const SAME_AS_KEYS = (() => {
@@ -608,7 +608,8 @@ const live = {
   events: events.filter((e) => !e.draft),
 };
 const drafts = creators.size + works.length + posts.length + events.length - Object.values(live).reduce((n, a) => n + a.length, 0);
-const interviews = live.posts.filter((p) => p.data.type === 'interview').length;
+const postsOf = (t) => live.posts.filter((p) => p.data.type === t).length;
+const interviews = postsOf('interview');
 const evStatus = { upcoming: 0, ongoing: 0, past: 0 };
 for (const ev of live.events) {
   const { startDate: s, endDate } = ev.data;
@@ -622,7 +623,7 @@ const toolsUsed = [...toolCounts.keys()].filter((t) => TOOLS.has(t)).length;
 const toolsWithPage = [...toolCounts].filter(([t, n]) => TOOLS.has(t) && n >= MIN_TOOL_WORKS).length;
 
 console.log(
-  `${bold('統計')} ${live.creators.length} 位創作者 · ${live.works.length} 部作品 · ${live.posts.length} 篇文章（訪談 ${interviews}／教學 ${live.posts.length - interviews}）· ` +
+  `${bold('統計')} ${live.creators.length} 位創作者 · ${live.works.length} 部作品 · ${live.posts.length} 篇文章（專欄 ${postsOf('column')}／訪談 ${interviews}／教學 ${postsOf('tutorial')}）· ` +
     `${live.events.length} 個活動（即將 ${evStatus.upcoming}／進行中 ${evStatus.ongoing}／已結束 ${evStatus.past}，以台北 ${today} 計）` +
     (drafts ? dim(` · 另有 ${drafts} 筆 draft`) : ''),
 );

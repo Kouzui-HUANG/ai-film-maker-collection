@@ -12,7 +12,7 @@ export const SITE = {
   nameEn: 'TAIWAN AI FILMMAKERS',
   tagline: '收錄台灣 AI 影視創作者的年鑑',
   /** 報頭副標（nameplate 下方） */
-  taglineSub: '創作者・作品・訪談・教學・活動',
+  taglineSub: '創作者・作品・專欄・教學・活動',
   /** 長版站台描述：llms.txt 開頭引言、RSS <description>、Organization schema */
   description:
     '台灣AI影視創作者圖鑑是一份年鑑式網站，收錄以 AI 工具進行影視創作的台灣創作者：' +
@@ -120,7 +120,7 @@ export type NavItem = {
 export const PRIMARY_NAV: NavItem[] = [
   { label: '創作者', labelEn: 'CREATORS', href: '/creators/', note: '圖鑑總表：一頁列完所有收錄創作者' },
   { label: '作品', labelEn: 'WORKS', href: '/works/', note: '全部作品，依發表時間排列' },
-  { label: '訪談與教學', labelEn: 'READ', href: '/posts/', note: '創作者訪談與 AI 影視教學' },
+  { label: '專欄與教學', labelEn: 'READ', href: '/posts/', note: '編輯部專欄、創作者訪談與 AI 影視教學' },
   { label: '活動', labelEn: 'EVENTS', href: '/events/', note: '比賽、工作坊、放映與講座' },
 ];
 
@@ -135,7 +135,7 @@ export type MobileNavItem = {
 export const MOBILE_NAV: MobileNavItem[] = [
   { label: '創作者', labelEn: 'Creators', href: '/creators/', external: false },
   { label: '全部作品', labelEn: 'Works', href: '/works/', external: false },
-  { label: '訪談與教學', labelEn: 'Read', href: '/posts/', external: false },
+  { label: '專欄與教學', labelEn: 'Read', href: '/posts/', external: false },
   { label: '活動', labelEn: 'Events', href: '/events/', external: false },
   { label: '關於圖鑑', labelEn: 'About', href: '/about/', external: false },
   { label: '聯絡／推薦收錄', labelEn: 'Contact', href: '/contact/', external: false },
@@ -147,7 +147,7 @@ export const MOBILE_NAV: MobileNavItem[] = [
 export const FOOTER_INDEX = [
   { label: '創作者', href: '/creators/' },
   { label: '全部作品', href: '/works/' },
-  { label: '訪談與教學', href: '/posts/' },
+  { label: '專欄與教學', href: '/posts/' },
   { label: '活動', href: '/events/' },
 ];
 

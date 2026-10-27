@@ -2,7 +2,7 @@
 /**
  * /sitemap/ — 人讀的全站索引
  *
- * 分區：01 主要頁面 / 02 創作者（依編號）/ 03 作品（依年份倒序）/ 04 訪談與教學 /
+ * 分區：01 主要頁面 / 02 創作者（依編號）/ 03 作品（依年份倒序）/ 04 專欄與教學 /
  *       05 活動與比賽（upcoming / past）/ 06 工具索引（達門檻者）/ 07 類型索引 / 08 機器可讀索引
  * 每項顯示中文 + 路徑小字（路徑即實際 href，含 base）。
  */
@@ -18,7 +18,7 @@ const d = await getSiteData();
 const pageUrl = absUrl('/sitemap/');
 const title = 'Sitemap';
 const description =
-  `${SITE.name}全站索引：主要頁面、${d.creators.length} 位創作者、${d.works.length} 部作品、訪談與教學、活動與比賽、工具與類型索引一覽。`;
+  `${SITE.name}全站索引：主要頁面、${d.creators.length} 位創作者、${d.works.length} 部作品、專欄與教學、活動與比賽、工具與類型索引一覽。`;
 
 const breadcrumbs = [{ name: 'Sitemap', item: pageUrl }];
 
@@ -81,7 +81,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
           {SITE.name}全站頁面一覽。找特定創作者、作品或舊活動，從這裡逐區展開最快。
         </p>
         <p class="page-meta">
-          {d.creators.length} 位創作者・{d.works.length} 部作品・{d.posts.length} 篇訪談與教學・{d.events.length} 場活動・更新 {fmtDate(d.today)}
+          {d.creators.length} 位創作者・{d.works.length} 部作品・{d.posts.length} 篇專欄與教學・{d.events.length} 場活動・更新 {fmtDate(d.today)}
         </p>
       </header>
 
@@ -172,11 +172,11 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
         )}
       </section>
 
-      <!-- 04 訪談與教學 ───────────────────── -->
+      <!-- 04 專欄與教學 ───────────────────── -->
       <section class="block" aria-labelledby="block-posts">
         <h2 id="block-posts" class="block__title">
           <span class="block__num">04</span>
-          <span class="block__cn">訪談與教學</span>
+          <span class="block__cn">專欄與教學</span>
           <span class="block__en">Read</span>
           <span class="block__count">{d.posts.length} 篇・依日期倒序</span>
         </h2>

@@ -1,12 +1,12 @@
 ---
 /**
- * /posts/ — 訪談與教學列表（type 切換）
+ * /posts/ — 專欄與教學列表（type 切換）
  *
- * - 全部文章一次 SSR，頂部 tab（全部／訪談／教學）與難度 chips 為純前端篩選：
- *   ?type=interview|tutorial、?level=beginner|intermediate|advanced，
+ * - 全部文章一次 SSR，頂部 tab（全部／訪談／教學／專欄）與難度 chips 為純前端篩選：
+ *   ?type=interview|tutorial|column、?level=beginner|intermediate|advanced，
  *   以 history.replaceState 同步網址；無 JS 時全部顯示、tab 仍是可點的真連結。
  * - schema：CollectionPage + ItemList
- * - 麵包屑由 BaseLayout 依路徑自動生成（首頁 › 訪談與教學），與可見 .crumbs 一致
+ * - 麵包屑由 BaseLayout 依路徑自動生成（首頁 › 專欄與教學），與可見 .crumbs 一致
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
@@ -18,16 +18,17 @@ const d = await getSiteData();
 const posts = d.posts;
 const interviews = posts.filter((p) => p.data.type === 'interview');
 const tutorials = posts.filter((p) => p.data.type === 'tutorial');
+const columns = posts.filter((p) => p.data.type === 'column');
 
 const LEVEL_ORDER = ['beginner', 'intermediate', 'advanced'] as const;
 const levelsPresent = LEVEL_ORDER.filter((l) => tutorials.some((t) => t.data.level === l));
 
-const title = '訪談與教學';
-const seoTitle = '訪談與教學：創作者訪談與 AI 影片製作教學';
+const title = '專欄與教學';
+const seoTitle = '專欄與教學：AI 影視專欄、創作者訪談與 AI 影片製作教學';
 const description =
-  `台灣 AI 影視創作者的深度訪談與 AI 影片製作教學，共 ${posts.length} 篇：` +
-  `訪談 ${interviews.length} 篇、教學 ${tutorials.length} 篇。` +
-  '從分鏡、生成、角色一致性到剪接調色，記錄創作者的方法與工作流。';
+  `台灣 AI 影視的編輯部專欄、創作者深度訪談與 AI 影片製作教學，共 ${posts.length} 篇：` +
+  `專欄 ${columns.length} 篇、訪談 ${interviews.length} 篇、教學 ${tutorials.length} 篇。` +
+  '從平台與產業動態，到分鏡、生成、角色一致性與剪接調色，記錄創作者的方法與工作流。';
 
 const tabs = [
   { key: 'all', label: '全部', labelEn: 'ALL', count: posts.length, href: routes.posts() },
@@ -44,6 +45,13 @@ const tabs = [
     labelEn: POST_TYPE_LABEL.tutorial.labelEn,
     count: tutorials.length,
     href: `${routes.posts()}?type=tutorial`,
+  },
+  {
+    key: 'column',
+    label: POST_TYPE_LABEL.column.label,
+    labelEn: POST_TYPE_LABEL.column.labelEn,
+    count: columns.length,
+    href: `${routes.posts()}?type=column`,
   },
 ];
 
@@ -75,18 +83,18 @@ const collectionSchema = {
     <div class="page-inner page-inner--wide" data-post-filter>
       <nav class="crumbs" aria-label="麵包屑">
         <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
-        <span aria-current="page">訪談與教學</span>
+        <span aria-current="page">專欄與教學</span>
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">Read・訪談與教學</p>
+        <p class="page-eyebrow">Read・專欄與教學</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
-          創作者訪談記錄方法與取捨，教學拆解可複製的工作流。兩者都以圖鑑收錄的人與作品為錨，工具只是索引。
+          專欄整理平台與產業動態，訪談記錄創作者的方法與取捨，教學拆解可複製的工作流。三者都以圖鑑收錄的人與作品為錨，工具只是索引。
         </p>
         <p class="page-meta">
-          共 {posts.length} 篇：訪談 {interviews.length} 篇・教學 {tutorials.length} 篇
+          共 {posts.length} 篇：專欄 {columns.length} 篇・訪談 {interviews.length} 篇・教學 {tutorials.length} 篇
         </p>
       </header>
 
@@ -145,7 +153,7 @@ const collectionSchema = {
         <div class="coming">
           <p class="coming__kanji">收錄中</p>
           <p class="coming__lead">
-            訪談與教學整理中。<br />
+            專欄與教學整理中。<br />
             <a href={routes.creators()}>← 回創作者圖鑑</a>
           </p>
         </div>
@@ -267,7 +275,7 @@ const collectionSchema = {
     const empty = root.querySelector<HTMLElement>('[data-empty]');
     const status = root.querySelector<HTMLElement>('[data-status]');
 
-    const TYPES = ['all', 'interview', 'tutorial'];
+    const TYPES = ['all', 'interview', 'tutorial', 'column'];
     const LEVELS = ['all', ...levelBtns.map((b) => b.dataset.level ?? '').filter((l) => l && l !== 'all')];
 
     const readParam = (name: string, allowed: string[]): string => {

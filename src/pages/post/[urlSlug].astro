@@ -1,11 +1,12 @@
 ---
 /**
- * /post/<urlSlug>/ — 訪談／教學單篇
+ * /post/<urlSlug>/ — 訪談／教學／專欄單篇
  *
  * - 訪談 → Article（about 以 @id 綁回 Person entity）
  * - 教學 → 內文有 ≥ 2 個 Step 標題時 HowTo，否則 Article
+ * - 專欄 → Article（mentions 綁回相關創作者）
  * - 兩者都會自動抽取 FAQ 段落成 FAQPage（buildFaqSchema）
- * - 麵包屑：首頁 › 訪談與教學 › 標題（傳給 BaseLayout，與可見 .crumbs 一致）
+ * - 麵包屑：首頁 › 專欄與教學 › 標題（傳給 BaseLayout，與可見 .crumbs 一致）
  * - 內文交給 global 的 .prose，本頁 scoped style 只寫頁首、受訪者列、文末區塊
  */
 import type { InferGetStaticPropsType } from 'astro';
@@ -77,7 +78,7 @@ const sameType = d.posts.filter((p) => p.data.type === type && p.id !== post.id)
 
 /* ── 麵包屑（可見 UI 與 BreadcrumbList JSON-LD 一致） ── */
 const breadcrumbs = [
-  { name: '訪談與教學', item: absRoutes.posts() },
+  { name: '專欄與教學', item: absRoutes.posts() },
   { name: title, item: pageUrl },
 ];
 
@@ -116,7 +117,7 @@ const articleSchema = {
   ...(personRefs.length ? (isInterview ? { about: personRefs } : { mentions: personRefs }) : {}),
 };
 
-const howToSteps = isInterview ? [] : extractHowToSteps(body);
+const howToSteps = type === 'tutorial' ? extractHowToSteps(body) : [];
 const howToSchema =
   howToSteps.length >= 2
     ? {
@@ -162,7 +163,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
       <header class="article__head">
         <nav class="crumbs" aria-label="麵包屑">
           <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
-          <a href={routes.posts()}>訪談與教學</a><span aria-hidden="true">／</span>
+          <a href={routes.posts()}>專欄與教學</a><span aria-hidden="true">／</span>
           <span aria-current="page">{title}</span>
         </nav>
 
@@ -215,7 +216,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
             )}
             {tools.length > 0 && (
               <div class="article__fact">
-                <dt class="article__fact-label">{isInterview ? '提及工具' : '涉及工具'}</dt>
+                <dt class="article__fact-label">{type === 'tutorial' ? '涉及工具' : '提及工具'}</dt>
                 <dd class="article__fact-value">
                   <ul class="chips" role="list">
                     {tools.map((t) =>
@@ -316,7 +317,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
         <ShareLike slug={`post:${urlSlug}`} title={title} url={pageUrl} location="post_footer" />
 
         <p class="back">
-          <a href={routes.posts()} data-ga-cta="back_posts" data-ga-location="post_footer">← 回訪談與教學</a>
+          <a href={routes.posts()} data-ga-cta="back_posts" data-ga-location="post_footer">← 回專欄與教學</a>
         </p>
       </footer>
     </article>

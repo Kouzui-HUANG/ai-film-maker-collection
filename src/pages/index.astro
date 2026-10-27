@@ -5,7 +5,7 @@
  *   HEADLINE・頭版頭條  → d.headline：作品劇照（全彩 16:9）+ 標題 + 摘要 + 共同創作者 + 工具 chips
  *   NEW・最新收錄        → creatorsByListedAt 前 5 位（CreatorCard tile）
  *   WORKS・最新作品      → d.works 前 6 部（WorkCard 3 欄）
- *   READ・訪談與教學     → d.posts 前 5 篇（PostCard row）
+ *   READ・專欄與教學     → d.posts 前 5 篇（PostCard row）
  *   EVENTS・近期活動     → d.upcomingEvents 最多 3 筆（EventCard compact）；為空整區不渲染（過期自動消失）
  *   ABOUT・關於圖鑑      → 兩三句定位 + 收錄準則 / 推薦創作者
  *
@@ -169,11 +169,11 @@ const newListedSchema =
       </section>
     )}
 
-    <!-- ── READ・訪談與教學 ─────────────────────────────── -->
+    <!-- ── READ・專欄與教學 ─────────────────────────────── -->
     {latestPosts.length > 0 && (
       <section class="home-block" aria-labelledby="read-label">
         <header class="section-head">
-          <h2 id="read-label" class="section-eyebrow">Read・訪談與教學</h2>
+          <h2 id="read-label" class="section-eyebrow">Read・專欄與教學</h2>
           <a href={routes.posts()} class="section-all">全部文章 →</a>
         </header>
         <div class="rule-hair"></div>
@@ -366,7 +366,7 @@ const newListedSchema =
     margin-top: 24px;
   }
 
-  /* ── Read・訪談與教學：row 直接堆疊 ──────────────── */
+  /* ── Read・專欄與教學：row 直接堆疊 ──────────────── */
   .read-list {
     display: flex;
     flex-direction: column;

@@ -1,6 +1,6 @@
 ---
 /**
- * PostCard — 訪談／教學卡片（props 契約見 docs/dev/CONTRACT.md §4）
+ * PostCard — 訪談／教學／專欄卡片（props 契約見 docs/dev/CONTRACT.md §4）
  *
  *   <PostCard post={Post} variant="row" | "stacked" />
  *     row     ：桌機縮圖左 220px、內容右；≤640px 自動改為圖上字下。
@@ -9,7 +9,7 @@
  *
  * - 整張卡是一個 <a>（連到 /post/<urlSlug>/）
  * - 封面用 global 的 .frame--post：grayscale(0.5)，hover 回全彩
- * - 縮圖左上 .badge 標「訪談／教學」；教學另加難度小章
+ * - 縮圖左上 .badge 標「訪談／教學／專欄」；教學另加難度小章
  * - 根元素帶 data-type / data-level，供列表頁純前端篩選
  */
 import { Image } from 'astro:assets';

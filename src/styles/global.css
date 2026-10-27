@@ -57,7 +57,7 @@
   /* 圖像濾鏡分區（§5-2）：只在這裡定義，各元件引用 token */
   --filter-portrait: grayscale(0.35);          /* 創作者肖像：輕度 */
   --filter-work: none;                          /* 作品縮圖／劇照：一律全彩 */
-  --filter-post: grayscale(0.5);                /* 訪談／教學封面，hover 回 0 */
+  --filter-post: grayscale(0.5);                /* 訪談／教學／專欄封面，hover 回 0 */
   --filter-event: none;                         /* 活動封面：無濾鏡 */
 
   /* Motion */
