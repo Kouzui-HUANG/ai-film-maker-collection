@@ -77,6 +77,7 @@ export const TOOLS: ToolDef[] = [
   { slug: '3d-rendering', label: '3D 建模・渲染', category: 'other', note: '以三維模型鎖定建築、產品與攝影機位置，再把可控的結構和運鏡交給 AI 延伸人物、氣氛與特效。' },
   { slug: 'motion-capture', label: '動態捕捉', category: 'other', note: '把真人表演轉成虛擬角色的姿態與動作，常見於虛擬代言人、即時互動與數位主持系統。' },
   { slug: 'gaussian-splatting', label: 'Gaussian Splatting', category: 'other', note: '由實拍影像重建可自由取景的三維場景，能作為 AI 角色合成與虛擬製作的空間底稿。' },
+  { slug: 'codex', label: 'Codex', category: 'other', vendor: 'OpenAI', note: 'OpenAI 的 AI 代理工具，本業是寫程式；也有創作者拿它起草劇本、整理人物與場景設定，當成前期企劃的協作者。' },
 ];
 
 export const TOOL_BY_SLUG: Record<string, ToolDef> = Object.fromEntries(TOOLS.map((t) => [t.slug, t]));
