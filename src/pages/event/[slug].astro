@@ -72,7 +72,8 @@ const deadlineNote = !deadline
 const otherUpcoming = d.upcomingEvents.filter((e) => e.id !== event.id).slice(0, 3);
 
 /* ── Event schema（CONTRACT §6） ──────────────────────────── */
-/* fee → price：免費 → '0'；抓得到數字 → 數字字串（去千分位）；其餘不填 price。幣別取 currency（預設 TWD） */
+/* fee → price：免費 → '0'；抓得到數字 → 數字字串（去千分位）；其餘整個不輸出 offers
+ * （Google 要求 Offer 帶 price＋priceCurrency，缺價的 Offer 會被 Search Console 標警告）。幣別取 currency（預設 TWD） */
 const priceOf = (f?: string): string | null => {
   if (!f) return null;
   if (/免費|free/i.test(f)) return '0';
@@ -110,13 +111,18 @@ const eventSchema = {
         },
       },
   organizer: { '@type': 'Organization', name: organizer },
-  offers: {
-    '@type': 'Offer',
-    url: officialUrl,
-    ...(price !== null ? { price, priceCurrency: currency } : {}),
-    availability: t.status === 'past' || t.deadlinePassed ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-    ...(deadline ? { validThrough: deadline } : {}),
-  },
+  ...(price !== null
+    ? {
+        offers: {
+          '@type': 'Offer',
+          url: officialUrl,
+          price,
+          priceCurrency: currency,
+          availability: t.status === 'past' || t.deadlinePassed ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+          ...(deadline ? { validThrough: deadline } : {}),
+        },
+      }
+    : {}),
   inLanguage: 'zh-Hant-TW',
 };
 

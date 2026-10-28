@@ -142,7 +142,7 @@ d.creatorById / d.workById / d.postByUrlSlug / d.eventById
 | `/works/` `/tool/` `/genre/` | `CollectionPage` + `ItemList`（url + name） |
 | 訪談 | `Article`（headline / description / author(Person or Organization) / datePublished / dateModified / image / publisher / `about: [{ '@id': creatorId }]` / inLanguage zh-Hant-TW / wordCount / timeRequired）＋ FAQPage（`buildFaqSchema`）；`ogType="article"` |
 | 教學 | `extractHowToSteps(body).length >= 2` → `HowTo`（name / description / step[] HowToStep{name,text} / tool[] HowToTool{name}）否則 `Article`；FAQPage 照抽 |
-| `/event/<slug>/` | `Event`（name / description / startDate / endDate / `eventAttendanceMode`(isOnline ? Online : Offline) / `eventStatus: EventScheduled` / `location`(isOnline ? VirtualLocation{url} : Place{name, address.addressCountry = `country` ?? TW}) / `organizer`(Organization{name}) / `offers`(fee: 免費→price 0；有數字→price+priceCurrency = `currency` ?? TWD；`url: officialUrl`，`availability`) / `image`） |
+| `/event/<slug>/` | `Event`（name / description / startDate / endDate / `eventAttendanceMode`(isOnline ? Online : Offline) / `eventStatus: EventScheduled` / `location`(isOnline ? VirtualLocation{url} : Place{name, address.addressCountry = `country` ?? TW}) / `organizer`(Organization{name}) / `offers`(fee: 免費→price 0；有數字→price+priceCurrency = `currency` ?? TWD；`url: officialUrl`，`availability`；fee 缺或抓不到數字→整個不輸出 offers，避免缺價 Offer 被 Search Console 警告) / `image`） |
 
 ## 7. noindex 清單
 
