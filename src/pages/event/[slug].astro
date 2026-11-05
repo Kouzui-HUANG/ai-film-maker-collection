@@ -81,6 +81,8 @@ const priceOf = (f?: string): string | null => {
   return m ? m[0] : null;
 };
 const price = priceOf(fee);
+/* fee 註明額滿（如「免費（名額已領完）」）時，Offer 標成 SoldOut */
+const soldOut = /額滿|已領完|售完|完售|sold out/i.test(fee ?? '');
 
 /* 「城市・場地」→ addressLocality 取城市；純場地名則只填國別（country，預設 TW） */
 const cityPart = location.includes('・') ? location.split('・', 1)[0] : null;
@@ -118,7 +120,7 @@ const eventSchema = {
           url: officialUrl,
           price,
           priceCurrency: currency,
-          availability: t.status === 'past' || t.deadlinePassed ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+          availability: t.status === 'past' || t.deadlinePassed || soldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
           ...(deadline ? { validThrough: deadline } : {}),
         },
       }
