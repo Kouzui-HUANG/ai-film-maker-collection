@@ -18,6 +18,7 @@ sameAs:
   instagram: "https://www.instagram.com/atorias_ai/"
   threads: "https://www.threads.com/@atorias_ai"
   website: "https://portaly.cc/fantasyyen55"
+email: "fantasyyen55@gmail.com"
 awards:
   - year: 2026
     title: "GMI Cloud × Wan × DV ASIA・AI 影視職人創作大賽"
