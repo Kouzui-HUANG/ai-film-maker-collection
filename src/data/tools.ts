@@ -48,6 +48,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'jimeng', label: 'Jimeng（即夢 AI）', category: 'video', vendor: '字節跳動', note: '整合圖像、影片與音樂生成的創作平台；台灣創作者常以它補足多模型工作流中的動態、配樂與快速視覺迭代。' },
   { slug: 'ltx-studio', label: 'LTX Studio', category: 'video', vendor: 'Lightricks', note: '面向敘事影像的 AI 製作平台，涵蓋分鏡、鏡頭生成與首尾幀控制，適合以一致構圖串接長時間跨度的短片。' },
   { slug: 'higgsfield', label: 'Higgsfield', category: 'video', vendor: 'Higgsfield AI', note: '整合多家圖像與影片模型的生成平台，以電影運鏡預設與 Cinema Studio 的機身、鏡頭選項見長，適合把攝影語言直接帶進生成流程。' },
+  { slug: 'oiioii', label: 'OiiOii', category: 'video', vendor: 'OiiOii', note: 'AI 動畫代理（agent）平台，由多個分工的代理協作完成劇本、角色、場景、動畫到音效；也能把一首歌直接做成 MV，AI 音樂頻道常拿它產劇情短片與音樂錄影帶。' },
 
   /* ── 圖像生成 ─────────────────────────────────────────── */
   { slug: 'midjourney', label: 'Midjourney', category: 'image', vendor: 'Midjourney', note: '概念圖、角色設定與劇照級關鍵影格的主力工具，多數作品的視覺起點。' },
@@ -80,6 +81,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'motion-capture', label: '動態捕捉', category: 'other', note: '把真人表演轉成虛擬角色的姿態與動作，常見於虛擬代言人、即時互動與數位主持系統。' },
   { slug: 'gaussian-splatting', label: 'Gaussian Splatting', category: 'other', note: '由實拍影像重建可自由取景的三維場景，能作為 AI 角色合成與虛擬製作的空間底稿。' },
   { slug: 'codex', label: 'Codex', category: 'other', vendor: 'OpenAI', note: 'OpenAI 的 AI 代理工具，本業是寫程式；也有創作者拿它起草劇本、整理人物與場景設定，當成前期企劃的協作者。' },
+  { slug: 'claude', label: 'Claude', category: 'other', vendor: 'Anthropic', note: 'Anthropic 的對話式 AI 助理；在影像工作流裡多半不直接產生畫面，而是協助發想故事、整理分鏡與撰寫生成提示詞。' },
 ];
 
 export const TOOL_BY_SLUG: Record<string, ToolDef> = Object.fromEntries(TOOLS.map((t) => [t.slug, t]));
