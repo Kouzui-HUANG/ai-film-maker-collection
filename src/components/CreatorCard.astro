@@ -133,13 +133,14 @@ const url = routes.creator(creator.slug);
     color: var(--accent);
   }
 
+  /* 英文名一律另起一行、小一級（不和中文名擠在同一行用顏色區分） */
   .ccard__name-en {
-    margin-left: 8px;
+    display: block;
+    margin: 4px 0 0;
     font-family: var(--font-caps);
     font-weight: 500;
     font-size: var(--fs-xs);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
     white-space: nowrap;
   }
@@ -192,7 +193,7 @@ const url = routes.creator(creator.slug);
   .ccard__count-unit {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
 

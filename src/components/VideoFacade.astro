@@ -140,11 +140,6 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     height: 100%;
     object-fit: cover;
     filter: var(--filter-work);
-    transition: transform 600ms var(--ease-out);
-  }
-
-  .facade:hover img {
-    transform: scale(1.01);
   }
 
   /* 播放鈕：方形底、硬陰影，置中 */
@@ -168,8 +163,7 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
       background 140ms var(--ease-out), color 140ms var(--ease-out);
   }
 
-  .facade__play:hover,
-  .facade__play:focus-visible {
+  .facade__play:hover {
     color: var(--paper-raised);
     background: var(--accent);
     transform: translate(-1px, -1px);

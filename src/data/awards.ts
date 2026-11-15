@@ -9,15 +9,15 @@ export type WorkAward = {
 };
 
 const STATUS_META: Record<WorkAwardStatus, { label: string; ariaLabel: string }> = {
-  winner: { label: 'WINNER', ariaLabel: '得獎作品' },
-  finalist: { label: 'FINALIST', ariaLabel: '入圍或短名單作品' },
-  selection: { label: 'SELECTED', ariaLabel: '官方入選作品' },
+  winner: { label: '得獎', ariaLabel: '得獎作品' },
+  finalist: { label: '入圍', ariaLabel: '入圍或短名單作品' },
+  selection: { label: '入選', ariaLabel: '官方入選作品' },
 };
 
 const STATUS_PRIORITY: WorkAwardStatus[] = ['winner', 'finalist', 'selection'];
 
 export function formatWorkAward(award: WorkAward): string {
-  return `${award.year} ${award.title}・${award.result}`;
+  return `${award.year} ${award.title}　${award.result}`;
 }
 
 /** 多筆紀錄時，以得獎 > 入圍 > 官方入選決定列表卡片角標。 */

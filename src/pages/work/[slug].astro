@@ -135,7 +135,7 @@ const videoSchema = {
 
       <header class="work__head">
         <p class="work__kicker">
-          <span class="tag">{gDef ? `${gDef.labelEn}・${gDef.label}` : gLabel}</span>
+          <span class="tag">{gDef ? gDef.label : gLabel}</span>
           <span class="listed-chip">{year}</span>
           {duration && <span class="listed-chip">{duration}</span>}
         </p>
@@ -279,11 +279,11 @@ const videoSchema = {
       {siblings.length > 0 && (
         <section class="work__related" aria-labelledby="work-siblings">
           <div class="section-head">
-            <h2 id="work-siblings" class="section-eyebrow">More・同創作者其他作品</h2>
+            <h2 id="work-siblings" class="section-eyebrow">同創作者其他作品</h2>
             {creators.length === 1 ? (
-              <a class="section-all" href={routes.creator(primary.slug)}>{primary.name}的全部作品 →</a>
+              <a class="section-all" href={routes.creator(primary.slug)}>看{primary.name}的全部作品</a>
             ) : (
-              <a class="section-all" href={routes.works()}>全部作品 →</a>
+              <a class="section-all" href={routes.works()}>看全部作品</a>
             )}
           </div>
           <div class="work__cards">
@@ -296,8 +296,8 @@ const videoSchema = {
       {related.length > 0 && (
         <section class="work__related" aria-labelledby="work-related">
           <div class="section-head">
-            <h2 id="work-related" class="section-eyebrow">Tools・同工具其他作品</h2>
-            <a class="section-all" href={routes.works()}>全部作品 →</a>
+            <h2 id="work-related" class="section-eyebrow">同工具其他作品</h2>
+            <a class="section-all" href={routes.works()}>看全部作品</a>
           </div>
           <div class="work__cards">
             {related.map((w) => <WorkCard work={w} />)}
@@ -309,7 +309,7 @@ const videoSchema = {
         <div class="rule-hair"></div>
         <ShareLike slug={`work:${slug}`} title={title} url={pageUrl} location="work_footer" />
         <p class="back">
-          <a href={routes.works()} data-ga-cta="back_works" data-ga-location="work_footer">← 回全部作品</a>
+          <a href={routes.works()} data-ga-cta="back_works" data-ga-location="work_footer">回全部作品</a>
         </p>
       </footer>
     </div>
@@ -374,7 +374,7 @@ const videoSchema = {
   .work__creator-role {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.16em;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
 
@@ -418,7 +418,7 @@ const videoSchema = {
     font-family: var(--font-serif);
     font-weight: 700;
     font-size: var(--fs-lg);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
     margin: 0 0 14px;
     padding-bottom: 8px;
     border-bottom: 2px solid var(--ink);
@@ -474,7 +474,7 @@ const videoSchema = {
     display: block;
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.16em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     margin-bottom: 4px;
   }

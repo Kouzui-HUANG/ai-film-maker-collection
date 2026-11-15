@@ -60,7 +60,6 @@ const mailto = `mailto:${SITE.email}`;
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">About・關於圖鑑</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
@@ -89,7 +88,7 @@ const mailto = `mailto:${SITE.email}`;
         </div>
         <div class="data-grid__cell">
           <dt class="data-grid__label">受控詞彙</dt>
-          <dd class="data-grid__value data-grid__value--num">{TOOLS.length} 工具・{GENRES.length} 類型</dd>
+          <dd class="data-grid__value data-grid__value--num">{TOOLS.length} 工具、{GENRES.length} 類型</dd>
         </div>
         <div class="data-grid__cell">
           <dt class="data-grid__label">本期更新</dt>
@@ -267,7 +266,7 @@ const mailto = `mailto:${SITE.email}`;
 
       <div class="rule-double bottom-rule"></div>
       <p class="back">
-        <a href={routes.home()}>← 返回首頁</a>
+        <a href={routes.home()}>返回首頁</a>
       </p>
     </div>
   </div>
@@ -310,13 +309,14 @@ const mailto = `mailto:${SITE.email}`;
   .toc__num {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
 
   /* 錨點定位時留一點呼吸空間 */
   .about-body h2 {
     scroll-margin-top: 24px;
+    text-wrap: balance;
   }
 
   /* 收錄準則：以 01–05 編號的細線清單（取代 prose 的 decimal） */
@@ -346,7 +346,7 @@ const mailto = `mailto:${SITE.email}`;
     grid-row: 1 / span 2;
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     padding-top: 0.2em;
   }

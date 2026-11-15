@@ -73,7 +73,6 @@ const collectionSchema = {
         <span aria-current="page">創作者</span>
       </nav>
       <header class="page-head">
-        <p class="page-eyebrow">Creators・圖鑑總表</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
@@ -81,7 +80,7 @@ const collectionSchema = {
           類型分類由編輯部人工標註，可用下方選單搭配地區交叉篩選、切換排序。
         </p>
         <p class="page-meta">
-          共 {creatorCount} 位創作者・{workCount} 部作品・最後收錄 {fmtDate(lastListed)}
+          共 {creatorCount} 位創作者、{workCount} 部作品，最後收錄於 {fmtDate(lastListed)}
         </p>
       </header>
 
@@ -194,13 +193,13 @@ const collectionSchema = {
           <p class="coming__kanji">收錄中</p>
           <p class="coming__lead">
             圖鑑尚未收錄任何創作者。<br />
-            <a href={routes.contact()}>推薦收錄 →</a>
+            <a href={routes.contact()}>推薦收錄</a>
           </p>
         </div>
       )}
 
       <div class="rule-double dir__bottom-rule"></div>
-      <p class="back"><a href={routes.home()}>← 返回首頁</a></p>
+      <p class="back"><a href={routes.home()}>返回首頁</a></p>
     </div>
   </div>
 </BaseLayout>
@@ -337,8 +336,7 @@ const collectionSchema = {
   .dir-toolbar__label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
   .dir-toolbar .select {
@@ -348,12 +346,18 @@ const collectionSchema = {
     padding: 8px 14px;
   }
   .dir-toolbar__clear[disabled] {
-    opacity: 0.45;
-    cursor: default;
+    opacity: 0.55;
+    color: var(--muted);
+    border-color: var(--rule-soft);
+    box-shadow: none;
+    cursor: not-allowed;
   }
   .dir-toolbar__clear[disabled]:hover {
-    color: var(--ink);
-    border-color: var(--ink);
+    color: var(--muted);
+    border-color: var(--rule-soft);
+    background: var(--paper-raised);
+    transform: none;
+    box-shadow: none;
   }
   .dir-toolbar__count {
     margin: 0 0 8px auto;
@@ -411,8 +415,7 @@ const collectionSchema = {
     font-family: var(--font-caps);
     font-weight: 500;
     font-size: var(--fs-xs);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
     white-space: nowrap;
   }

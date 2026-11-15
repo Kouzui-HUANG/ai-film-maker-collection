@@ -87,14 +87,13 @@ const collectionSchema = {
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">Read・專欄與教學</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
           專欄整理平台與產業動態，訪談記錄創作者的方法與取捨，教學拆解可複製的工作流。三者都以圖鑑收錄的人與作品為錨，工具只是索引。
         </p>
         <p class="page-meta">
-          共 {posts.length} 篇：專欄 {columns.length} 篇・訪談 {interviews.length} 篇・教學 {tutorials.length} 篇
+          共 {posts.length} 篇：{[{ l: '專欄', n: columns.length }, { l: '訪談', n: interviews.length }, { l: '教學', n: tutorials.length }].filter((x) => x.n > 0).map((x) => `${x.l} ${x.n} 篇`).join('、')}
         </p>
       </header>
 
@@ -107,9 +106,9 @@ const collectionSchema = {
                 class="type-tabs__link"
                 data-tab={t.key}
                 aria-current={t.key === 'all' ? 'page' : undefined}
+                hidden={t.key !== 'all' && t.count === 0}
               >
                 <span class="type-tabs__label">{t.label}</span>
-                <span class="type-tabs__en" aria-hidden="true">{t.labelEn}</span>
                 <span class="type-tabs__n">{t.count}</span>
               </a>
             ))}
@@ -145,7 +144,7 @@ const collectionSchema = {
           </ul>
 
           <p class="post-list__empty" data-empty hidden>
-            此分類尚無文章。<a href={routes.posts()} data-tab="all">看全部文章 →</a>
+            此分類尚無文章。<a href={routes.posts()} data-tab="all">看全部文章</a>
           </p>
           <p class="visually-hidden" data-status aria-live="polite"></p>
         </>
@@ -154,7 +153,7 @@ const collectionSchema = {
           <p class="coming__kanji">收錄中</p>
           <p class="coming__lead">
             專欄與教學整理中。<br />
-            <a href={routes.creators()}>← 回創作者圖鑑</a>
+            <a href={routes.creators()}>回創作者圖鑑</a>
           </p>
         </div>
       )}
@@ -193,17 +192,10 @@ const collectionSchema = {
     border-bottom-color: var(--accent);
   }
 
-  .type-tabs__en {
-    font-family: var(--font-caps);
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-    color: var(--muted);
-  }
-
   .type-tabs__n {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
@@ -220,8 +212,7 @@ const collectionSchema = {
   .level-filter__label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
 
@@ -242,7 +233,7 @@ const collectionSchema = {
     margin-left: 8px;
     font-family: var(--font-caps);
     font-size: var(--fs-sm);
-    letter-spacing: 0.16em;
+    letter-spacing: 0.02em;
     color: var(--ink);
   }
   .post-list__empty a:hover {
@@ -256,9 +247,6 @@ const collectionSchema = {
     .type-tabs__link {
       font-size: var(--fs-base);
       padding: 10px 0 8px;
-    }
-    .type-tabs__en {
-      display: none;
     }
   }
 </style>

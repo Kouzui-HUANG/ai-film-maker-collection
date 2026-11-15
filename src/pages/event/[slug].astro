@@ -153,11 +153,11 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
       </nav>
 
       <header class="page-head event__head">
+        <h1 class="page-title">{title}</h1>
         <p class="event__kicker">
           <span class="badge">{kindLabel}</span>
           <span class:list={['event__status', `event__status--${t.status}`]}>{statusText}</span>
         </p>
-        <h1 class="page-title">{title}</h1>
         <div class="rule-double"></div>
 
         <dl class="data-grid event__grid">
@@ -254,8 +254,8 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
         {otherUpcoming.length > 0 && (
           <section class="event__more" aria-labelledby="more-events-heading">
             <div class="section-head">
-              <h2 class="section-eyebrow" id="more-events-heading">Upcoming・其他即將舉行</h2>
-              <a class="section-all" href={routes.events()}>全部活動 →</a>
+              <h2 class="section-eyebrow" id="more-events-heading">其他即將舉行</h2>
+              <a class="section-all" href={routes.events()}>看全部活動</a>
             </div>
             <div class="event__more-list">
               {otherUpcoming.map((e) => (
@@ -268,7 +268,7 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
         <ShareLike slug={`event:${slug}`} title={title} url={pageUrl} location="event_footer" />
 
         <p class="back">
-          <a href={routes.events()} data-ga-cta="back_events" data-ga-location="event_footer">← 回活動與比賽</a>
+          <a href={routes.events()} data-ga-cta="back_events" data-ga-location="event_footer">回活動與比賽</a>
         </p>
       </footer>
     </div>
@@ -281,12 +281,12 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 16px;
+    margin: -4px 0 20px;
   }
   .event__status {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.16em;
+    letter-spacing: 0.02em;
     color: var(--ink-soft);
     font-variant-numeric: tabular-nums;
   }
@@ -311,7 +311,7 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
   .event__note {
     font-family: var(--font-sans);
     font-size: var(--fs-xs);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     color: var(--ink-soft);
   }
   .event__note--passed {

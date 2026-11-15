@@ -21,7 +21,7 @@ import EventCard from '../components/EventCard.astro';
 import { getSiteData, creatorsByListedAt, fmtDuration } from '../data/queries';
 import { SITE, routes, absRoutes } from '../data/site';
 import { toolLabel } from '../data/tools';
-import { GENRE_BY_SLUG, genreLabel } from '../data/genres';
+import { genreLabel } from '../data/genres';
 import { getWinningAward } from '../data/awards';
 import { fmtDate } from '../data/events';
 
@@ -34,9 +34,8 @@ const latestPosts = d.posts.slice(0, 5);
 const upcoming = d.upcomingEvents.slice(0, 3);
 
 const headlineTools = headline ? headline.data.tools.slice(0, 5) : [];
-const headlineGenre = headline ? GENRE_BY_SLUG[headline.data.genre] : null;
 const headlineMeta = headline
-  ? [String(headline.data.year), genreLabel(headline.data.genre), fmtDuration(headline.data.durationSec)].filter(Boolean).join('・')
+  ? [String(headline.data.year), genreLabel(headline.data.genre), fmtDuration(headline.data.durationSec)].filter(Boolean).join('　')
   : '';
 const headlineCredits = headline?.creators.map((creator) => creator.name).join('、') ?? '';
 const headlineCreditLabel = headline
@@ -74,15 +73,7 @@ const newListedSchema =
 <BaseLayout description={SITE.description} schemas={newListedSchema ? [newListedSchema] : []}>
   <div class="home container">
     <!-- ── HEADLINE・頭版頭條 ────────────────────────────── -->
-    <section class="spot" aria-labelledby="headline-label">
-      <header class="section-head">
-        <p id="headline-label" class="section-eyebrow">Headline・頭版頭條</p>
-        {headline && (
-          <span class="listed-chip">{headline.data.releasedAt ? `發表 ${fmtDate(headline.data.releasedAt)}` : headline.data.year}</span>
-        )}
-      </header>
-      <div class="rule-hair"></div>
-
+    <section class="spot" aria-label="頭版頭條">
       {headline ? (
         <a class="spot__link" href={routes.work(headline.data.slug)}>
           <figure class="frame frame--work spot__figure">
@@ -97,19 +88,15 @@ const newListedSchema =
               fetchpriority="high"
               decoding="async"
             />
-            <span class="spot__badge">
-              <span class="spot__badge-label">HEADLINE・頭版頭條</span>
-              <span class="spot__badge-sub">
-                {headlineAward ? `${headlineAward.result}・${headlineAward.title}` : headlineMeta}
+            {headlineAward && (
+              <span class="spot__badge">
+                <span class="spot__badge-sub">{headlineAward.result}　{headlineAward.title}</span>
               </span>
-            </span>
+            )}
           </figure>
 
           <div class="spot__body">
             <div class="spot__text">
-              <span class="spot__kicker">
-                {headlineGenre ? `${headlineGenre.labelEn}・${headlineGenre.label}` : genreLabel(headline.data.genre)}
-              </span>
               <h1 class="spot__name">{headline.data.title}</h1>
               <p class="spot__tagline">{headline.data.synopsis}</p>
               {headlineTools.length > 0 && (
@@ -126,8 +113,11 @@ const newListedSchema =
           </div>
 
           <div class="spot__foot">
-            <span class="byline">{headlineCreditLabel}・{headlineCredits}{headlineMeta ? `　${headlineMeta}` : ''}</span>
-            <span class="spot__more">觀看作品 →</span>
+            <span class="byline">
+              {headlineCreditLabel}・{headlineCredits}{headlineMeta ? `　${headlineMeta}` : ''}
+              {headline.data.releasedAt && <>　<time datetime={headline.data.releasedAt}>發表 {fmtDate(headline.data.releasedAt)}</time></>}
+            </span>
+            <span class="spot__more">觀看作品</span>
           </div>
         </a>
       ) : (
@@ -145,8 +135,8 @@ const newListedSchema =
     {newest.length > 0 && (
       <section class="home-block" aria-labelledby="new-label">
         <header class="section-head">
-          <h2 id="new-label" class="section-eyebrow">New・最新收錄</h2>
-          <a href={routes.creators()} class="section-all">圖鑑總表 →</a>
+          <h2 id="new-label" class="section-eyebrow">最新收錄</h2>
+          <a href={routes.creators()} class="section-all">看圖鑑總表</a>
         </header>
         <div class="rule-hair"></div>
         <div class="new-grid">
@@ -159,8 +149,8 @@ const newListedSchema =
     {latestWorks.length > 0 && (
       <section class="home-block" aria-labelledby="works-label">
         <header class="section-head">
-          <h2 id="works-label" class="section-eyebrow">Works・最新作品</h2>
-          <a href={routes.works()} class="section-all">全部作品 →</a>
+          <h2 id="works-label" class="section-eyebrow">最新作品</h2>
+          <a href={routes.works()} class="section-all">看全部作品</a>
         </header>
         <div class="rule-hair"></div>
         <div class="works-grid">
@@ -173,8 +163,8 @@ const newListedSchema =
     {latestPosts.length > 0 && (
       <section class="home-block" aria-labelledby="read-label">
         <header class="section-head">
-          <h2 id="read-label" class="section-eyebrow">Read・專欄與教學</h2>
-          <a href={routes.posts()} class="section-all">全部文章 →</a>
+          <h2 id="read-label" class="section-eyebrow">專欄與教學</h2>
+          <a href={routes.posts()} class="section-all">看全部文章</a>
         </header>
         <div class="rule-hair"></div>
         <div class="read-list">
@@ -187,8 +177,8 @@ const newListedSchema =
     {upcoming.length > 0 && (
       <section class="home-block" aria-labelledby="events-label">
         <header class="section-head">
-          <h2 id="events-label" class="section-eyebrow">Events・近期活動</h2>
-          <a href={routes.events()} class="section-all">全部活動 →</a>
+          <h2 id="events-label" class="section-eyebrow">近期活動</h2>
+          <a href={routes.events()} class="section-all">看全部活動</a>
         </header>
         <div class="rule-hair"></div>
         <div class="events-list">
@@ -200,7 +190,7 @@ const newListedSchema =
     <!-- ── ABOUT・關於圖鑑 ──────────────────────────────── -->
     <section class="home-block about-blk" aria-labelledby="about-label">
       <header class="section-head">
-        <h2 id="about-label" class="section-eyebrow">About・關於圖鑑</h2>
+        <h2 id="about-label" class="section-eyebrow">關於圖鑑</h2>
       </header>
       <div class="rule-hair"></div>
       <div class="about-blk__grid">
@@ -210,12 +200,12 @@ const newListedSchema =
             收錄名單由編輯部依公開準則審定；工具與類型皆為人工標註的受控詞彙，影片一律外連原始平台。
           </p>
           <p class="page-meta">
-            目前收錄 {d.creators.length} 位創作者・{d.works.length} 部作品・{d.posts.length} 篇文章
+            目前收錄 {d.creators.length} 位創作者、{d.works.length} 部作品、{d.posts.length} 篇文章
           </p>
         </div>
         <div class="about-blk__actions">
-          <a class="btn" href={routes.about()}>收錄準則 →</a>
-          <a class="btn btn--ghost" href={routes.contact()}>推薦創作者 →</a>
+          <a class="btn" href={routes.about()}>看收錄準則</a>
+          <a class="btn btn--ghost" href={routes.contact()}>推薦創作者</a>
         </div>
       </div>
     </section>
@@ -244,17 +234,11 @@ const newListedSchema =
   .spot__figure {
     margin: 0 0 24px;
   }
-  .spot__figure :global(img) {
-    transition: transform 600ms var(--ease-out);
-  }
-  .spot__link:hover .spot__figure :global(img) {
-    transform: scale(1.02);
-  }
-  /* 圖左下角的頭條章：墨底 + accent 標籤段 + 得獎／作品資訊段 */
+  /* 圖左上角的得獎章（只在有得獎紀錄時出現）；放上緣，不蓋到劇照下方的字幕 */
   .spot__badge {
     position: absolute;
     left: 0;
-    bottom: 0;
+    top: 0;
     z-index: 1;
     display: flex;
     align-items: stretch;
@@ -262,15 +246,8 @@ const newListedSchema =
     background: var(--ink);
     color: var(--paper);
     font-family: var(--font-caps);
-    letter-spacing: 0.2em;
+    letter-spacing: 0.02em;
     pointer-events: none;
-  }
-  .spot__badge-label {
-    padding: 10px 14px;
-    background: var(--accent);
-    font-weight: 700;
-    font-size: var(--fs-xs);
-    white-space: nowrap;
   }
   .spot__badge-sub {
     display: inline-flex;
@@ -278,7 +255,7 @@ const newListedSchema =
     padding: 10px 14px;
     font-family: var(--font-serif);
     font-size: var(--fs-xs);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.02em;
     color: var(--paper);
     min-width: 0;
     overflow: hidden;
@@ -298,20 +275,14 @@ const newListedSchema =
     min-width: 0;
     max-width: 58rem;
   }
-  .spot__kicker {
-    font-family: var(--font-caps);
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--accent);
-  }
-
   .spot__name {
     font-family: var(--font-serif);
     font-weight: 900;
     font-size: clamp(1.9rem, 3.8vw, var(--fs-hero));
     line-height: 1.2;
     letter-spacing: 0.02em;
+    overflow-wrap: break-word;
+    min-width: 0;
     transition: color 160ms var(--ease-out);
   }
   .spot__link:hover .spot__name {
@@ -341,7 +312,7 @@ const newListedSchema =
   .spot__more {
     font-family: var(--font-caps);
     font-size: var(--fs-sm);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.02em;
     color: var(--ink-soft);
     white-space: nowrap;
     transition: color 160ms var(--ease-out);
@@ -425,11 +396,7 @@ const newListedSchema =
     .spot__figure {
       margin-bottom: 18px;
     }
-    .spot__badge-label {
-      padding: 8px 10px;
-      letter-spacing: 0.14em;
-    }
-    .spot__badge-sub {
+    .spot__badge {
       display: none;
     }
     .spot__tagline {

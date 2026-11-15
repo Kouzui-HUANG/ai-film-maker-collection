@@ -26,7 +26,7 @@ const { work, showCreators = true, loading = 'lazy' } = Astro.props;
 const { title, slug, year, genre, durationSec, thumb, thumbAlt, awards } = work.data;
 
 const duration = fmtDuration(durationSec);
-const meta = [String(year), genreLabel(genre), duration].filter(Boolean).join('・');
+const meta = [String(year), genreLabel(genre), duration].filter(Boolean).join('　');
 const awardBadge = getWorkAwardBadge(awards);
 ---
 
@@ -81,12 +81,13 @@ const awardBadge = getWorkAwardBadge(awards);
     margin: 0 0 12px;
   }
 
-  .card__figure img {
-    transition: transform 500ms var(--ease-out);
+  /* hover 回饋放在圖框上（框線轉 accent），圖片本身不動 */
+  .card__figure {
+    transition: border-color 160ms var(--ease-out);
   }
 
-  .card__link:hover .card__figure img {
-    transform: scale(1.02);
+  .card__link:hover .card__figure {
+    border-color: var(--accent);
   }
 
   .card__badge {
@@ -142,7 +143,7 @@ const awardBadge = getWorkAwardBadge(awards);
   .card__meta {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }

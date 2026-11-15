@@ -160,10 +160,6 @@ const breadcrumbs = [
         </div>
 
         <div class="profile__body">
-          <p class="profile__kicker">
-            <span class="tag">Creator・創作者</span>
-            <span class="no">{noLabel}</span>
-          </p>
           <h1 class="profile__name" itemprop="name">
             {name}
             {nameEn && <span class="profile__name-en" itemprop="alternateName">{nameEn}</span>}
@@ -182,7 +178,7 @@ const breadcrumbs = [
             </div>
             <div class="data-grid__cell">
               <dt class="data-grid__label">角色</dt>
-              <dd class="data-grid__value">{role?.length ? role.join('・') : '—'}</dd>
+              <dd class="data-grid__value">{role?.length ? role.join('、') : '—'}</dd>
             </div>
             <div class="data-grid__cell data-grid__cell--wide">
               <dt class="data-grid__label">主力工具</dt>
@@ -281,7 +277,7 @@ const breadcrumbs = [
       <!-- ── 簡介 ─────────────────────────────────────────────── -->
       <section class="sec sec--bio" aria-labelledby="bio-head">
         <div class="section-head">
-          <h2 class="section-eyebrow" id="bio-head">Profile・簡介</h2>
+          <h2 class="section-eyebrow" id="bio-head">簡介</h2>
           {updatedAt && <span class="listed-chip">更新 {fmtDate(updatedAt)}</span>}
         </div>
         <p class="page-lead profile__bio">{bio}</p>
@@ -295,8 +291,8 @@ const breadcrumbs = [
       <!-- ── WORKS・作品 ────────────────────────────────────────── -->
       <section class="sec" aria-labelledby="works-head" id="works">
         <div class="section-head">
-          <h2 class="section-eyebrow" id="works-head">Works・收錄作品</h2>
-          <a class="section-all" href={routes.works()}>全部作品 →</a>
+          <h2 class="section-eyebrow" id="works-head">收錄作品</h2>
+          <a class="section-all" href={routes.works()}>看全部作品</a>
         </div>
         <div class="rule-hair"></div>
 
@@ -322,7 +318,7 @@ const breadcrumbs = [
                     </figure>
                     <div class="wk__body">
                       <h3 class="wk__title">{w.data.title}</h3>
-                      <p class="wk__meta">{metaParts.join('・')}</p>
+                      <p class="wk__meta">{metaParts.join('　')}</p>
                       {collaborators.length > 0 && (
                         <p class="wk__collab">
                           <span class="badge badge--outline">合作</span>
@@ -344,7 +340,7 @@ const breadcrumbs = [
       {awardRows.length > 0 && (
         <section class="sec" aria-labelledby="awards-head" id="awards">
           <div class="section-head">
-            <h2 class="section-eyebrow" id="awards-head">Awards・得獎與入圍</h2>
+            <h2 class="section-eyebrow" id="awards-head">得獎與入圍</h2>
             <span class="listed-chip">共 {awardRows.length} 筆</span>
           </div>
           <div class="table-wrap">
@@ -376,8 +372,8 @@ const breadcrumbs = [
       {posts.length > 0 && (
         <section class="sec" aria-labelledby="read-head" id="read">
           <div class="section-head">
-            <h2 class="section-eyebrow" id="read-head">Read・相關專欄與教學</h2>
-            <a class="section-all" href={routes.posts()}>全部文章 →</a>
+            <h2 class="section-eyebrow" id="read-head">相關專欄與教學</h2>
+            <a class="section-all" href={routes.posts()}>看全部文章</a>
           </div>
           <div class="rule-hair"></div>
           <ul class="plist">
@@ -406,30 +402,30 @@ const breadcrumbs = [
         <nav class="pager" aria-label="上一位／下一位創作者">
           {prev ? (
             <a class="pager__link pager__link--prev" href={routes.creator(prev.slug)} rel="prev">
-              <span class="pager__dir">← 上一位</span>
+              <span class="pager__dir">上一位</span>
               <span class="pager__name"><span class="no">No.{String(prev.no).padStart(3, '0')}</span> {prev.name}</span>
             </a>
           ) : (
             <span class="pager__link pager__link--prev pager__link--none" aria-hidden="true">
-              <span class="pager__dir">← 上一位</span>
-              <span class="pager__name">—</span>
+              <span class="pager__dir">上一位</span>
+              <span class="pager__name"></span>
             </span>
           )}
           {next ? (
             <a class="pager__link pager__link--next" href={routes.creator(next.slug)} rel="next">
-              <span class="pager__dir">下一位 →</span>
+              <span class="pager__dir">下一位</span>
               <span class="pager__name"><span class="no">No.{String(next.no).padStart(3, '0')}</span> {next.name}</span>
             </a>
           ) : (
             <span class="pager__link pager__link--next pager__link--none" aria-hidden="true">
-              <span class="pager__dir">下一位 →</span>
-              <span class="pager__name">—</span>
+              <span class="pager__dir">下一位</span>
+              <span class="pager__name"></span>
             </span>
           )}
         </nav>
 
         <div class="rule-double profile-foot__rule"></div>
-        <p class="back"><a href={routes.creators()}>← 回圖鑑總表</a></p>
+        <p class="back"><a href={routes.creators()}>回圖鑑總表</a></p>
       </footer>
     </div>
   </article>
@@ -464,11 +460,6 @@ const breadcrumbs = [
     gap: 14px;
     min-width: 0;
   }
-  .profile__kicker {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-  }
   .profile__name {
     font-family: var(--font-serif);
     font-weight: 900;
@@ -483,8 +474,7 @@ const breadcrumbs = [
     font-family: var(--font-caps);
     font-weight: 500;
     font-size: var(--fs-sm);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
   .profile__tagline {
@@ -512,7 +502,7 @@ const breadcrumbs = [
     background: var(--paper-raised);
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.02em;
     color: var(--ink);
     transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
   }
@@ -526,7 +516,7 @@ const breadcrumbs = [
   /* 信箱印的是位址本身：字距收窄好讀，太長時可斷行、不撐破手機版寬 */
   .profile__social-link--mail {
     max-width: 100%;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     overflow-wrap: anywhere;
   }
 
@@ -552,6 +542,15 @@ const breadcrumbs = [
   .sec {
     margin-top: 56px;
   }
+  /* 簡介內的小標要低於「簡介」欄名一級（全站 .prose h2 是 36px，給長文用） */
+  .profile__prose :global(h2) {
+    font-size: var(--fs-lg);
+    text-wrap: balance;
+  }
+  .profile__prose :global(h3) {
+    font-size: var(--fs-md);
+  }
+
   .sec--bio {
     margin-top: 48px;
   }
@@ -608,7 +607,7 @@ const breadcrumbs = [
   .wk__meta {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
@@ -701,7 +700,7 @@ const breadcrumbs = [
   .pager__dir {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.2em;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
   .pager__name {

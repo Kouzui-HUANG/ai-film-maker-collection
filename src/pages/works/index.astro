@@ -68,18 +68,17 @@ const collectionSchema = {
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">Works・全部作品</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">{lead}</p>
-        <p class="page-meta">共 {workCount} 部作品・{creatorCount} 位創作者</p>
+        <p class="page-meta">共 {workCount} 部作品、{creatorCount} 位創作者</p>
       </header>
 
       {winningWorks.length > 0 && (
         <section class="award-showcase" aria-labelledby="award-showcase-title">
           <header class="award-showcase__head">
             <div>
-              <h2 class="section-eyebrow" id="award-showcase-title">Awards・得獎作品</h2>
+              <h2 class="section-eyebrow" id="award-showcase-title">得獎作品</h2>
               <p class="award-showcase__lead">取得競賽名次或實際獎項的作品。</p>
             </div>
             <span class="listed-chip">共 {winningWorks.length} 部</span>
@@ -128,7 +127,7 @@ const collectionSchema = {
       {workCount > 0 ? (
         <section class="all-works" aria-labelledby="all-works-title">
           <header class="section-head">
-            <h2 class="section-eyebrow" id="all-works-title">All works・完整作品列表</h2>
+            <h2 class="section-eyebrow" id="all-works-title">完整作品列表</h2>
             <span class="listed-chip">依發表時間排列</span>
           </header>
           <div class="rule-hair all-works__rule"></div>
@@ -195,14 +194,14 @@ const collectionSchema = {
   .works-index__label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.24em;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
 
   .works-index__count {
     margin-left: 6px;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }

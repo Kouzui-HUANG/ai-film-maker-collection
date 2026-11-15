@@ -103,18 +103,18 @@ const collectionSchema = {
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">Tool・{categoryLabel}</p>
+        <p class="page-eyebrow">{categoryLabel}</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">{tool.note}</p>
-        <p class="page-meta">{metaParts.join('・')}</p>
+        <p class="page-meta">{metaParts.join('、')}</p>
       </header>
 
       {creators.length > 0 && (
         <section class="idx-block" aria-labelledby="tool-creators-label">
           <header class="section-head">
-            <h2 id="tool-creators-label" class="section-eyebrow">Creators・使用 {tool.label} 的創作者</h2>
-            <a href={`${routes.creators()}?tool=${tool.slug}`} class="section-all">在總表篩選 →</a>
+            <h2 id="tool-creators-label" class="section-eyebrow">使用 {tool.label} 的創作者</h2>
+            <a href={`${routes.creators()}?tool=${tool.slug}`} class="section-all">在總表篩選</a>
           </header>
           <div class="rule-hair"></div>
           <div class="idx-rows">
@@ -126,8 +126,8 @@ const collectionSchema = {
       {works.length > 0 ? (
         <section class="idx-block" aria-labelledby="tool-works-label">
           <header class="section-head">
-            <h2 id="tool-works-label" class="section-eyebrow">Works・作品</h2>
-            <a href={routes.works()} class="section-all">全部作品 →</a>
+            <h2 id="tool-works-label" class="section-eyebrow">作品</h2>
+            <a href={routes.works()} class="section-all">看全部作品</a>
           </header>
           <div class="rule-hair"></div>
           <div class="idx-grid">
@@ -144,8 +144,8 @@ const collectionSchema = {
       {posts.length > 0 && (
         <section class="idx-block" aria-labelledby="tool-read-label">
           <header class="section-head">
-            <h2 id="tool-read-label" class="section-eyebrow">Read・相關教學</h2>
-            <a href={`${routes.posts()}?type=tutorial`} class="section-all">全部教學 →</a>
+            <h2 id="tool-read-label" class="section-eyebrow">相關教學</h2>
+            <a href={`${routes.posts()}?type=tutorial`} class="section-all">看全部教學</a>
           </header>
           <div class="rule-hair"></div>
           <div class="idx-rows">
@@ -169,7 +169,7 @@ const collectionSchema = {
         </nav>
       )}
 
-      <p class="back"><a href={routes.works()}>← 回全部作品</a></p>
+      <p class="back"><a href={routes.works()}>回全部作品</a></p>
     </div>
   </section>
 </BaseLayout>
@@ -210,13 +210,13 @@ const collectionSchema = {
   .idx-more__label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.24em;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
   .idx-more__count {
     margin-left: 6px;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }

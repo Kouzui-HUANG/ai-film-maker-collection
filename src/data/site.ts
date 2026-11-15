@@ -12,7 +12,7 @@ export const SITE = {
   nameEn: 'TAIWAN AI FILMMAKERS',
   tagline: '收錄台灣 AI 影視創作者的年鑑',
   /** 報頭副標（nameplate 下方） */
-  taglineSub: '創作者・作品・專欄・教學・活動',
+  taglineSub: '創作者、作品、專欄、教學、活動',
   /** 長版站台描述：llms.txt 開頭引言、RSS <description>、Organization schema */
   description:
     '台灣AI影視創作者圖鑑是一份年鑑式網站，收錄以 AI 工具進行影視創作的台灣創作者：' +

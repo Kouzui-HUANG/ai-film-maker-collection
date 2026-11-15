@@ -89,18 +89,17 @@ const collectionSchema = {
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">Genre・{genre.label}</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">{genre.note}</p>
-        <p class="page-meta">{works.length} 部作品・{creators.length} 位創作者</p>
+        <p class="page-meta">{works.length} 部作品、{creators.length} 位創作者</p>
       </header>
 
       {works.length > 0 ? (
         <section class="idx-block" aria-labelledby="genre-works-label">
           <header class="section-head">
-            <h2 id="genre-works-label" class="section-eyebrow">Works・作品</h2>
-            <a href={routes.works()} class="section-all">全部作品 →</a>
+            <h2 id="genre-works-label" class="section-eyebrow">作品</h2>
+            <a href={routes.works()} class="section-all">看全部作品</a>
           </header>
           <div class="rule-hair"></div>
           <div class="idx-grid">
@@ -117,8 +116,8 @@ const collectionSchema = {
       {creators.length > 0 && (
         <section class="idx-block" aria-labelledby="genre-creators-label">
           <header class="section-head">
-            <h2 id="genre-creators-label" class="section-eyebrow">Creators・創作者</h2>
-            <a href={`${routes.creators()}?genre=${genre.slug}`} class="section-all">在總表篩選 →</a>
+            <h2 id="genre-creators-label" class="section-eyebrow">創作者</h2>
+            <a href={`${routes.creators()}?genre=${genre.slug}`} class="section-all">在總表篩選</a>
           </header>
           <div class="rule-hair"></div>
           <div class="idx-rows">
@@ -142,7 +141,7 @@ const collectionSchema = {
         </nav>
       )}
 
-      <p class="back"><a href={routes.works()}>← 回全部作品</a></p>
+      <p class="back"><a href={routes.works()}>回全部作品</a></p>
     </div>
   </section>
 </BaseLayout>
@@ -180,13 +179,13 @@ const collectionSchema = {
   .idx-more__label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.24em;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
   .idx-more__count {
     margin-left: 6px;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }

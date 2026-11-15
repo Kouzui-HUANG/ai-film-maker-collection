@@ -81,12 +81,11 @@ const collectionSchema = {
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">Events・活動與比賽</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">{lead}</p>
         <p class="page-meta">
-          即將舉行 <span data-meta-upcoming>{nUpcoming}</span> 場・進行中 <span data-meta-ongoing>{nOngoing}</span> 場・過往 <span data-meta-past>{nPast}</span> 場
+          即將舉行 <span data-meta-upcoming>{nUpcoming}</span> 場、進行中 <span data-meta-ongoing>{nOngoing}</span> 場、過往 <span data-meta-past>{nPast}</span> 場
         </p>
         <p class="events-note">活動狀態依台北時間每日重新計算（本次計算日 {fmtDate(d.today)}）。</p>
       </header>
@@ -102,7 +101,7 @@ const collectionSchema = {
             </button>
           </li>
           {kindChips.map((k) => (
-            <li>
+            <li hidden={k.count === 0}>
               <button
                 type="button"
                 class="chip filter__chip"
@@ -121,7 +120,7 @@ const collectionSchema = {
       <!-- ── Upcoming ─────────────────────────────────── -->
       <section class="events-section" aria-labelledby="upcoming-heading">
         <div class="section-head">
-          <h2 class="section-eyebrow" id="upcoming-heading">Upcoming・即將舉行</h2>
+          <h2 class="section-eyebrow" id="upcoming-heading">即將舉行</h2>
           <span class="section-count"><span data-count-upcoming>{upcoming.length}</span> 場</span>
         </div>
         <div class="rule-hair"></div>
@@ -148,7 +147,7 @@ const collectionSchema = {
       <!-- ── Past ─────────────────────────────────────── -->
       <section class="events-section events-section--past" aria-labelledby="past-heading">
         <div class="section-head">
-          <h2 class="section-eyebrow" id="past-heading">Past・過往活動</h2>
+          <h2 class="section-eyebrow" id="past-heading">過往活動</h2>
           <span class="section-count"><span data-count-past>{nPast}</span> 場</span>
         </div>
         <div class="rule-hair"></div>
@@ -195,8 +194,7 @@ const collectionSchema = {
   .filter__label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
   .filter__chip {
@@ -237,7 +235,7 @@ const collectionSchema = {
   .section-count {
     font-family: var(--font-caps);
     font-size: var(--fs-sm);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
@@ -260,6 +258,7 @@ const collectionSchema = {
     list-style: none;
     cursor: pointer;
     user-select: none;
+    white-space: nowrap;
   }
   .past__summary::-webkit-details-marker {
     display: none;

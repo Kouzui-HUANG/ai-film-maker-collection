@@ -31,7 +31,7 @@ const IMAGE_OPTS = {
 async function toCard(work: Work) {
   const { title, slug, year, genre, durationSec, thumb, thumbAlt, awards } = work.data;
   const img = await getImage({ src: thumb, ...IMAGE_OPTS });
-  const meta = [String(year), genreLabel(genre), fmtDuration(durationSec)].filter(Boolean).join('・');
+  const meta = [String(year), genreLabel(genre), fmtDuration(durationSec)].filter(Boolean).join('　');
   const awardBadge = getWorkAwardBadge(awards);
 
   return {

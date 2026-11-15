@@ -20,12 +20,6 @@ import { routes } from '../data/site';
     <div class="error-inner">
       <div class="rule-double"></div>
 
-      <p class="error-kicker">
-        <span class="error-kicker__label">Error</span>
-        <span class="error-kicker__dot" aria-hidden="true">·</span>
-        <span class="error-kicker__en">Not in the directory</span>
-      </p>
-
       <h1 class="error-code" aria-label="404">404</h1>
 
       <div class="rule-hair"></div>
@@ -41,7 +35,7 @@ import { routes } from '../data/site';
       <nav class="error-actions" aria-label="回到圖鑑">
         <a href={routes.creators()} class="btn btn--accent" data-ga-cta="404_creators" data-ga-location="404_action">圖鑑總表</a>
         <a href={routes.works()} class="btn" data-ga-cta="404_works" data-ga-location="404_action">全部作品</a>
-        <a href={routes.home()} class="btn" data-ga-cta="404_home" data-ga-location="404_action">← 返回首頁</a>
+        <a href={routes.home()} class="btn" data-ga-cta="404_home" data-ga-location="404_action">返回首頁</a>
       </nav>
 
       <div class="rule-double"></div>
@@ -61,27 +55,6 @@ import { routes } from '../data/site';
   .error-inner {
     width: 100%;
     max-width: 640px;
-  }
-
-  /* ─ kicker ─ */
-  .error-kicker {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 1.5rem 0 0.5rem;
-    font-family: var(--font-caps);
-    font-size: var(--fs-xs);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .error-kicker__dot {
-    color: var(--rule-soft);
-  }
-
-  .error-kicker__en {
-    color: var(--muted);
   }
 
   /* ─ 404 display ─ */

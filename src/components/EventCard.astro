@@ -88,7 +88,7 @@ const shortDate = startDate.slice(5).replace('-', '.');
       <div class="ecard__body">
         <div class="ecard__meta">
           <span class="badge">{kindLabel}</span>
-          {t.status === 'ongoing' && <span class="badge badge--outline">ONGOING</span>}
+          {t.status === 'ongoing' && <span class="badge badge--outline">進行中</span>}
           <span class:list={['listed-chip', 'ecard__status', `ecard__status--${t.status}`]}>{rowStatus}</span>
         </div>
 
@@ -142,11 +142,11 @@ const shortDate = startDate.slice(5).replace('-', '.');
     align-self: start;
     min-width: 0;
   }
-  .ecard__figure img {
-    transition: transform 500ms var(--ease-out);
+  .ecard__figure {
+    transition: border-color 160ms var(--ease-out);
   }
-  .ecard__link:hover .ecard__figure img {
-    transform: scale(1.03);
+  .ecard__link:hover .ecard__figure {
+    border-color: var(--accent);
   }
 
   .ecard__body {
@@ -205,7 +205,7 @@ const shortDate = startDate.slice(5).replace('-', '.');
     font-family: var(--font-sans);
     font-size: var(--fs-xs);
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     color: var(--ink-soft);
     font-variant-numeric: tabular-nums;
   }

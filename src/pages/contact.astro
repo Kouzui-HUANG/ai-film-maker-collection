@@ -61,7 +61,6 @@ const socials = Object.entries(SITE.social)
       </nav>
 
       <header class="page-head">
-        <p class="page-eyebrow">Contact・聯絡／推薦收錄</p>
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
@@ -74,7 +73,6 @@ const socials = Object.entries(SITE.social)
 
         <!-- ① 推薦收錄 -->
         <section class="contact-card" aria-labelledby="recommend-title">
-          <p class="section-eyebrow">Recommend・推薦收錄</p>
           <h2 id="recommend-title" class="contact-card__title">推薦一位創作者，或推薦您自己</h2>
           <p class="contact-card__lead">
             讀者推薦與創作者自薦走同一條路。{hasRecommendForm ? '填表約五分鐘' : '來信請附下列資料'}，
@@ -118,7 +116,6 @@ const socials = Object.entries(SITE.social)
                 data-ga-location="contact_recommend"
               >
                 寫信推薦收錄
-                <span aria-hidden="true">→</span>
               </a>
             </p>
           )}
@@ -126,7 +123,6 @@ const socials = Object.entries(SITE.social)
 
         <!-- ② 更正／下架 -->
         <section class="contact-card" aria-labelledby="correct-title">
-          <p class="section-eyebrow">Correct・更正／下架</p>
           <h2 id="correct-title" class="contact-card__title">資料有誤，或想退出圖鑑</h2>
           <p class="contact-card__lead">
             已收錄的創作者可隨時要求更正條目、下架單一作品，或整份退出；退出不需說明理由。
@@ -146,7 +142,6 @@ const socials = Object.entries(SITE.social)
               data-ga-location="contact_correct"
             >
               寫信申請更正／下架
-              <span aria-hidden="true">→</span>
             </a>
           </p>
         </section>
@@ -178,7 +173,7 @@ const socials = Object.entries(SITE.social)
 
       <div class="rule-double bottom-rule"></div>
       <p class="back">
-        <a href={routes.home()}>← 返回首頁</a>
+        <a href={routes.home()}>返回首頁</a>
       </p>
     </div>
   </div>
@@ -251,7 +246,7 @@ const socials = Object.entries(SITE.social)
     grid-row: 1 / span 2;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     padding-top: 0.25em;
   }
@@ -296,7 +291,7 @@ const socials = Object.entries(SITE.social)
     font-family: var(--font-serif);
     font-weight: 700;
     font-size: var(--fs-md);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     margin-bottom: 8px;
   }
 

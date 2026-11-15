@@ -232,11 +232,6 @@ const navIsActive = (navHref: string) => {
     <header class="masthead">
       <!-- 報頭 nameplate -->
       <div class="nameplate container">
-        <p class="nameplate__edition" aria-hidden="true">
-          <span>{SITE.nameEn}</span>
-          <span class="nameplate__edition-sep">·</span>
-          <span>ANNUAL DIRECTORY</span>
-        </p>
         <a href={href('/')} class="nameplate__logo" aria-label={SITE.name}>
           <span class="nameplate__logo-main">{SITE.name}</span>
           <span class="nameplate__logo-sub">{SITE.taglineSub}</span>
@@ -271,7 +266,6 @@ const navIsActive = (navHref: string) => {
                   aria-current={navIsActive(item.href) ? 'page' : undefined}
                 >
                   <span class="mainnav__cn">{item.label}</span>
-                  <span class="mainnav__en">{item.labelEn}</span>
                 </a>
               </li>
             ))}
@@ -282,7 +276,6 @@ const navIsActive = (navHref: string) => {
                 aria-current={currentSection === 'about' ? 'page' : undefined}
               >
                 <span class="mainnav__cn">關於圖鑑</span>
-                <span class="mainnav__en">ABOUT</span>
               </a>
             </li>
           </ul>
@@ -307,8 +300,6 @@ const navIsActive = (navHref: string) => {
               {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             >
               <span class="mob-drawer__cn">{item.label}</span>
-              <span class="mob-drawer__en">{item.labelEn}</span>
-              <span class="mob-drawer__arrow" aria-hidden="true">→</span>
             </a>
           </li>
         ))}
@@ -347,23 +338,25 @@ const navIsActive = (navHref: string) => {
         </div>
       </div>
       <div class="container footer__copy">
-        <small>© {currentYear} {SITE.name}</small>
+        <small class="footer__copy-text">© {currentYear} {SITE.name}</small>
       </div>
     </footer>
 
     <style>
+      /* 平時移到畫面上緣之外（不再用 left: -9999px 撐出水平溢位），聚焦時落下 */
       .skip {
         position: absolute;
-        left: -9999px;
-        top: 0;
-      }
-      .skip:focus {
         left: 12px;
-        top: 12px;
+        top: -64px;
+        z-index: 100;
+        padding: 8px 12px;
         background: var(--ink);
         color: var(--paper);
-        padding: 8px 12px;
-        z-index: 100;
+      }
+      .skip:focus,
+      .skip:focus-visible {
+        top: 12px;
+        color: var(--paper);
       }
 
       /* ── Nameplate ──────────────────────────── */
@@ -375,18 +368,6 @@ const navIsActive = (navHref: string) => {
         align-items: center;
         gap: 10px;
         padding: 24px var(--gutter) 22px;
-      }
-      .nameplate__edition {
-        display: flex;
-        gap: 10px;
-        font-family: var(--font-caps);
-        font-size: 0.68rem;
-        letter-spacing: 0.32em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-      .nameplate__edition-sep {
-        color: var(--muted);
       }
       .nameplate__logo {
         text-align: center;
@@ -442,12 +423,6 @@ const navIsActive = (navHref: string) => {
         font-weight: 700;
         font-size: var(--fs-md);
       }
-      .mainnav__en {
-        font-family: var(--font-caps);
-        font-size: 0.7rem;
-        letter-spacing: 0.22em;
-        color: var(--muted);
-      }
       .mainnav__item {
         display: flex;
         align-items: center;
@@ -496,8 +471,11 @@ const navIsActive = (navHref: string) => {
         border-top: 1px solid var(--rule-soft);
         color: var(--muted);
         font-family: var(--font-caps);
-        letter-spacing: 0.08em;
+        letter-spacing: 0.02em;
         font-size: var(--fs-xs);
+      }
+      .footer__copy-text {
+        font-size: inherit;           /* <small> 預設再縮 0.83 倍會掉到 10px */
       }
 
       /* ── 選單按鈕（釘在報頭右緣） ─────────────── */
@@ -541,7 +519,7 @@ const navIsActive = (navHref: string) => {
         display: block;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.62);
+        background: var(--scrim);
         z-index: 200;
         opacity: 0;
         pointer-events: none;
@@ -582,7 +560,7 @@ const navIsActive = (navHref: string) => {
         align-items: center;
         justify-content: space-between;
         padding: 20px 20px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        border-bottom: 1px solid var(--line-faint);
       }
       .mob-drawer__title {
         font-family: var(--font-serif);
@@ -613,7 +591,7 @@ const navIsActive = (navHref: string) => {
         overflow-y: auto;
       }
       .mob-drawer__item + .mob-drawer__item {
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid var(--line-ghost);
       }
       .mob-drawer__link {
         display: flex;
@@ -624,24 +602,13 @@ const navIsActive = (navHref: string) => {
         transition: background 160ms var(--ease-out);
       }
       .mob-drawer__link:hover {
-        background: rgba(255, 255, 255, 0.07);
+        background: var(--wash-ink);
         color: var(--ink);
       }
       .mob-drawer__cn {
         font-family: var(--font-serif);
         font-size: var(--fs-md);
         flex: 1;
-      }
-      .mob-drawer__en {
-        font-family: var(--font-caps);
-        font-size: 0.65rem;
-        letter-spacing: 0.18em;
-        color: rgba(255, 255, 255, 0.45);
-      }
-      .mob-drawer__arrow {
-        font-size: 0.85rem;
-        color: var(--accent);
-        margin-left: 2px;
       }
 
       /* ── Responsive ─────────────────────────── */
@@ -654,10 +621,6 @@ const navIsActive = (navHref: string) => {
         .nameplate {
           padding: 16px var(--gutter) 14px;
           gap: 6px;
-        }
-        .nameplate__edition {
-          font-size: 0.6rem;
-          letter-spacing: 0.22em;
         }
         .nameplate__logo-sub {
           font-size: var(--fs-xs);

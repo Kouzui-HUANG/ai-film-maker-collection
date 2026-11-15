@@ -32,14 +32,14 @@ if (!winner) {
         loading={loading}
         decoding="async"
       />
-      <span class="award-card__badge badge" aria-label="得獎作品">WINNER</span>
+      <span class="award-card__badge badge" aria-label="得獎作品">得獎</span>
     </figure>
 
     <div class="award-card__body">
       <p class="award-card__result">{winner.result}</p>
       <h3 class="award-card__title">{title}</h3>
       <p class="award-card__creators">{work.creators.map((creator) => creator.name).join('、')}</p>
-      <p class="award-card__event"><span class="award-card__year">{winner.year}</span>・{winner.title}</p>
+      <p class="award-card__event"><span class="award-card__year">{winner.year}</span>　{winner.title}</p>
     </div>
   </a>
 </article>
@@ -64,12 +64,12 @@ if (!winner) {
     border-right: 1px solid var(--rule-soft);
   }
 
-  .award-card__figure img {
-    transition: transform 500ms var(--ease-out);
+  .award-card__figure {
+    transition: border-color 160ms var(--ease-out);
   }
 
-  .award-card__link:hover .award-card__figure img {
-    transform: scale(1.025);
+  .award-card__link:hover .award-card__figure {
+    border-color: var(--accent);
   }
 
   .award-card__badge {
@@ -92,7 +92,7 @@ if (!winner) {
     font-size: var(--fs-sm);
     font-weight: 700;
     line-height: 1.55;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     color: var(--ink);
   }
 

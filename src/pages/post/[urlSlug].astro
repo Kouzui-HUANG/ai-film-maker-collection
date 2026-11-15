@@ -42,7 +42,7 @@ const typeDef = POST_TYPE_LABEL[type] ?? { label: type, labelEn: type.toUpperCas
 const isInterview = type === 'interview';
 const levelLabel = level ? (LEVEL_LABEL[level] ?? level) : null;
 const peopleLabel = isInterview ? '受訪者' : '相關創作者';
-const peopleEyebrow = isInterview ? 'Interviewee・受訪者' : 'Creators・相關創作者';
+const peopleEyebrow = isInterview ? '受訪者' : '相關創作者';
 
 const pageUrl = absRoutes.post(urlSlug);
 const dateLabel = fmtDate(date);
@@ -168,7 +168,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
         </nav>
 
         <div class="article__meta">
-          <span class="tag">{typeDef.labelEn}・{typeDef.label}</span>
+          <span class="tag">{typeDef.label}</span>
           <time class="date-chip" datetime={date}>{dateLabel}</time>
           <span class="date-chip">閱讀 {readMin} 分鐘</span>
           {levelLabel && <span class="badge badge--outline">{levelLabel}</span>}
@@ -259,7 +259,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
           <section class="related-people" aria-labelledby="related-people-label">
             <div class="section-head">
               <h2 id="related-people-label" class="section-eyebrow">{peopleEyebrow}</h2>
-              <a class="section-all" href={routes.creators()}>創作者圖鑑 →</a>
+              <a class="section-all" href={routes.creators()}>看創作者圖鑑</a>
             </div>
             <ul class="creator-cards" role="list">
               {post.creators.map((c) => (
@@ -289,7 +289,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
                         {c.nameEn && <span class="creator-card__name-en">{c.nameEn}</span>}
                       </span>
                       <span class="creator-card__tagline">{c.tagline}</span>
-                      <span class="creator-card__cta">進入圖鑑頁 →</span>
+                      <span class="creator-card__cta">進入圖鑑頁</span>
                     </span>
                   </a>
                 </li>
@@ -317,7 +317,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
         <ShareLike slug={`post:${urlSlug}`} title={title} url={pageUrl} location="post_footer" />
 
         <p class="back">
-          <a href={routes.posts()} data-ga-cta="back_posts" data-ga-location="post_footer">← 回專欄與教學</a>
+          <a href={routes.posts()} data-ga-cta="back_posts" data-ga-location="post_footer">回專欄與教學</a>
         </p>
       </footer>
     </article>
@@ -396,8 +396,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
   .article__fact-label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
     white-space: nowrap;
   }
@@ -425,7 +424,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     font-family: var(--font-serif);
     font-weight: 700;
     font-size: var(--fs-sm);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     transition: color 160ms var(--ease-out);
   }
   .people__link:hover .people__name {
@@ -493,7 +492,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     font-family: var(--font-caps);
     font-weight: 400;
     font-size: var(--fs-xs);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     white-space: nowrap;
   }
@@ -507,7 +506,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     padding-top: 8px;
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.18em;
+    letter-spacing: 0.02em;
     color: var(--ink);
   }
 
@@ -520,7 +519,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     font-family: var(--font-serif);
     font-weight: 700;
     font-size: var(--fs-md);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.02em;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--ink);
   }
@@ -551,7 +550,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     flex-shrink: 0;
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.02em;
     color: var(--muted);
     white-space: nowrap;
   }

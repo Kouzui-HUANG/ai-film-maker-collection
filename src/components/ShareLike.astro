@@ -54,7 +54,7 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
             />
           </svg>
         </span>
-        <span class="sharelike__count" aria-live="polite">—</span>
+        <span class="sharelike__count" aria-live="polite"></span>
         <span class="sharelike__like-label">按讚</span>
       </button>
     )}
@@ -255,8 +255,8 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
   }
   .sharelike__like-label {
     font-family: var(--font-caps);
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.02em;
     color: inherit;
   }
 
@@ -270,8 +270,7 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
   .sharelike__label {
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--muted);
   }
 
@@ -288,14 +287,14 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 9px 12px;
-    min-height: 36px;
+    padding: 9px 14px;
+    min-height: 44px;
     background: var(--paper);
     color: var(--ink-soft);
     border: 1px solid var(--rule-soft);
     font-family: var(--font-sans);
     font-size: var(--fs-xs);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     line-height: 1;
     cursor: pointer;
     text-decoration: none;
@@ -319,7 +318,7 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
     margin: 10px 0 0;
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.02em;
     color: var(--link);
   }
   .sharelike__toast[hidden] {
@@ -385,7 +384,7 @@ const domId = slug.replace(/[^a-z0-9-]/gi, '-');
             }
           })
           .catch(() => {
-            if (countEl) countEl.textContent = '—';
+            if (countEl) countEl.textContent = '';
           });
 
         likeBtn.addEventListener('click', async () => {
