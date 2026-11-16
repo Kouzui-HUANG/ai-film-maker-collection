@@ -4,8 +4,8 @@ name: "林仲彥"
 nameEn: "Lin Chung-yen"
 slug: "lin-chung-yen"
 tagline: "把 3D 動態餵給 AI 的台灣民俗短劇導演"
-bio: "3D 與數位影像出身、自述十三年資歷的 AI 影像創作者，網路上以「粽子」「漫步深淵」行走，作品掛在自己的 5Y Studio 之下。工作流核心是「3D 模型混合 AI 影片」：先用輕量 3D 把鏡頭運動與角色動態搭出來，再當成 Seedance 的動態參考，角色設定與場景美術交給 GPT Image，配樂用 Suno。2025 年以《五元有緣》入圍 Artiver AI Art Awards 決賽，2026 年以《粽乩：豬母夜哭》入圍 AI London Film Festival，同年在 GMI Cloud 與 Wan 合辦的限時創作大賽以《間合》拿下第二名。另一條線是《中華一番》二創系列「AI 拍片現場」，單片觀看數破十萬，是台灣 AI 短片少見的規模化流量。"
-seoTitle: "林仲彥（粽子x漫步深淵）｜台灣 AI 短劇導演・5Y Studio"
+bio: "3D 與數位影像出身、自述十三年資歷的 AI 影像創作者，網路上以「粽子」「漫步深淵」行走，作品掛在自己的 5Y Studio 之下。工作流核心是「3D 模型混合 AI 影片」：先用輕量 3D 把鏡頭運動與角色動態搭出來，再當成 Seedance 的動態參考，角色設定與場景美術交給 GPT Image，配樂用 Suno。2025 年以《五元有緣》入圍 Artiver AI Art Awards 決賽，2026 年以《粽乩：豬母夜哭》入圍 AI London Film Festival，同年在 GMI Cloud 與 Wan 合辦的限時創作大賽以《間合》拿下第二名。另一條線是《中華一番》二創系列「AI 拍片現場」，單片觀看數破十萬，是台灣 AI 短片少見的規模化流量。2026 年與黃宏瑞（No.002）合夥成立 AI 影視製作公司幻五映像（登記名稱幻詠資訊股份有限公司，更名登記中），公司名的「五」取自 5Y Studio，承接商業影片、短劇與影集製作。"
+seoTitle: "林仲彥（粽子x漫步深淵）｜幻五映像共同創辦人・台灣 AI 短劇導演"
 portrait: "./portrait.jpg"
 portraitAlt: "本人 YouTube 頻道頭像：Q 版鎧甲武士單膝蹲踞、背負長劍並披著藍色披風，身旁一隻戴紅領巾的黃狗仰頭長嚎，襯在深褐色底上"
 tools: ["seedance", "gpt-image", "suno", "wan"]
@@ -17,7 +17,7 @@ sameAs:
   youtube: "https://www.youtube.com/@AI_%E6%B7%B1%E6%B7%B5%E6%BC%AB%E6%AD%A5%E8%80%85"
   instagram: "https://www.instagram.com/atorias_ai/"
   threads: "https://www.threads.com/@atorias_ai"
-  website: "https://portaly.cc/fantasyyen55"
+  website: "https://studio.hallucination28.com/team/lin-chung-yen/"
 email: "fantasyyen55@gmail.com"
 awards:
   - year: 2026
@@ -33,7 +33,7 @@ awards:
     title: "Artiver AI Art Awards"
     result: "決賽入圍"
 listedAt: "2026-09-13"
-updatedAt: "2026-11-15"
+updatedAt: "2026-11-16"
 ---
 
 ## 創作方法

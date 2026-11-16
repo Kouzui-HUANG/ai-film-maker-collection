@@ -4,8 +4,8 @@ name: "黃宏瑞"
 nameEn: "Huang Hung-jui"
 slug: "huang-hung-jui"
 tagline: "一人包辦編劇到配樂的日系 AI 影像創作者"
-bio: "日文系出身、東京大學教育學研究所畢業，以「幻詠 Gen Ai Studio」為名活動的 AI 影像創作者。從 Stable Diffusion 的提示詞實測起家，在方格子寫了上百篇工具測試與提示詞圖鑑，再把同一套角色控制方法推進到影片：動畫短片、日文 MV、賽博龐克配樂，編劇、生成、剪輯到配樂一人包辦，剪輯多在 CapCut 收尾，配樂交給 Suno。日文流利，作品常直接以日文發表，面向日本客戶與創作者。2025 年以《メモリー・ショップの黄昏》獲 Bouquet wiz AI MV 專業賽第一名，並以《與AI共學 EP01：期末考試》獲愛奇藝AI短片創作大賽三等獎；2026 年在 GMI Cloud × Wan × DV ASIA 的 AI 影視職人創作大賽擔任四人團隊隊長與主編劇，以《間合》拿下第二名。"
-seoTitle: "黃宏瑞 Huang Hung-jui｜幻詠 Gen Ai Studio 主理人・台灣 AI 影像創作者"
+bio: "日文系出身、東京大學教育學研究所畢業，以「幻詠 Gen Ai Studio」為名活動的 AI 影像創作者。從 Stable Diffusion 的提示詞實測起家，在方格子寫了上百篇工具測試與提示詞圖鑑，再把同一套角色控制方法推進到影片：動畫短片、日文 MV、賽博龐克配樂，編劇、生成、剪輯到配樂一人包辦，剪輯多在 CapCut 收尾，配樂交給 Suno。日文流利，作品常直接以日文發表，面向日本客戶與創作者。2025 年以《メモリー・ショップの黄昏》獲 Bouquet wiz AI MV 專業賽第一名，並以《與AI共學 EP01：期末考試》獲愛奇藝AI短片創作大賽三等獎；2026 年在 GMI Cloud × Wan × DV ASIA 的 AI 影視職人創作大賽擔任四人團隊隊長與主編劇，以《間合》拿下第二名。同年與林仲彥（No.001）合夥成立 AI 影視製作公司幻五映像（登記名稱幻詠資訊股份有限公司，更名登記中），承接商業影片、短劇與影集製作。"
+seoTitle: "黃宏瑞 Huang Hung-jui｜幻五映像共同創辦人・台灣 AI 影像創作者"
 portrait: "./portrait.jpg"
 portraitAlt: "黃宏瑞的像素風格自畫像：深藍西裝、藍白條紋領帶，雙手抱胸站在白色背景前"
 tools: ["stable-diffusion", "wan", "seedance", "suno", "capcut"]
@@ -16,7 +16,7 @@ role: ["編劇", "導演", "配樂"]
 sameAs:
   youtube: "https://www.youtube.com/@Hallucination-prompt"
   facebook: "https://www.facebook.com/profile.php?id=61572168475382"
-  website: "https://vocus.cc/salon/hallucination"
+  website: "https://studio.hallucination28.com/team/huang-hung-jui/"
 email: "stair587@gmail.com"
 awards:
   - year: 2026
@@ -32,7 +32,7 @@ awards:
     title: "Artiver AI Art Awards"
     result: "入選"
 listedAt: "2026-09-13"
-updatedAt: "2026-09-22"
+updatedAt: "2026-11-16"
 ---
 
 ## 從提示詞走到分鏡
