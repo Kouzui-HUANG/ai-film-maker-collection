@@ -147,8 +147,9 @@ const breadcrumbSchema =
 
 const allSchemas = [organizationSchema, webSiteSchema, ...(breadcrumbSchema ? [breadcrumbSchema] : []), ...schemas];
 
+/* 字重只用 400 / 700 / 800（global.css 設了 font-synthesis: none，沒載入的字重不會被假造） */
 const FONTS_CSS =
-  'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=Shippori+Mincho:wght@500;700;800&display=swap';
+  'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Noto+Serif+TC:wght@400;700;800&family=Shippori+Mincho:wght@400;700;800&display=swap';
 
 // Footer 版權年：build 時取當下台北年份
 const currentYear = new Date(Date.now() + 8 * 3600 * 1000).getUTCFullYear();
@@ -159,6 +160,10 @@ const navIsActive = (navHref: string) => {
   const seg = navHref.replace(/\//g, '');
   return currentSection === seg || currentSection === seg.replace(/s$/, '');
 };
+
+/* 報頭分級：首頁用大報頭（nameplate），內頁用單行小欄頭（running head），像報紙頭版與內頁 */
+const isFront = pathSegments.length === 0;
+const navItems = PRIMARY_NAV.map((item) => ({ label: item.label, href: item.href, active: navIsActive(item.href) }));
 ---
 
 <!doctype html>
@@ -229,59 +234,109 @@ const navIsActive = (navHref: string) => {
   <body>
     <a href="#main" class="skip">跳至主要內容</a>
 
-    <header class="masthead">
-      <!-- 報頭 nameplate -->
-      <div class="nameplate container">
-        <a href={href('/')} class="nameplate__logo" aria-label={SITE.name}>
-          <span class="nameplate__logo-main">{SITE.name}</span>
-          <span class="nameplate__logo-sub">{SITE.taglineSub}</span>
-        </a>
-        <!-- 手機選單按鈕 -->
-        <div class="nameplate__actions">
-          <button
-            class="mob-btn"
-            id="mob-btn"
-            aria-label="開啟選單"
-            aria-expanded="false"
-            aria-controls="mob-drawer"
-          >
-            <span class="mob-btn__dot"></span>
-            <span class="mob-btn__dot"></span>
-            <span class="mob-btn__dot"></span>
-          </button>
-        </div>
-      </div>
-
-      <div class="rule-double"></div>
-
-      <!-- 主 nav -->
-      <nav class="mainnav-wrap" aria-label="主選單">
-        <div class="mainnav container">
-          <ul class="mainnav__list">
-            {PRIMARY_NAV.map((item) => (
-              <li class="mainnav__item">
-                <a
-                  href={href(item.href)}
-                  class:list={['mainnav__link', navIsActive(item.href) && 'is-active']}
-                  aria-current={navIsActive(item.href) ? 'page' : undefined}
-                >
-                  <span class="mainnav__cn">{item.label}</span>
-                </a>
-              </li>
-            ))}
-            <li class="mainnav__item mainnav__item--about">
-              <a
-                href={href('/about/')}
-                class:list={['mainnav__link', currentSection === 'about' && 'is-active']}
-                aria-current={currentSection === 'about' ? 'page' : undefined}
+    <header class:list={['masthead', isFront ? 'masthead--front' : 'masthead--run']}>
+      {isFront ? (
+        <>
+          <!-- 頭版報頭 nameplate -->
+          <div class="nameplate container">
+            <a href={href('/')} class="nameplate__logo" aria-label={SITE.name}>
+              <span class="nameplate__logo-main">{SITE.name}</span>
+              <span class="nameplate__logo-sub">{SITE.taglineSub}</span>
+            </a>
+            <!-- 手機選單按鈕（桌機隱藏：抽屜裡的頁面在主選單與頁尾都有） -->
+            <div class="nameplate__actions">
+              <button
+                class="mob-btn"
+                id="mob-btn"
+                aria-label="開啟選單"
+                aria-expanded="false"
+                aria-controls="mob-drawer"
               >
-                <span class="mainnav__cn">關於圖鑑</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div class="rule-hair"></div>
-      </nav>
+                <span class="mob-btn__dot"></span>
+                <span class="mob-btn__dot"></span>
+                <span class="mob-btn__dot"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="rule-double"></div>
+
+          <!-- 主 nav -->
+          <nav class="mainnav-wrap" aria-label="主選單">
+            <div class="mainnav container">
+              <ul class="mainnav__list">
+                {navItems.map((item) => (
+                  <li class="mainnav__item">
+                    <a
+                      href={href(item.href)}
+                      class:list={['mainnav__link', item.active && 'is-active']}
+                      aria-current={item.active ? 'page' : undefined}
+                    >
+                      <span class="mainnav__cn">{item.label}</span>
+                    </a>
+                  </li>
+                ))}
+                <li class="mainnav__item mainnav__item--about">
+                  <a
+                    href={href('/about/')}
+                    class:list={['mainnav__link', currentSection === 'about' && 'is-active']}
+                    aria-current={currentSection === 'about' ? 'page' : undefined}
+                  >
+                    <span class="mainnav__cn">關於圖鑑</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div class="rule-hair"></div>
+          </nav>
+        </>
+      ) : (
+        <>
+          <!-- 內頁小欄頭 running head：站名左、主選單右，一行 -->
+          <div class="runhead container">
+            <a href={href('/')} class="runhead__logo" aria-label={SITE.name}>{SITE.name}</a>
+            <nav class="runhead__nav" aria-label="主選單">
+              <ul class="mainnav__list">
+                {navItems.map((item) => (
+                  <li class="mainnav__item">
+                    <a
+                      href={href(item.href)}
+                      class:list={['mainnav__link', item.active && 'is-active']}
+                      aria-current={item.active ? 'page' : undefined}
+                    >
+                      <span class="mainnav__cn">{item.label}</span>
+                    </a>
+                  </li>
+                ))}
+                <li class="mainnav__item mainnav__item--about">
+                  <a
+                    href={href('/about/')}
+                    class:list={['mainnav__link', currentSection === 'about' && 'is-active']}
+                    aria-current={currentSection === 'about' ? 'page' : undefined}
+                  >
+                    <span class="mainnav__cn">關於圖鑑</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            <div class="runhead__actions">
+              <button
+                class="mob-btn"
+                id="mob-btn"
+                aria-label="開啟選單"
+                aria-expanded="false"
+                aria-controls="mob-drawer"
+              >
+                <span class="mob-btn__dot"></span>
+                <span class="mob-btn__dot"></span>
+                <span class="mob-btn__dot"></span>
+              </button>
+            </div>
+          </div>
+          <!-- 內頁頭只用一條細罫線：雙罫線留給頁標，不在同一屏重複兩次 -->
+          <div class="rule-hair"></div>
+        </>
+      )}
     </header>
 
     <!-- ── 手機版側滑抽屜 ──────────────────────────── -->
@@ -348,7 +403,7 @@ const navIsActive = (navHref: string) => {
         position: absolute;
         left: 12px;
         top: -64px;
-        z-index: 100;
+        z-index: var(--z-dropdown);
         padding: 8px 12px;
         background: var(--ink);
         color: var(--paper);
@@ -366,8 +421,8 @@ const navIsActive = (navHref: string) => {
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 10px;
-        padding: 24px var(--gutter) 22px;
+        gap: 8px;
+        padding: 20px var(--gutter) 16px;
       }
       .nameplate__logo {
         text-align: center;
@@ -383,11 +438,11 @@ const navIsActive = (navHref: string) => {
       }
       .nameplate__logo-sub {
         display: block;
-        margin-top: 10px;
+        margin-top: 12px;
         font-family: var(--font-serif);
         font-size: var(--fs-sm);
         color: var(--ink-soft);
-        letter-spacing: 0.3em;
+        letter-spacing: 0.02em;
       }
 
       /* ── Main nav ───────────────────────────── */
@@ -404,10 +459,10 @@ const navIsActive = (navHref: string) => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 14px 6px;
+        padding: 16px 8px;
         gap: 2px;
         border-bottom: 2px solid transparent;
-        transition: border-color 160ms var(--ease-out);
+        transition: border-color var(--dur-micro) var(--ease-out);
       }
       .mainnav__link:hover {
         border-bottom-color: var(--accent);
@@ -431,6 +486,45 @@ const navIsActive = (navHref: string) => {
         display: none;
       }
 
+      /* ── Running head（內頁單行小欄頭）────────── */
+      .runhead {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0 32px;
+        padding-block: 12px;
+      }
+      .runhead__logo {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: var(--fs-lg);
+        line-height: 1.2;
+        letter-spacing: 0.06em;
+        color: var(--ink);
+        white-space: nowrap;
+      }
+      .runhead__logo:hover {
+        color: var(--accent);
+      }
+      .runhead__nav .mainnav__list {
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 0 24px;
+      }
+      .runhead__nav .mainnav__link {
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 4px;
+      }
+      .runhead__nav .mainnav__cn {
+        font-size: var(--fs-base);
+        white-space: nowrap;
+      }
+      .runhead__actions {
+        display: flex;
+        align-items: center;
+      }
+
       /* ── Footer ─────────────────────────────── */
       .footer {
         margin-top: 64px;
@@ -446,7 +540,7 @@ const navIsActive = (navHref: string) => {
       .footer__title {
         font-family: var(--font-serif);
         font-size: var(--fs-md);
-        margin-bottom: 14px;
+        margin-bottom: 16px;
         padding-bottom: 8px;
         border-bottom: 1px solid var(--rule);
       }
@@ -456,7 +550,7 @@ const navIsActive = (navHref: string) => {
         line-height: 1.8;
       }
       .footer__text--muted {
-        margin-top: 10px;
+        margin-top: 12px;
         color: var(--muted);
         font-size: var(--fs-xs);
       }
@@ -467,8 +561,8 @@ const navIsActive = (navHref: string) => {
         font-size: var(--fs-sm);
       }
       .footer__copy {
+        position: relative;
         padding: 16px var(--gutter);
-        border-top: 1px solid var(--rule-soft);
         color: var(--muted);
         font-family: var(--font-caps);
         letter-spacing: 0.02em;
@@ -476,6 +570,15 @@ const navIsActive = (navHref: string) => {
       }
       .footer__copy-text {
         font-size: inherit;           /* <small> 預設再縮 0.83 倍會掉到 10px */
+      }
+      /* 版權列的細線只畫在內容寬內，和上方欄位同一條左緣 */
+      .footer__copy::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: var(--gutter);
+        right: var(--gutter);
+        border-top: 1px solid var(--rule-soft);
       }
 
       /* ── 選單按鈕（釘在報頭右緣） ─────────────── */
@@ -493,15 +596,15 @@ const navIsActive = (navHref: string) => {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 4px;
         background: none;
         border: none;
         cursor: pointer;
-        padding: 6px 14px;
+        padding: 8px 16px;
         min-width: 44px;
         min-height: 44px;
         border-radius: 0;
-        transition: background 160ms var(--ease-out);
+        transition: background var(--dur-micro) var(--ease-out);
       }
       .mob-btn:hover {
         background: var(--rule-soft);
@@ -520,10 +623,10 @@ const navIsActive = (navHref: string) => {
         position: fixed;
         inset: 0;
         background: var(--scrim);
-        z-index: 200;
+        z-index: calc(var(--z-modal) - 1);
         opacity: 0;
         pointer-events: none;
-        transition: opacity 240ms var(--ease-out);
+        transition: opacity var(--dur-short) var(--ease-out);
       }
       .mob-backdrop.is-open {
         opacity: 1;
@@ -538,12 +641,12 @@ const navIsActive = (navHref: string) => {
         height: 100dvh;
         background: var(--paper-raised);
         color: var(--ink);
-        z-index: 201;
+        z-index: var(--z-modal);
         transform: translateX(100%);
         visibility: hidden;
         transition:
-          transform 280ms cubic-bezier(0.4, 0, 0.2, 1),
-          visibility 0s linear 280ms;
+          transform var(--dur-long) var(--ease-out),
+          visibility 0s linear var(--dur-long);
         display: flex;
         flex-direction: column;
       }
@@ -564,7 +667,7 @@ const navIsActive = (navHref: string) => {
       }
       .mob-drawer__title {
         font-family: var(--font-serif);
-        font-weight: 900;
+        font-weight: 800;
         font-size: var(--fs-md);
         letter-spacing: 0.05em;
         color: var(--ink);
@@ -579,7 +682,7 @@ const navIsActive = (navHref: string) => {
         min-width: 44px;
         min-height: 44px;
         opacity: 0.7;
-        transition: opacity 160ms;
+        transition: opacity var(--dur-micro);
       }
       .mob-drawer__close:hover {
         opacity: 1;
@@ -599,7 +702,7 @@ const navIsActive = (navHref: string) => {
         gap: 8px;
         padding: 16px 20px;
         color: var(--ink);
-        transition: background 160ms var(--ease-out);
+        transition: background var(--dur-micro) var(--ease-out);
       }
       .mob-drawer__link:hover {
         background: var(--wash-ink);
@@ -616,21 +719,28 @@ const navIsActive = (navHref: string) => {
         .mainnav__item--about {
           display: flex;
         }
+        /* 桌機不顯示 ⋮：抽屜裡的聯絡、Sitemap、隱私權都在頁尾 */
+        .mob-btn {
+          display: none;
+        }
+        .runhead__actions {
+          display: none;
+        }
       }
       @media (max-width: 860px) {
         .nameplate {
-          padding: 16px var(--gutter) 14px;
-          gap: 6px;
+          padding: 16px var(--gutter) 16px;
+          gap: 8px;
         }
         .nameplate__logo-sub {
           font-size: var(--fs-xs);
-          letter-spacing: 0.2em;
+          letter-spacing: 0.02em;
         }
         .mainnav__list {
           justify-content: flex-start;
           overflow-x: auto;
           flex-wrap: nowrap;
-          gap: 0 18px;
+          gap: 0 20px;
           scrollbar-width: none;
         }
         .mainnav__list::-webkit-scrollbar {
@@ -641,6 +751,28 @@ const navIsActive = (navHref: string) => {
         }
         .mainnav__item {
           flex: 0 0 auto;
+        }
+        /* 內頁小欄頭在手機：站名 + ⋮ 一列，主選單橫向捲動一列 */
+        .runhead {
+          grid-template-columns: minmax(0, 1fr) auto;
+          grid-template-areas:
+            'logo actions'
+            'nav nav';
+          padding-block: 8px 0;
+        }
+        .runhead__logo {
+          grid-area: logo;
+          font-size: var(--fs-md);
+        }
+        .runhead__actions {
+          grid-area: actions;
+        }
+        .runhead__nav {
+          grid-area: nav;
+          min-width: 0;
+        }
+        .runhead__nav .mainnav__list {
+          justify-content: flex-start;
         }
         .footer__inner {
           grid-template-columns: 1fr;

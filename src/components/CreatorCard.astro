@@ -117,7 +117,7 @@ const url = routes.creator(creator.slug);
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    gap: 4px 10px;
+    gap: 4px 12px;
   }
 
   .ccard__name {
@@ -127,7 +127,7 @@ const url = routes.creator(creator.slug);
     line-height: 1.35;
     letter-spacing: 0.02em;
     color: var(--ink);
-    transition: color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out);
   }
   .ccard:hover .ccard__name {
     color: var(--accent);
@@ -138,7 +138,7 @@ const url = routes.creator(creator.slug);
     display: block;
     margin: 4px 0 0;
     font-family: var(--font-caps);
-    font-weight: 500;
+    font-weight: 400;
     font-size: var(--fs-xs);
     letter-spacing: 0.02em;
     color: var(--muted);
@@ -169,7 +169,7 @@ const url = routes.creator(creator.slug);
   .ccard--row .ccard__body {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
   }
   .ccard--row .ccard__chips {
@@ -227,7 +227,7 @@ const url = routes.creator(creator.slug);
     .ccard--row {
       grid-template-columns: 56px 1fr;
       gap: 12px;
-      padding: 14px 0;
+      padding: 16px 0;
     }
     .ccard--row .ccard__count {
       grid-column: 2;

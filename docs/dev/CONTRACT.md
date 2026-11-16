@@ -35,7 +35,7 @@
 5. **BaseLayout 的 `title` 給 h1 文案、`seoTitle` 給 `<title>`/og**（雙標題制）；`description` 必填（≤ 160 字）。
 6. **圖像濾鏡分區**只用 global.css 的 `.frame--portrait / --work / --post / --event`（或 `var(--filter-*)` token）：
    創作者肖像 grayscale(0.35)、**作品縮圖全彩**、文章封面全彩（2026-11-15 起；暗色圖卡去色後會像空框）、活動封面全彩。
-7. **視覺紀律**：零圓角（≤2px）、1px 框線、硬陰影 `3px 3px 0`、明朝體標題、accent 每 viewport ≤ 3 處、中英之間半形空格、中文全形標點（中文之間不留空格，含模板插值 `{name}的作品`）。列舉用頓號「、」，句中停頓用逗號；年份、類型、片長這類資訊列用全形空格「　」分隔，不用中黑點串接（Hallmark 63）。標籤一律不加字距（≤ 0.02em）、不轉大寫（Hallmark 67）；連結文字不加「→」「←」，用動詞當標籤（「看全部作品」）；外連的「↗」可保留。
+7. **視覺紀律**：零圓角（≤2px）、1px 框線、不用陰影（2026-11-16 restyle 起，按鈕與卡片都是平面，回饋只換顏色或外框）、明朝體標題、字重只用 400 / 700 / 800、間距一律用 4 的倍數（4、8、12、16…）、字級角色用 token（首頁頭條 `--text-display`、內頁 h1 `--text-display-s`、段落 h2 `--text-section`）、accent 每 viewport ≤ 3 處、中英之間半形空格、中文全形標點（中文之間不留空格，含模板插值 `{name}的作品`）。列舉用頓號「、」，句中停頓用逗號；年份、類型、片長這類資訊列用全形空格「　」分隔，不用中黑點串接（Hallmark 63）。標籤一律不加字距（≤ 0.02em）、不轉大寫（Hallmark 67）；連結文字不加「→」「←」，用動詞當標籤（「看全部作品」）；外連的「↗」可保留。
 8. **圖片一律用 `<Image>`（astro:assets）**，指定 `width/height/widths/sizes`，`alt` 用 frontmatter 的 alt 欄位；首屏大圖 `loading="eager" fetchpriority="high"`，其餘 `lazy`。
 9. **Scoped `<style>` 只寫該頁／該元件獨有的樣式**；頁首、麵包屑、chips、資料格網、表格、按鈕、空狀態等**直接用 global.css 的 class**（§2），不要重複定義同名 class。
 10. **a11y**：語意標籤、`aria-label`、`aria-current="page"`、鍵盤可操作、`:focus-visible` 已在 global；互動元件的 `<script>` 用 Astro 的 `<script>`（TypeScript）而非 `is:inline`，除非需要 `define:vars`。
@@ -45,9 +45,10 @@
 ## 2. global.css 共用 class 速查
 
 - 版面：`.container`、`.page`（padding）、`.page-inner`（max 880）、`.page-inner--wide`（max 1240）
-- 頁首：`.page-head` > `.rule-double` + `.page-title`(h1) + `.page-lead` + `.page-meta`；`.page-eyebrow` 只在標題前真有一項事實時才用（例：工具頁的工具分類），不放「英文・中文」頁名
+- 報頭：首頁用大報頭（nameplate + 主選單），內頁用單行小欄頭（`.runhead`：站名左、主選單右，下方一條細罫線），由 BaseLayout 依網址自動切換，頁面不用處理
+- 頁首：`.page-head` > `.rule-double` + `.page-title`(h1，`--text-display-s`) + `.page-lead` + `.page-meta`；`.page-eyebrow` 只在標題前真有一項事實時才用（例：工具頁的工具分類），不放「英文・中文」頁名
 - 罫線：`.rule-double`、`.rule-hair`、`.rule-soft`、`.rule-dash`
-- 區塊欄名：`.section-head` > `<h2 class="section-eyebrow">`（只寫中文，如 `最新作品`；class 名沿用舊稱，樣式已是明朝標題；**一律用 h2**，讓卡片內的 h3 不跳級）+ `.section-all`（`看全部作品`）
+- 區塊欄名：`.section-head` > `<h2 class="section-eyebrow">`（`--text-section`，1440 寬約 43px；段落之間用 `--section-gap-s` / `--section-gap`；只寫中文，如 `最新作品`；class 名沿用舊稱，樣式已是明朝標題；**一律用 h2**，讓卡片內的 h3 不跳級）+ `.section-all`（`看全部作品`）
 - 麵包屑：`<nav class="crumbs" aria-label="麵包屑"><a href=..>首頁</a><span aria-hidden="true">／</span>…<span aria-current="page">…</span></nav>`
 - 圖鑑語彙：`.chop`（`<span class="chop">收錄 <span class="chop__no">No.007</span></span>`）、`.no`（等寬編號）、`.listed-chip` / `.date-chip`、`.tag`、`.byline`
 - chips：`<ul class="chips"><li><a class="chip" href=..>Runway</a></li><li><span class="chip chip--plain">Pika</span></li></ul>`；`.chip--accent`

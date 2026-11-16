@@ -1,7 +1,11 @@
-/* Hallmark · checked: 2026-11-15 · genre: editorial (inferred)
- * floor: 110 to 8 in sloplint · open: 44b, 44d (the hero fold, structural) · tool misses: 34 static (frontmatter import), 73 x3 (clamped lines) · fixed: 15, 19, 34, 39a, 48, 50, 54, 63, 67 · reflex: 162 to 0 · structural printed: 44b, 44c, 44d, 58, 59, 77, 78, 79
- * finish-review: subagent · 5 findings · 5 resolved · gap: section-head wording left as written
- * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · shape: kept · genre: editorial · theme: brand · redesign: restyle · hero: kept, the lead still shown whole on a screen band sized to the viewport · nav: running head on inner pages, the nameplate kept on / · footer: kept · signature: kept, the film still, projected the same way on / and /work/*
+ * paper: oklch(20.8% 0.009 59) · accent: oklch(74.2% 0.092 269) · display: Shippori Mincho · body: Noto Sans TC · axes: dark/roman-serif/cool · posture: Restrained · contrast: pass · fold: inner pages pass; / open (44b judged: the synopsis and 觀看作品 fall below 800; 44d: the lead runs to 1296 at 1080), settled only by the full redesign · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, a restyle keeps the layout, so the running head and the projected lead are the only structural moves */
+/* Hallmark · sweep: floor 7 to 4 (open: 44d on /; tool misses: 34 static, the frontmatter import; 73 x2, the clamped third line) · reflex 134 to 0, 83 waived · kept: links 194/194, fields 3/3, headings 92/92, figures 81/81
+ * finish-review: subagent · fix · 8 findings · 8 resolved · gap: the layout list (thin 近期活動 and 關於圖鑑 on /, 過往活動 on /events/, the empty right 40% beside the prose on /creator/* and /work/*) waits for the full redesign */
+/* Hallmark · waive 83 · a gallery of the listed films, each still linking to its own work page · the works page is the catalogue of the listed films, so the stills are the content it exists to show */
+/* Hallmark · answered F20 · the last-row counts come from the data (a creator with four works, a page of more-list results) and change as works are listed */
+/* Hallmark · answered F25 · restacking the /creators/ table into blocks on a phone is a layout change, left for the full redesign */
 /* Hallmark · dismissed 73 · the covered text is the hidden third line of a two-line clamped excerpt, measured below the excerpt box on the post and event cards */
 /* Hallmark · dismissed 3 · the 3px rule marks a blockquote inside article prose, not a card */
 /* Hallmark · reworded 12 section heads from "English・中文" to the Chinese half, e.g. "New・最新收錄" to "最新收錄" · 54 and 67 name the bilingual eyebrow */
@@ -9,40 +13,42 @@
 
 /* ──────────────────────────────────────────────────────────────
    台灣AI影視創作者圖鑑 — design tokens
-   繼承 JP¥ ONLINE 的報紙骨架（細罫線 + 明朝體 + 零圓角 + 硬陰影），
-   色彩層走「片基褐」：膠卷片基與暗房安全燈的暖調深色，
-   讓全彩劇照掛在深底上最跳，識別色改用靛藍亮版。
+   報紙骨架（雙罫線 + 明朝體 + 零圓角），色彩層走「片基褐」：
+   膠卷片基與暗房安全燈的暖調深色，讓全彩劇照掛在深底上最跳，識別色用靛藍亮版。
+   2026-11-16 restyle：色值改寫成 OKLCH（數值與原 hex 相同），補上字級角色、
+   字重收成三級（400 / 700 / 800）、動態時長與層級 token；按鈕拿掉硬陰影。
    ────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Palette ─ 片基褐 Film Base（暖調深色；括號內為 L* 與對 --paper 的對比） */
-  --paper: #1b1714;          /* 片基褐（主背景）L* 8.1 */
-  --paper-alt: #120f0d;      /* 次層／凹陷（表格 hover、chip 底）L* 4.5 */
-  --paper-raised: #241e18;   /* 卡片／浮起（取代舊的純白卡底）L* 11.8 */
-  --ink: #ece6dd;            /* 暖白（主文字 / 標題）14.36:1 */
-  --ink-soft: #c7bfb3;       /* 次級文字 9.78:1 */
-  --muted: #9a9188;          /* caption / byline 5.75:1，AA */
-  --rule: #efe9e0;           /* 分隔線（深底上罫線反轉成亮線） */
-  --rule-soft: #3e352c;      /* 次級分隔線（暖褐） */
-  --shadow: #52463a;         /* 硬陰影 3px 3px 0：深底上不能再用 ink，會過亮 */
+  /* Palette ─ 片基褐 Film Base（括號內為原 hex 與對 --paper 的對比） */
+  --paper: oklch(20.8% 0.009 59);          /* #1b1714 片基褐（主背景） */
+  --paper-alt: oklch(17.1% 0.007 56);      /* #120f0d 次層／凹陷（表格 hover、chip 底、放映幕） */
+  --paper-raised: oklch(24% 0.014 67);     /* #241e18 卡片／浮起 */
+  --ink: oklch(92.7% 0.014 78);            /* #ece6dd 暖白（主文字 / 標題）14.36:1 */
+  --ink-soft: oklch(80.8% 0.019 78);       /* #c7bfb3 次級文字 9.78:1 */
+  --muted: oklch(66.2% 0.017 68);          /* #9a9188 caption / byline 5.75:1，AA */
+  --rule: oklch(93.6% 0.014 78);           /* #efe9e0 分隔線（深底上罫線反轉成亮線） */
+  --rule-soft: oklch(33.6% 0.02 67);       /* #3e352c 次級分隔線（暖褐） */
+  --rule-strong: oklch(40.3% 0.025 67);    /* #52463a 控制項外框（原硬陰影色，改當框線用） */
 
   /* ★ 本站識別色：靛藍亮版（cyanotype indigo, lifted）
-     在 --paper #1B1714 上對比 7.7:1；藍晒是數位之前保存影像的工藝，
+     在 --paper 上對比 7.7:1；藍晒是數位之前保存影像的工藝，
      壓在片基褐上就是藍晒印在深褐相紙。每 viewport 出現 ≤ 3 處（不含連結）。 */
-  --accent: #94a9e6;
-  --accent-ink: #5168b4;     /* 深版：框線 / 陰影（對底 3.4:1） */
-  --accent-lift: #b7c5ef;    /* 亮版：hover（深底上 hover 要更亮，不是更深） */
-  --link: #94a9e6;           /* 連結色：從 accent 獨立出來，不佔「≤ 3 處」額度 */
-  --accent-wash: rgba(148, 169, 230, 0.10);  /* 極淡底色（表格斑馬紋、強調底） */
+  --accent: oklch(74.2% 0.092 269);        /* #94a9e6 */
+  --accent-ink: oklch(53.6% 0.122 269);    /* #5168b4 深版：主按鈕框線（對底 3.4:1） */
+  --accent-lift: oklch(82.7% 0.061 271);   /* #b7c5ef 亮版：hover（深底上 hover 要更亮，不是更深） */
+  --accent-text: var(--paper-raised);      /* 壓在 accent 底上的字 */
+  --link: var(--accent);                   /* 連結色：從 accent 獨立出來，不佔「≤ 3 處」額度 */
+  --accent-wash: oklch(74.2% 0.092 269 / 0.1);  /* 極淡底色（表格斑馬紋、強調底） */
 
-  /* 深底上的半透明層（取代散落各處的 rgba 純黑白字面值） */
-  --grain: rgba(236, 230, 221, 0.018);       /* body 片基顆粒 */
-  --scrim: rgba(18, 15, 13, 0.62);           /* 手機抽屜背後的遮罩（取 --paper-alt 色相） */
-  --line-faint: rgba(236, 230, 221, 0.12);   /* 抽屜內的分隔線 */
-  --line-ghost: rgba(236, 230, 221, 0.08);   /* 抽屜項目之間的細線 */
-  --wash-ink: rgba(236, 230, 221, 0.07);     /* 抽屜項目 hover 底 */
+  /* 深底上的半透明層 */
+  --grain: oklch(92.7% 0.014 78 / 0.018);  /* body 片基顆粒 */
+  --scrim: oklch(17.1% 0.007 56 / 0.62);   /* 手機抽屜背後的遮罩 */
+  --line-faint: oklch(92.7% 0.014 78 / 0.12);   /* 抽屜內的分隔線 */
+  --line-ghost: oklch(92.7% 0.014 78 / 0.08);   /* 抽屜項目之間的細線 */
+  --wash-ink: oklch(92.7% 0.014 78 / 0.07);     /* 抽屜項目 hover 底 */
 
-  /* Typography */
+  /* Typography：明朝體負責標題與內文，黑體負責介面字；字重只用 400 / 700 / 800 */
   --font-serif:
     'Shippori Mincho', 'Noto Serif TC', 'Noto Serif JP', 'Songti TC',
     'SimSun', Georgia, 'Times New Roman', serif;
@@ -53,7 +59,7 @@
     'Shippori Mincho', 'Noto Serif TC', Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Type scale（9 級） */
+  /* Type scale（9 級，元件內的小字仍用這組） */
   --fs-xs: 0.75rem;
   --fs-sm: 0.875rem;
   --fs-base: 1rem;
@@ -64,11 +70,21 @@
   --fs-3xl: 3rem;
   --fs-hero: 3.75rem;
 
+  /* 字級角色：首頁頭條 > 內頁 h1 > 段落標題（1440 寬約 69 / 60 / 43px） */
+  --text-display: clamp(2.5rem, 3.4vw + 1.25rem, 4.5rem);
+  --text-display-s: clamp(2.25rem, 2.8vw + 1.25rem, 3.75rem);
+  --text-section: clamp(1.75rem, 1.6vw + 1.25rem, 2.75rem);
+  --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem);
+  --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+
   /* Layout */
   --container-max: 1240px;
   --gutter: 24px;
   --rule-width: 1px;
   --rule-thick: 3px;
+  /* 段落間距：大段落 144、一般 120（1440 寬）；手機收到 64–72 */
+  --section-gap-s: clamp(64px, 6vw + 40px, 120px);
+  --section-gap: clamp(72px, 7vw + 48px, 144px);
 
   /* 圖像濾鏡分區（§5-2）：只在這裡定義，各元件引用 token */
   --filter-portrait: grayscale(0.35);          /* 創作者肖像：輕度 */
@@ -78,6 +94,17 @@
 
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;    /* 按壓、顏色 */
+  --dur-short: 220ms;    /* hover、選單 */
+  --dur-long: 420ms;     /* 抽屜、展開 */
+
+  /* Layers */
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 400;
 }
 
 @media (max-width: 640px) {
@@ -97,6 +124,7 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
   overflow-x: clip;
+  font-synthesis: none;          /* 只載入 400 / 700 / 800，不讓瀏覽器假粗體、假斜體 */
   scrollbar-color: var(--rule-soft) var(--paper);
   caret-color: var(--accent);
 }
@@ -135,7 +163,7 @@ img {
 a {
   color: inherit;
   text-decoration: none;
-  transition: color 160ms var(--ease-out);
+  transition: color var(--dur-micro) var(--ease-out);
 }
 
 a:hover {
@@ -157,6 +185,12 @@ h1, h2, h3, h4, h5 {
   overflow-wrap: break-word;
   min-width: 0;
   text-wrap: balance;
+}
+
+/* 大標不拉字距：中文明朝在大字級下字距 0 最緊實 */
+h1, h2 {
+  letter-spacing: 0;
+  line-height: 1.15;
 }
 
 p {
@@ -232,9 +266,9 @@ ul, ol {
 .section-eyebrow {
   font-family: var(--font-serif);
   font-weight: 700;
-  font-size: var(--fs-xl);
-  line-height: 1.25;
-  letter-spacing: 0.02em;
+  font-size: var(--text-section);
+  line-height: 1.15;
+  letter-spacing: 0;
   color: var(--ink);
 }
 
@@ -245,7 +279,7 @@ ul, ol {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .section-all {
@@ -254,7 +288,7 @@ ul, ol {
   letter-spacing: 0.02em;
   color: var(--ink-soft);
   white-space: nowrap;
-  transition: color 160ms var(--ease-out);
+  transition: color var(--dur-micro) var(--ease-out);
 }
 
 .section-all:hover {
@@ -263,7 +297,7 @@ ul, ol {
 
 /* ── 靜態頁共用頁首（about / contact / privacy / 列表頁） ─────── */
 .page {
-  padding: 48px var(--gutter) 80px;
+  padding: 32px var(--gutter) 80px;
 }
 
 .page-inner {
@@ -272,7 +306,7 @@ ul, ol {
 }
 
 .page-inner--wide {
-  max-width: var(--container-max);
+  max-width: calc(var(--container-max) - 2 * var(--gutter));   /* 與 .container 的內容寬一致，左緣對齊報頭與頁尾 */
 }
 
 /* 只在標題前真有一項事實時才用（例：工具頁的工具分類）；不再放「英文・中文」頁名 */
@@ -291,9 +325,9 @@ ul, ol {
 .page-title {
   font-family: var(--font-serif);
   font-weight: 800;
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  line-height: 1.25;
-  letter-spacing: 0.01em;
+  font-size: var(--text-display-s);
+  line-height: 1.15;
+  letter-spacing: 0;
   color: var(--ink);
   margin: 0 0 16px;
 }
@@ -320,7 +354,7 @@ ul, ol {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-family: var(--font-caps);
   font-size: var(--fs-xs);
   letter-spacing: 0.02em;
@@ -355,8 +389,8 @@ ul, ol {
 .chop {
   display: inline-flex;
   align-items: baseline;
-  gap: 6px;
-  padding: 5px 9px 4px;
+  gap: 8px;
+  padding: 4px 8px 4px;
   border: 2px solid var(--accent);
   color: var(--accent);
   font-family: var(--font-serif);
@@ -416,7 +450,7 @@ ul, ol {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -424,10 +458,10 @@ ul, ol {
 
 .chip {
   display: inline-block;
-  padding: 3px 9px;
+  padding: 4px 8px;
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
   line-height: 1.5;
   color: var(--ink-soft);
   background: var(--paper-alt);
@@ -435,7 +469,7 @@ ul, ol {
   border-radius: 0;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out), background 150ms var(--ease-out);
+  transition: color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), background var(--dur-micro) var(--ease-out);
 }
 
 a.chip:hover,
@@ -451,7 +485,7 @@ button.chip {
   display: inline-flex;
   align-items: center;
   min-height: 44px;              /* 觸控目標 ≥ 44px */
-  padding: 8px 14px;
+  padding: 8px 16px;
 }
 
 button.chip:active {
@@ -479,7 +513,7 @@ button.chip[aria-pressed='true'] {
 /* kind badge（活動類型：比賽 / 工作坊 / 放映 / 講座 / 展覽；作品類型也可用） */
 .badge {
   display: inline-block;
-  padding: 4px 8px 3px;
+  padding: 4px 8px 4px;
   font-family: var(--font-caps);
   font-size: var(--fs-xs);
   letter-spacing: 0.02em;
@@ -510,8 +544,8 @@ button.chip[aria-pressed='true'] {
 .data-grid__cell {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px 12px 0;
+  gap: 8px;
+  padding: 12px 16px 12px 0;
   border-bottom: 1px dashed var(--rule-soft);
   min-width: 0;
 }
@@ -546,7 +580,7 @@ button.chip[aria-pressed='true'] {
 
 .table thead th {
   text-align: left;
-  padding: 10px 12px;
+  padding: 12px 12px;
   font-family: var(--font-caps);
   font-size: var(--fs-xs);
   letter-spacing: 0.02em;
@@ -616,7 +650,7 @@ button.chip[aria-pressed='true'] {
 .frame--post img {
   aspect-ratio: 16 / 9;
   filter: var(--filter-post);
-  transition: filter 400ms var(--ease-out);
+  transition: filter var(--dur-long) var(--ease-out);
 }
 
 a:hover .frame--post img {
@@ -628,62 +662,73 @@ a:hover .frame--post img {
   filter: var(--filter-event);
 }
 
-/* ── 按鈕（硬陰影 3px 3px 0，零圓角） ─────────────────────────── */
+/* ── 按鈕（零圓角、平面；回饋只有一個訊號：顏色或外框變亮） ─────
+   .btn--accent 是唯一的實心主按鈕（每頁最多一顆）；.btn 是外框次按鈕；.btn--ghost 是最輕的文字型 */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   min-height: 44px;
-  padding: 10px 18px;
+  padding: 8px 20px;
   white-space: nowrap;
   background: var(--paper-raised);
   color: var(--ink);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--ink-soft);
   border-radius: 0;
-  box-shadow: 3px 3px 0 var(--shadow);
   font-family: var(--font-serif);
   font-weight: 700;
   font-size: var(--fs-sm);
   letter-spacing: 0.02em;
   text-decoration: none;
-  transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out), background 140ms var(--ease-out);
+  transition: color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out),
+    background-color var(--dur-micro) var(--ease-out);
 }
 
 .btn:hover {
   color: var(--ink);
-  background: var(--paper);
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 var(--shadow);
+  border-color: var(--ink);
+  background: var(--paper-alt);
 }
 
 .btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--shadow);
+  background: var(--paper);
+  border-color: var(--ink-soft);
 }
 
 .btn--accent {
   background: var(--accent);
-  color: var(--paper-raised);
-  border-color: var(--accent-ink);
-  box-shadow: 3px 3px 0 var(--accent-ink);
+  color: var(--accent-text);
+  border-color: var(--accent);
 }
 
 .btn--accent:hover {
-  color: var(--paper);
+  color: var(--accent-text);
   background: var(--accent-lift);
-  box-shadow: 4px 4px 0 var(--accent-ink);
+  border-color: var(--accent-lift);
+}
+
+.btn--accent:active {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent-ink);
 }
 
 .btn--ghost {
   background: transparent;
-  box-shadow: none;
+  border-color: var(--rule-strong);
 }
 
 .btn--ghost:hover {
-  transform: none;
-  box-shadow: none;
   color: var(--accent);
   border-color: var(--accent);
+  background: transparent;
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* 下拉選單（篩選 / 排序） */
@@ -697,11 +742,12 @@ a:hover .frame--post img {
   background-position: right 12px center;
   border: 1px solid var(--rule);
   border-radius: 0;
-  padding: 8px 38px 8px 14px;
+  min-height: 44px;
+  padding: 8px 40px 8px 16px;
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
-  transition: border-color 160ms var(--ease-out);
+  transition: border-color var(--dur-micro) var(--ease-out);
 }
 
 .select:hover {
@@ -769,12 +815,12 @@ a:hover .frame--post img {
 
 .prose h2 {
   font-family: var(--font-serif);
-  font-weight: 900;
+  font-weight: 800;
   font-size: var(--fs-2xl);
-  line-height: 1.35;
-  letter-spacing: 0.04em;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
   margin: 48px 0 20px;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
   border-bottom: 2px solid var(--ink);
 }
 
@@ -784,29 +830,29 @@ a:hover .frame--post img {
   font-size: var(--fs-xl);
   line-height: 1.4;
   letter-spacing: 0.02em;
-  margin: 36px 0 14px;
+  margin: 36px 0 16px;
   color: var(--ink);
 }
 
 .prose h3::before {
   content: '◆';
   color: var(--accent);
-  margin-right: 10px;
+  margin-right: 12px;
   font-size: 0.8em;
   vertical-align: 0.1em;
 }
 
 .prose h4 {
   font-size: var(--fs-lg);
-  margin: 28px 0 10px;
+  margin: 28px 0 12px;
 }
 
 .prose p {
-  margin: 0 0 22px;
+  margin: 0 0 24px;
 }
 
 .prose strong {
-  font-weight: 900;
+  font-weight: 700;
   color: var(--ink);
   background: linear-gradient(transparent 65%, var(--accent-wash) 65%);
   padding: 0 2px;
@@ -840,7 +886,7 @@ a:hover .frame--post img {
 }
 
 .prose li {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   line-height: 1.95;
 }
 
@@ -849,7 +895,6 @@ a:hover .frame--post img {
   padding: 12px 20px;
   border-left: 3px solid var(--accent);
   color: var(--ink-soft);
-  font-style: italic;
 }
 
 .prose blockquote p:last-child {
@@ -870,7 +915,7 @@ a:hover .frame--post img {
   font-family: var(--font-mono);
   font-size: 0.9em;
   background: var(--paper-alt);
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 2px;
 }
 
@@ -918,7 +963,7 @@ a:hover .frame--post img {
   width: max-content;
   max-width: none;
   border-collapse: collapse;
-  margin: 26px 0 30px;
+  margin: 28px 0 32px;
   font-size: 0.9em;
   line-height: 1.6;
   letter-spacing: 0.01em;
@@ -928,13 +973,13 @@ a:hover .frame--post img {
 .prose thead th {
   background: var(--paper-alt);
   border-bottom: 2px solid var(--ink);
-  font-weight: 900;
+  font-weight: 800;
   color: var(--ink);
 }
 
 .prose th,
 .prose td {
-  padding: 9px 14px;
+  padding: 8px 16px;
   text-align: center;
   white-space: nowrap;
   border-bottom: 1px solid var(--rule-soft);
@@ -971,16 +1016,16 @@ a:hover .frame--post img {
 
   .prose h2 {
     font-size: 1.375rem;
-    margin: 28px 0 14px;
+    margin: 28px 0 16px;
   }
 
   .prose h3 {
     font-size: 1.125rem;
-    margin: 20px 0 10px;
+    margin: 20px 0 12px;
   }
 
   .prose p {
-    margin: 0 0 14px;
+    margin: 0 0 16px;
   }
 
   .prose ol,
@@ -989,13 +1034,13 @@ a:hover .frame--post img {
   }
 
   .prose li {
-    margin-bottom: 7px;
+    margin-bottom: 8px;
     line-height: 1.7;
   }
 
   .prose th,
   .prose td {
-    padding: 7px 10px;
+    padding: 8px 12px;
     font-size: 0.92em;
   }
 

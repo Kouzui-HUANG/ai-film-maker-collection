@@ -346,13 +346,13 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    gap: 6px 14px;
+    gap: 8px 16px;
     margin: 0 0 12px;
     scroll-margin-top: 24px;
   }
 
   .block__cn {
-    font-weight: 900;
+    font-weight: 800;
     font-size: var(--fs-xl);
     letter-spacing: 0.02em;
     color: var(--ink);
@@ -415,9 +415,9 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     grid-template-rows: auto auto;
     align-items: baseline;
     gap: 4px 12px;
-    padding: 14px 4px;
+    padding: 16px 4px;
     color: var(--ink);
-    transition: background 160ms var(--ease-out);
+    transition: background var(--dur-micro) var(--ease-out);
   }
 
   .link-list__link:hover {
@@ -477,10 +477,10 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     display: grid;
     grid-template-columns: 148px minmax(0, 1fr);
     align-items: baseline;
-    gap: 14px;
+    gap: 16px;
     padding: 12px 4px;
     color: var(--ink-soft);
-    transition: background 160ms var(--ease-out);
+    transition: background var(--dur-micro) var(--ease-out);
   }
 
   .row-list__link:hover {
@@ -567,7 +567,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     .row-list__link {
       grid-template-columns: 1fr;
       gap: 4px;
-      padding: 10px 4px;
+      padding: 12px 4px;
     }
 
     .row-list__title {

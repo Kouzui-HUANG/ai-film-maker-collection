@@ -251,7 +251,7 @@ const breadcrumbs = [
                     data-ga-location="creator_head"
                     aria-label={`${name}的 ${s.label}（另開新視窗）`}
                   >
-                    {s.label}<span class="profile__social-arrow" aria-hidden="true">↗</span>
+                    {s.label}
                   </a>
                 </li>
               ))}
@@ -444,7 +444,6 @@ const breadcrumbs = [
   }
   .profile__portrait {
     width: 100%;
-    box-shadow: 3px 3px 0 var(--shadow);
   }
   .profile__chop {
     position: absolute;
@@ -457,22 +456,22 @@ const breadcrumbs = [
   .profile__body {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     min-width: 0;
   }
   .profile__name {
     font-family: var(--font-serif);
-    font-weight: 900;
-    font-size: clamp(2rem, 4.4vw, 2.75rem);
-    line-height: 1.2;
-    letter-spacing: 0.02em;
+    font-weight: 800;
+    font-size: var(--text-display-s);
+    line-height: 1.15;
+    letter-spacing: 0;
     color: var(--ink);
   }
   .profile__name-en {
     display: block;
     margin-top: 8px;
     font-family: var(--font-caps);
-    font-weight: 500;
+    font-weight: 400;
     font-size: var(--fs-sm);
     letter-spacing: 0.02em;
     color: var(--muted);
@@ -490,13 +489,13 @@ const breadcrumbs = [
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 6px;
+    margin-top: 8px;
   }
   .profile__social-link {
     display: inline-flex;
     align-items: baseline;
     gap: 4px;
-    padding: 9px 12px;
+    padding: 8px 12px;
     min-height: 36px;
     border: 1px solid var(--ink);
     background: var(--paper-raised);
@@ -504,14 +503,11 @@ const breadcrumbs = [
     font-size: var(--fs-xs);
     letter-spacing: 0.02em;
     color: var(--ink);
-    transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+    transition: background var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
   }
   .profile__social-link:hover {
     background: var(--ink);
     color: var(--paper);
-  }
-  .profile__social-arrow {
-    font-size: 0.85em;
   }
   /* 信箱印的是位址本身：字距收窄好讀，太長時可斷行、不撐破手機版寬 */
   .profile__social-link--mail {
@@ -522,9 +518,9 @@ const breadcrumbs = [
 
   /* 資料格網：本頁只調欄數與外距 */
   .profile__grid {
-    margin-top: 10px;
+    margin-top: 12px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    column-gap: 14px;
+    column-gap: 16px;
   }
   .data-grid__cell--wide {
     grid-column: span 2;
@@ -540,7 +536,7 @@ const breadcrumbs = [
 
   /* ── 區塊共用 ────────────────────────────────────── */
   .sec {
-    margin-top: 56px;
+    margin-top: var(--section-gap-s);
   }
   /* 簡介內的小標要低於「簡介」欄名一級（全站 .prose h2 是 36px，給長文用） */
   .profile__prose :global(h2) {
@@ -552,7 +548,7 @@ const breadcrumbs = [
   }
 
   .sec--bio {
-    margin-top: 48px;
+    margin-top: var(--section-gap);
   }
   .sec .rule-hair {
     margin-bottom: 20px;
@@ -579,14 +575,15 @@ const breadcrumbs = [
   .wk__link {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     color: inherit;
   }
-  .wk__figure :global(img) {
-    transition: transform 500ms var(--ease-out);
+  /* 回饋放在外框，不放大圖片 */
+  .wk__figure {
+    transition: border-color var(--dur-micro) var(--ease-out);
   }
-  .wk__link:hover .wk__figure :global(img) {
-    transform: scale(1.03);
+  .wk__link:hover .wk__figure {
+    border-color: var(--accent);
   }
   .wk__body {
     display: flex;
@@ -599,7 +596,7 @@ const breadcrumbs = [
     font-size: var(--fs-md);
     line-height: 1.4;
     color: var(--ink);
-    transition: color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out);
   }
   .wk__link:hover .wk__title {
     color: var(--accent);
@@ -645,10 +642,10 @@ const breadcrumbs = [
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 14px;
-    padding: 13px 4px;
+    gap: 16px;
+    padding: 12px 4px;
     color: var(--ink);
-    transition: background 160ms var(--ease-out);
+    transition: background var(--dur-micro) var(--ease-out);
   }
   .plist__link:hover {
     background: var(--paper-alt);
@@ -658,7 +655,7 @@ const breadcrumbs = [
     font-family: var(--font-serif);
     font-size: var(--fs-base);
     line-height: 1.55;
-    transition: color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out);
   }
   .plist__link:hover .plist__title {
     color: var(--accent);
@@ -666,7 +663,7 @@ const breadcrumbs = [
 
   /* ── 頁尾 ───────────────────────────────────────── */
   .profile-foot {
-    margin-top: 56px;
+    margin-top: var(--section-gap-s);
   }
   .pager {
     display: grid;
@@ -677,12 +674,12 @@ const breadcrumbs = [
   .pager__link {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 14px 16px;
+    gap: 8px;
+    padding: 16px 16px;
     border: 1px solid var(--rule);
     background: var(--paper-raised);
     color: var(--ink);
-    transition: background 160ms var(--ease-out);
+    transition: background var(--dur-micro) var(--ease-out);
   }
   a.pager__link:hover {
     background: var(--paper-alt);
@@ -751,7 +748,7 @@ const breadcrumbs = [
       grid-column: span 2;
     }
     .sec {
-      margin-top: 40px;
+      margin-top: var(--section-gap-s);
     }
     .wk-grid {
       grid-template-columns: 1fr;
@@ -759,7 +756,7 @@ const breadcrumbs = [
     }
     .plist__link {
       grid-template-columns: auto 1fr;
-      row-gap: 6px;
+      row-gap: 8px;
     }
     .plist__date {
       grid-column: 1 / -1;

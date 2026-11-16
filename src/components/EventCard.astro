@@ -86,21 +86,19 @@ const shortDate = startDate.slice(5).replace('-', '.');
       </figure>
 
       <div class="ecard__body">
-        <div class="ecard__meta">
-          <span class="badge">{kindLabel}</span>
-          {t.status === 'ongoing' && <span class="badge badge--outline">進行中</span>}
-          <span class:list={['listed-chip', 'ecard__status', `ecard__status--${t.status}`]}>{rowStatus}</span>
-        </div>
-
         <h3 class="ecard__title">{title}</h3>
 
         <p class="ecard__facts">
-          <time datetime={startDate}>{range}</time>
-          <span class="ecard__sep" aria-hidden="true">│</span>
-          <span>{place}</span>
-          <span class="ecard__sep" aria-hidden="true">│</span>
-          <span>{organizer}</span>
+          <span class="ecard__fact ecard__kind-text">{kindLabel}</span>
+          <time class="ecard__fact" datetime={startDate}>{range}</time>
+          <span class="ecard__fact">{place}</span>
+          <span class="ecard__fact">{organizer}</span>
         </p>
+
+        <div class="ecard__meta">
+          {t.status === 'ongoing' && <span class="badge badge--outline">進行中</span>}
+          <span class:list={['listed-chip', 'ecard__status', `ecard__status--${t.status}`]}>{rowStatus}</span>
+        </div>
 
         {deadlineText && (
           <p class:list={['ecard__deadline', t.deadlinePassed && 'ecard__deadline--passed']}>{deadlineText}</p>
@@ -143,7 +141,7 @@ const shortDate = startDate.slice(5).replace('-', '.');
     min-width: 0;
   }
   .ecard__figure {
-    transition: border-color 160ms var(--ease-out);
+    transition: border-color var(--dur-micro) var(--ease-out);
   }
   .ecard__link:hover .ecard__figure {
     border-color: var(--accent);
@@ -162,8 +160,8 @@ const shortDate = startDate.slice(5).replace('-', '.');
     flex-wrap: wrap;
     gap: 8px;
   }
-  .ecard__meta .ecard__status {
-    margin-left: auto;
+  .ecard__meta:empty {
+    display: none;
   }
 
   .ecard__status--upcoming {
@@ -180,25 +178,33 @@ const shortDate = startDate.slice(5).replace('-', '.');
     font-size: var(--fs-lg);
     line-height: 1.4;
     letter-spacing: 0.01em;
-    transition: color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out);
   }
   .ecard__link:hover .ecard__title,
   .ecard__link:focus-visible .ecard__title {
     color: var(--accent);
   }
 
+  /* 類型、日期、地點、主辦一列；分隔線畫在每項左側，換行時行首那條被裁掉，
+     所以分隔線永遠不會落單在行尾或行首 */
   .ecard__facts {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 4px 8px;
+    row-gap: 4px;
+    margin-left: -12px;
+    clip-path: inset(0 0 0 12px);
     font-family: var(--font-serif);
     font-size: var(--fs-sm);
     color: var(--ink-soft);
     font-variant-numeric: tabular-nums;
   }
-  .ecard__sep {
-    color: var(--rule-soft);
+  .ecard__fact {
+    padding: 0 12px;
+    box-shadow: inset 1px 0 var(--rule-soft);   /* 分隔線不佔寬，padding 維持 4px 格 */
+  }
+  .ecard__kind-text {
+    color: var(--ink);
   }
 
   .ecard__deadline {
@@ -234,7 +240,7 @@ const shortDate = startDate.slice(5).replace('-', '.');
     gap: 16px;
   }
   .ecard--dense .ecard__body {
-    gap: 6px;
+    gap: 8px;
   }
   .ecard--dense .ecard__title {
     font-size: var(--fs-md);
@@ -258,7 +264,7 @@ const shortDate = startDate.slice(5).replace('-', '.');
     grid-area: date;
     color: var(--ink);
     font-size: var(--fs-sm);
-    font-weight: 500;
+    font-weight: 400;
     min-width: 3.4em;
   }
   .ecard__kind {
@@ -273,7 +279,7 @@ const shortDate = startDate.slice(5).replace('-', '.');
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out);
   }
   .ecard__link:hover .ecard__ctitle,
   .ecard__link:focus-visible .ecard__ctitle {
@@ -294,7 +300,7 @@ const shortDate = startDate.slice(5).replace('-', '.');
       gap: 12px;
     }
     .ecard--dense {
-      padding: 14px 0;
+      padding: 16px 0;
     }
     .ecard--dense .ecard__figure {
       max-width: 220px;

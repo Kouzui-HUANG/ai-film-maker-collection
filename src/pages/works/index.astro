@@ -144,12 +144,11 @@ const collectionSchema = {
 </BaseLayout>
 
 <style>
+  /* 得獎作品：只留靛藍上緣線與欄名，不再墊一層底色（卡片不放在另一張卡裡） */
   .award-showcase {
     margin: 32px 0 40px;
-    padding: 20px;
-    background: var(--accent-wash);
+    padding-top: 20px;
     border-top: 3px solid var(--accent);
-    border-bottom: 1px solid var(--rule);
   }
 
   .award-showcase__head {
@@ -170,7 +169,7 @@ const collectionSchema = {
   .award-showcase__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+    gap: 20px;
   }
 
   /* 索引入口：類型 / 工具 chips 各一列，細線夾住 */
@@ -199,7 +198,7 @@ const collectionSchema = {
   }
 
   .works-index__count {
-    margin-left: 6px;
+    margin-left: 8px;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     color: var(--muted);
@@ -219,7 +218,7 @@ const collectionSchema = {
   @media (max-width: 640px) {
     .award-showcase {
       margin: 28px calc(var(--gutter) * -1) 32px;
-      padding: 18px var(--gutter);
+      padding: 20px var(--gutter);
     }
 
     .award-showcase__head {
@@ -233,9 +232,9 @@ const collectionSchema = {
 
     .award-showcase__grid {
       display: flex;
-      gap: 14px;
+      gap: 16px;
       overflow-x: auto;
-      padding: 0 var(--gutter) 10px 0;
+      padding: 0 var(--gutter) 12px 0;
       scroll-snap-type: x mandatory;
       scrollbar-width: thin;
       scrollbar-color: var(--rule-soft) transparent;

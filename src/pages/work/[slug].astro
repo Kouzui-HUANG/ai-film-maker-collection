@@ -242,7 +242,7 @@ const videoSchema = {
                     data-award-status={row.badge.status}
                     aria-label={row.badge.ariaLabel}
                   >{row.badge.label}</span>
-                  <span>{row.text}</span>
+                  <span>{row.award.year} {row.award.title}　<span class="work__award-result">{row.award.result}</span></span>
                 </li>
               ))}
             </ul>
@@ -265,8 +265,7 @@ const videoSchema = {
                     aria-label={`${p.outlet}：${p.title}（另開新視窗）`}
                   >
                     <span class="work__press-outlet">{p.outlet}</span>
-                    {/* U+2060 word joiner：標題換行時不讓 ↗ 落單到下一行 */}
-                    <span class="work__press-title">{p.title}{'⁠'}<span class="work__press-arrow" aria-hidden="true">↗</span></span>
+                    <span class="work__press-title">{p.title}</span>
                   </a>
                   {p.date && <span class="work__press-date">{fmtDate(p.date)}</span>}
                 </li>
@@ -319,36 +318,36 @@ const videoSchema = {
 <style>
   /* ── 標題區 ─────────────────────────────────── */
   .work__head {
-    margin: 4px 0 28px;
+    margin: 0 0 28px;
   }
 
   .work__kicker {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 14px;
-    margin-bottom: 14px;
+    gap: 16px;
+    margin-bottom: 12px;
   }
 
   .work__title {
     font-family: var(--font-serif);
-    font-weight: 900;
-    font-size: clamp(1.75rem, 3.6vw, var(--fs-3xl));
-    line-height: 1.25;
-    letter-spacing: 0.02em;
-    margin: 0 0 18px;
+    font-weight: 800;
+    font-size: var(--text-display-s);
+    line-height: 1.15;
+    letter-spacing: 0;
+    margin: 0 0 16px;
   }
 
   .work__creators {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 28px;
+    gap: 12px 28px;
   }
 
   .work__creator {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     color: var(--ink);
   }
 
@@ -363,7 +362,7 @@ const videoSchema = {
     font-size: var(--fs-md);
     letter-spacing: 0.02em;
     border-bottom: 1px solid transparent;
-    transition: border-color 160ms var(--ease-out);
+    transition: border-color var(--dur-micro) var(--ease-out);
   }
 
   .work__creator:hover .work__creator-name {
@@ -390,7 +389,7 @@ const videoSchema = {
   .work__grid-link {
     color: var(--ink);
     border-bottom: 1px solid var(--rule-soft);
-    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
   }
 
   .work__grid-link:hover {
@@ -408,20 +407,19 @@ const videoSchema = {
   }
 
   .work__section {
-    margin-top: 32px;
+    margin-top: var(--section-gap-s);
   }
 
+  /* 內文段落標題與全站段落標題同級（--text-section），下方一條細罫線 */
   .work__h2 {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
     font-family: var(--font-serif);
     font-weight: 700;
-    font-size: var(--fs-lg);
-    letter-spacing: 0.02em;
-    margin: 0 0 14px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--ink);
+    font-size: var(--text-section);
+    line-height: 1.15;
+    letter-spacing: 0;
+    margin: 0 0 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
   }
 
   .work__awards {
@@ -436,7 +434,7 @@ const videoSchema = {
     grid-template-columns: auto minmax(0, 1fr);
     align-items: baseline;
     gap: 12px;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px dashed var(--rule-soft);
   }
 
@@ -456,7 +454,7 @@ const videoSchema = {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: baseline;
-    gap: 6px 16px;
+    gap: 8px 16px;
     padding: 12px 0;
     border-bottom: 1px dashed var(--rule-soft);
   }
@@ -484,22 +482,12 @@ const videoSchema = {
     font-size: var(--fs-base);
     line-height: 1.6;
     border-bottom: 1px solid transparent;
-    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
   }
 
   .work__press-link:hover .work__press-title {
     color: var(--accent);
     border-color: var(--accent);
-  }
-
-  .work__press-arrow {
-    margin-left: 6px;
-    font-size: 0.85em;
-    color: var(--muted);
-  }
-
-  .work__press-link:hover .work__press-arrow {
-    color: var(--accent);
   }
 
   .work__press-date {
@@ -512,9 +500,18 @@ const videoSchema = {
 
   /* ── 相關作品 ───────────────────────────────── */
   .work__related {
-    margin-top: 56px;
-    padding-top: 28px;
-    border-top: 1px solid var(--rule);
+    margin-top: var(--section-gap);
+  }
+
+  /* 與 .work__h2、首頁各段同一套欄名：細罫線在標題下方，與內容隔 24px */
+  .work__related .section-head {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .work__award-result {
+    white-space: nowrap;
   }
 
   .work__cards {
@@ -524,7 +521,7 @@ const videoSchema = {
   }
 
   .work__foot {
-    margin-top: 56px;
+    margin-top: var(--section-gap-s);
   }
 
   @media (max-width: 900px) {
@@ -540,7 +537,7 @@ const videoSchema = {
     }
 
     .work__title {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .work__creators {
@@ -560,8 +557,7 @@ const videoSchema = {
     }
 
     .work__related {
-      margin-top: 40px;
-      padding-top: 20px;
+      margin-top: var(--section-gap);
     }
 
     .work__cards {
@@ -570,7 +566,7 @@ const videoSchema = {
     }
 
     .work__foot {
-      margin-top: 40px;
+      margin-top: var(--section-gap-s);
     }
   }
 </style>

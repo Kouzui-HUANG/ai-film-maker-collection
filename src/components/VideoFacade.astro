@@ -3,7 +3,7 @@
  * 影片 lite facade（設計文件 §1-3 ②）
  *
  * 預設只渲染縮圖 + 播放鈕，點擊才注入 <iframe>，首屏不載入 YouTube / Vimeo 的 JS。
- * provider 解析不出來（unknown）時不做 facade，改顯示縮圖 + 「在外站觀看 ↗」連結。
+ * provider 解析不出來（unknown）時不做 facade，改顯示縮圖 + 「在外站觀看」連結。
  * 點擊播放時發 GA4 事件 video_play { work_slug, provider }。
  */
 import { Image } from 'astro:assets';
@@ -19,65 +19,68 @@ const { title, slug, thumb, thumbAlt, videoUrl } = work.data;
 const video = parseVideoUrl(videoUrl);
 
 const watchLabel =
-  video.provider === 'youtube' ? '在 YouTube 觀看 ↗' : video.provider === 'vimeo' ? '在 Vimeo 觀看 ↗' : '在原站觀看 ↗';
+  video.provider === 'youtube' ? '在 YouTube 觀看' : video.provider === 'vimeo' ? '在 Vimeo 觀看' : '在原站觀看';
 const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
 ---
 
 <div class="video">
-  {canEmbed ? (
-    <div
-      class="facade"
-      data-embed={video.embedUrl}
-      data-title={title}
-      data-slug={slug}
-      data-provider={video.provider}
-    >
-      <Image
-        src={thumb}
-        alt={thumbAlt}
-        width={1280}
-        height={720}
-        widths={[640, 960, 1280]}
-        sizes="(max-width: 1240px) 100vw, 1192px"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-      <button type="button" class="facade__play" aria-label={`播放 ${title}`}>
-        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false">
-          <path d="M7 4.5v15l12-7.5z" fill="currentColor" />
-        </svg>
-      </button>
-    </div>
-  ) : (
-    <div class="facade facade--static">
-      <Image
-        src={thumb}
-        alt={thumbAlt}
-        width={1280}
-        height={720}
-        widths={[640, 960, 1280]}
-        sizes="(max-width: 1240px) 100vw, 1192px"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-      <a
-        class="btn facade__external"
-        href={videoUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-ga-cta="watch_external"
-        data-ga-location="work_video"
+  <!-- 放映幕：矮螢幕時影片依高度縮小置中，兩側留暗色幕框，片名才排得進第一屏 -->
+  <div class="screen">
+    {canEmbed ? (
+      <div
+        class="facade"
+        data-embed={video.embedUrl}
+        data-title={title}
+        data-slug={slug}
+        data-provider={video.provider}
       >
-        在外站觀看 ↗
-      </a>
-    </div>
-  )}
+        <Image
+          src={thumb}
+          alt={thumbAlt}
+          width={1280}
+          height={720}
+          widths={[640, 960, 1280]}
+          sizes="(max-width: 1240px) 100vw, 1192px"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+        <button type="button" class="facade__play" aria-label={`播放 ${title}`}>
+          <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false">
+            <path d="M7 4.5v15l12-7.5z" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
+    ) : (
+      <div class="facade facade--static">
+        <Image
+          src={thumb}
+          alt={thumbAlt}
+          width={1280}
+          height={720}
+          widths={[640, 960, 1280]}
+          sizes="(max-width: 1240px) 100vw, 1192px"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+        <a
+          class="btn facade__external"
+          href={videoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-ga-cta="watch_external"
+          data-ga-location="work_video"
+        >
+          在外站觀看<span class="visually-hidden">（另開新視窗）</span>
+        </a>
+      </div>
+    )}
+  </div>
 
   <p class="video__credit">
     影片外連自 YouTube／Vimeo，版權屬創作者所有。
-    <a href={video.watchUrl} target="_blank" rel="noopener noreferrer">{watchLabel}</a>
+    <a href={video.watchUrl} target="_blank" rel="noopener noreferrer">{watchLabel}<span class="visually-hidden">（另開新視窗）</span></a>
   </p>
 </div>
 
@@ -121,7 +124,11 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
 
 <style>
   .video {
-    margin: 0 0 28px;
+    margin: 0 0 20px;
+  }
+
+  .screen {
+    background: var(--paper-alt);
   }
 
   /* 16:9 容器；1px 框線、零圓角；縮圖一律全彩 */
@@ -133,6 +140,14 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     overflow: hidden;
   }
 
+  /* 桌機：影片高度不超過「螢幕高 − 360px」，標題、創作者與播放鈕同在第一屏；最窄 560px */
+  @media (min-width: 861px) {
+    .facade {
+      width: min(100%, max(calc((100svh - 360px) * 16 / 9), 560px));
+      margin-inline: auto;
+    }
+  }
+
   .facade img {
     position: absolute;
     inset: 0;
@@ -142,37 +157,35 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     filter: var(--filter-work);
   }
 
-  /* 播放鈕：方形底、硬陰影，置中 */
+  /* 播放鈕：方形、平面，置中；hover 換成靛藍底 */
   .facade__play {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    inset: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 76px;
     height: 76px;
-    margin: -38px 0 0 -38px;
+    margin: auto;
     padding: 0 0 0 4px;
     color: var(--ink);
     background: var(--paper-raised);
     border: 1px solid var(--ink);
     border-radius: 0;
-    box-shadow: 3px 3px 0 var(--shadow);
-    transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out),
-      background 140ms var(--ease-out), color 140ms var(--ease-out);
+    transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out),
+      border-color var(--dur-micro) var(--ease-out);
   }
 
   .facade__play:hover {
-    color: var(--paper-raised);
+    color: var(--accent-text);
     background: var(--accent);
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--shadow);
+    border-color: var(--accent);
   }
 
   .facade__play:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--shadow);
+    color: var(--accent-text);
+    background: var(--accent-ink);
+    border-color: var(--accent-ink);
   }
 
   .facade__play svg {
@@ -198,16 +211,9 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     transform: translate(-50%, -50%);
   }
 
-  .facade__external:hover {
-    transform: translate(calc(-50% - 1px), calc(-50% - 1px));
-  }
-
-  .facade__external:active {
-    transform: translate(calc(-50% + 2px), calc(-50% + 2px));
-  }
 
   .video__credit {
-    margin-top: 10px;
+    margin-top: 12px;
     font-family: var(--font-sans);
     font-size: var(--fs-xs);
     letter-spacing: 0.03em;
@@ -215,7 +221,7 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
   }
 
   .video__credit a {
-    margin-left: 6px;
+    margin-left: 8px;
     color: var(--ink-soft);
     border-bottom: 1px solid var(--rule-soft);
     white-space: nowrap;
@@ -230,7 +236,6 @@ const canEmbed = video.provider !== 'unknown' && !!video.embedUrl;
     .facade__play {
       width: 56px;
       height: 56px;
-      margin: -28px 0 0 -28px;
     }
 
     .facade__play svg {

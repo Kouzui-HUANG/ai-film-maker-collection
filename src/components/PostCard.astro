@@ -105,7 +105,7 @@ const imgSizes =
   /* stacked：圖上字下 */
   .post-card--stacked .post-card__link {
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    gap: 16px;
   }
 
   .post-card__figure {
@@ -125,7 +125,7 @@ const imgSizes =
   .post-card__level {
     display: inline-flex;
     align-items: center;
-    padding: 4px 8px 3px;
+    padding: 4px 8px 4px;
     font-family: var(--font-caps);
     font-size: var(--fs-xs);
     letter-spacing: 0.02em;
@@ -139,7 +139,7 @@ const imgSizes =
   .post-card__body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
   }
 
@@ -147,7 +147,7 @@ const imgSizes =
     font-size: var(--fs-lg);
     line-height: 1.4;
     letter-spacing: 0.01em;
-    transition: color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out);
   }
   .post-card--stacked .post-card__title {
     font-size: var(--fs-md);
@@ -173,7 +173,7 @@ const imgSizes =
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    gap: 4px 10px;
+    gap: 4px 12px;
     font-size: var(--fs-xs);
     color: var(--ink-soft);
     letter-spacing: 0.02em;
@@ -195,7 +195,7 @@ const imgSizes =
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 14px;
+    gap: 8px 16px;
     padding-top: 8px;
     border-top: 1px dashed var(--rule-soft);
     color: var(--muted);
@@ -203,7 +203,7 @@ const imgSizes =
 
   @media (max-width: 640px) {
     .post-card--row {
-      padding: 18px 0;
+      padding: 20px 0;
     }
     .post-card--row .post-card__link {
       grid-template-columns: minmax(0, 1fr);

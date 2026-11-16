@@ -95,8 +95,7 @@ const socials = Object.entries(SITE.social)
                 data-ga-cta="recommend_form"
                 data-ga-location="contact_recommend"
               >
-                填寫推薦收錄表單
-                <span aria-hidden="true">↗</span>
+                填寫推薦收錄表單<span class="visually-hidden">（另開新視窗）</span>
               </a>
               <p class="contact-card__fallback">
                 不方便填表單？
@@ -164,7 +163,7 @@ const socials = Object.entries(SITE.social)
           <ul class="chips contact-social" aria-label="編輯部社群">
             {socials.map((s) => (
               <li>
-                <a class="chip" href={s.url} target="_blank" rel="noopener noreferrer">{s.label} ↗</a>
+                <a class="chip" href={s.url} target="_blank" rel="noopener noreferrer">{s.label}<span class="visually-hidden">（另開新視窗）</span></a>
               </li>
             ))}
           </ul>
@@ -199,16 +198,15 @@ const socials = Object.entries(SITE.social)
     flex-direction: column;
     padding: 24px;
     background: var(--paper-raised);
-    border: 1px solid var(--rule);
-    box-shadow: 3px 3px 0 var(--shadow);
+    border: 1px solid var(--rule-strong);
   }
 
   .contact-card__title {
     font-family: var(--font-serif);
-    font-weight: 900;
+    font-weight: 800;
     font-size: var(--fs-lg);
     line-height: 1.4;
-    margin: 12px 0 10px;
+    margin: 12px 0 12px;
   }
 
   .contact-card__lead {
@@ -230,8 +228,8 @@ const socials = Object.entries(SITE.social)
     counter-increment: item;
     display: grid;
     grid-template-columns: 2.4em 1fr;
-    gap: 2px 10px;
-    padding: 10px 0;
+    gap: 2px 12px;
+    padding: 12px 0;
     border-top: 1px dashed var(--rule-soft);
     font-size: var(--fs-sm);
     line-height: 1.7;
@@ -300,7 +298,7 @@ const socials = Object.entries(SITE.social)
     font-size: var(--fs-xl);
     font-weight: 700;
     letter-spacing: 0.02em;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     word-break: break-all;
   }
 
@@ -342,7 +340,7 @@ const socials = Object.entries(SITE.social)
     }
 
     .contact-card {
-      padding: 20px 18px;
+      padding: 20px 20px;
     }
 
     .contact-direct__mail {

@@ -5,7 +5,7 @@
  *   麵包屑：首頁 › 活動 › 標題（可見 .crumbs 與 BreadcrumbList 一致）
  *   頭部：kind badge ＋ 狀態（進行中／N 天後開始／已結束）→ h1
  *   資料格網固定順序：日期 │ 報名／投件截止 │ 地點 │ 主辦 │ 費用 │ 形式
- *   主 CTA：進行中／即將舉行 → .btn--accent「前往官方網站 ↗」；已結束 → .btn--ghost「查看官方紀錄 ↗」
+ *   主 CTA：進行中／即將舉行 → .btn--accent「前往官方網站」；已結束 → .btn--ghost「查看官方紀錄」
  *   頁尾：其他即將舉行（最多 3，compact）→ ShareLike → 回活動與比賽
  */
 import { render } from 'astro:content';
@@ -223,7 +223,7 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
             data-ga-cta="event_official"
             data-ga-location="event_body"
           >
-            查看官方紀錄 ↗
+            查看官方紀錄<span class="visually-hidden">（另開新視窗）</span>
           </a>
         ) : (
           <a
@@ -234,7 +234,7 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
             data-ga-cta="event_official"
             data-ga-location="event_body"
           >
-            前往官方網站 ↗
+            前往官方網站<span class="visually-hidden">（另開新視窗）</span>
           </a>
         )}
         <span class="event__cta-note">
@@ -330,7 +330,7 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 12px 18px;
+    gap: 12px 20px;
     margin: 0 0 40px;
   }
   .event__cta-note {

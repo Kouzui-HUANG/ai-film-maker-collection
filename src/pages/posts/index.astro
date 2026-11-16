@@ -174,7 +174,7 @@ const collectionSchema = {
     display: inline-flex;
     align-items: baseline;
     gap: 8px;
-    padding: 12px 2px 10px;
+    padding: 12px 2px 12px;
     margin-bottom: -1px;
     font-family: var(--font-serif);
     font-weight: 700;
@@ -182,7 +182,7 @@ const collectionSchema = {
     color: var(--ink-soft);
     border-bottom: 2px solid transparent;
     white-space: nowrap;
-    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
   }
   .type-tabs__link:hover {
     color: var(--ink);
@@ -205,7 +205,7 @@ const collectionSchema = {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px 14px;
+    gap: 8px 16px;
     padding: 12px 0;
     border-bottom: 1px dashed var(--rule-soft);
   }
@@ -242,11 +242,11 @@ const collectionSchema = {
 
   @media (max-width: 640px) {
     .type-tabs {
-      gap: 0 18px;
+      gap: 0 20px;
     }
     .type-tabs__link {
       font-size: var(--fs-base);
-      padding: 10px 0 8px;
+      padding: 12px 0 8px;
     }
   }
 </style>

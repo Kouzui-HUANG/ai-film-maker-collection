@@ -17,6 +17,8 @@ const winner = getWinningAward(awards);
 if (!winner) {
   throw new Error(`[AwardWorkCard] ${slug} 沒有 status: winner 的獎項紀錄`);
 }
+/* 比賽名稱多半已含年份（「2026 就「AI」…」）；已含就不再重複印年份 */
+const eventLine = winner.title.startsWith(String(winner.year)) ? winner.title : `${winner.year}　${winner.title}`;
 ---
 
 <article class="award-card" data-award-card>
@@ -36,10 +38,9 @@ if (!winner) {
     </figure>
 
     <div class="award-card__body">
-      <p class="award-card__result">{winner.result}</p>
       <h3 class="award-card__title">{title}</h3>
       <p class="award-card__creators">{work.creators.map((creator) => creator.name).join('、')}</p>
-      <p class="award-card__event"><span class="award-card__year">{winner.year}</span>　{winner.title}</p>
+      <p class="award-card__event"><span class="award-card__result">{winner.result}</span>　{eventLine}</p>
     </div>
   </a>
 </article>
@@ -58,14 +59,21 @@ if (!winner) {
     color: inherit;
   }
 
+  /* 劇照填滿整列高度，不在卡片裡上下留底色 */
+  .award-card__figure :global(img) {
+    height: 100%;
+    min-height: 100%;
+    object-fit: cover;
+  }
+
   .award-card__figure {
-    align-self: center;
+    align-self: stretch;
     border: 0;
     border-right: 1px solid var(--rule-soft);
   }
 
   .award-card__figure {
-    transition: border-color 160ms var(--ease-out);
+    transition: border-color var(--dur-micro) var(--ease-out);
   }
 
   .award-card__link:hover .award-card__figure {
@@ -100,7 +108,7 @@ if (!winner) {
     margin-top: 8px;
     font-size: var(--fs-lg);
     line-height: 1.4;
-    transition: color 160ms var(--ease-out);
+    transition: color var(--dur-micro) var(--ease-out);
   }
 
   .award-card__link:hover .award-card__title {
@@ -116,7 +124,7 @@ if (!winner) {
 
   .award-card__event {
     margin-top: auto;
-    padding-top: 14px;
+    padding-top: 16px;
     font-family: var(--font-serif);
     font-size: var(--fs-xs);
     line-height: 1.6;
@@ -141,7 +149,7 @@ if (!winner) {
 
     .award-card__body {
       min-height: 168px;
-      padding: 14px;
+      padding: 16px;
     }
 
     .award-card__title {
