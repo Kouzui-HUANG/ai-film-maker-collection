@@ -15,6 +15,8 @@ export interface ToolDef {
   label: string;
   category: ToolCategory;
   vendor?: string;
+  /** 台灣使用者常用的中文名（可靈、海螺…）。只給工具頁的 <title>／h1／schema 用，chip 與麵包屑仍顯示 label */
+  labelZh?: string;
   /** 該工具在影視流程中的角色（工具索引頁的介紹文 + meta description） */
   note: string;
 }
@@ -33,14 +35,14 @@ export const TOOL_CATEGORY_LABEL: Record<ToolCategory, string> = {
 export const TOOLS: ToolDef[] = [
   /* ── 影片生成 ─────────────────────────────────────────── */
   { slug: 'runway', label: 'Runway', category: 'video', vendor: 'Runway', note: 'Gen-3／Gen-4 系列影片生成模型，圖生影片與運鏡控制成熟，是台灣 AI 短片最常見的主力工具之一。' },
-  { slug: 'kling', label: 'Kling', category: 'video', vendor: '快手', note: '可靈 AI 影片生成，長鏡頭與人物動作連貫性強，常用於敘事型短片與 MV。' },
+  { slug: 'kling', label: 'Kling', labelZh: '可靈', category: 'video', vendor: '快手', note: '可靈 AI 影片生成，長鏡頭與人物動作連貫性強，常用於敘事型短片與 MV。' },
   { slug: 'veo', label: 'Veo', category: 'video', vendor: 'Google', note: 'Google 的影片生成模型，原生支援聲音生成，適合對白與環境音同步的段落。' },
   { slug: 'sora', label: 'Sora', category: 'video', vendor: 'OpenAI', note: 'OpenAI 影片生成模型，擅長長段落一致性與複雜場景調度。' },
   { slug: 'luma', label: 'Luma Dream Machine', category: 'video', vendor: 'Luma AI', note: '快速迭代的影片生成工具，關鍵影格與循環鏡頭好用，常做動態分鏡草稿。' },
-  { slug: 'hailuo', label: 'Hailuo', category: 'video', vendor: 'MiniMax', note: '海螺 AI 影片生成，人物表演與鏡頭語言表現穩定，價格友善。' },
+  { slug: 'hailuo', label: 'Hailuo', labelZh: '海螺', category: 'video', vendor: 'MiniMax', note: '海螺 AI 影片生成，人物表演與鏡頭語言表現穩定，價格友善。' },
   { slug: 'pika', label: 'Pika', category: 'video', vendor: 'Pika Labs', note: '以特效與風格化見長的影片生成工具，適合 MV 與廣告的視覺實驗。' },
-  { slug: 'wan', label: 'Wan', category: 'video', vendor: '阿里巴巴', note: '開源影片生成模型，可本機部署與微調，控制力高，進階創作者常用。' },
-  { slug: 'hunyuan-video', label: 'Hunyuan Video', category: 'video', vendor: '騰訊', note: '開源影片生成模型，與 ComfyUI 工作流搭配，適合需要客製控制的作品。' },
+  { slug: 'wan', label: 'Wan', labelZh: '通義萬相', category: 'video', vendor: '阿里巴巴', note: '開源影片生成模型，可本機部署與微調，控制力高，進階創作者常用。' },
+  { slug: 'hunyuan-video', label: 'Hunyuan Video', labelZh: '混元', category: 'video', vendor: '騰訊', note: '開源影片生成模型，與 ComfyUI 工作流搭配，適合需要客製控制的作品。' },
   { slug: 'seedance', label: 'Seedance', category: 'video', vendor: '字節跳動', note: '影片生成模型，支援多圖參考與 3D 動態參考輸入，角色一致性佳，連載型 AI 短劇常用。' },
   { slug: 'vidu', label: 'Vidu', category: 'video', vendor: '生數科技', note: '影片生成模型，參考圖轉影片的角色一致性強，二次元與動漫風格的 MV、OP 片頭常用。' },
   { slug: 'pixverse', label: 'PixVerse', category: 'video', vendor: 'PixVerse', note: '影片生成模型，對嘴（lip sync）可直接吃整段影片而非單張圖，在鏡頭運動中仍能對上口型，AI MV 的歌唱段落常用。' },
@@ -88,6 +90,11 @@ export const TOOL_BY_SLUG: Record<string, ToolDef> = Object.fromEntries(TOOLS.ma
 
 export function toolLabel(slug: string): string {
   return TOOL_BY_SLUG[slug]?.label ?? slug;
+}
+
+/** 工具頁標題用的全名：有中文名時寫成「Kling（可靈）」；label 已附中文的（Jimeng（即夢 AI））照原樣 */
+export function toolFullName(t: ToolDef): string {
+  return t.labelZh ? `${t.label}（${t.labelZh}）` : t.label;
 }
 
 /**

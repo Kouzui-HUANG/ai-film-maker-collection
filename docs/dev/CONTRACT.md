@@ -32,7 +32,7 @@
 2. **JSON-LD 的 `url` / `@id` 一律用 `absRoutes.*` 或 `absUrl()`**；Person 的 `@id` 固定為 `absRoutes.creatorId(slug)` = `<site>/creator/<slug>/#person`。
 3. **資料一律從 `getSiteData()` 拿**，不要自己 `getCollection`。它已做 draft 過濾、排序、反查、時效性計算。
 4. **每個動態頁都要傳 `breadcrumbs` 給 BaseLayout**，且要與頁面可見的 `.crumbs` 一致（首頁之後的層級）。列表頁（/creators/ 等）可不傳，引擎會依 path 自動生成。
-5. **BaseLayout 的 `title` 給 h1 文案、`seoTitle` 給 `<title>`/og**（雙標題制）；`description` 必填（≤ 160 字）。
+5. **BaseLayout 的 `title` 給 h1 文案、`seoTitle` 給 `<title>`/og**（雙標題制）；`<title>` 自動加「｜站名」後綴，但 seoTitle 本身超過 30 個全形字寬（半形算 0.5）時省略後綴；首頁的 h1 是報頭站名，頭條作品名用 h2；`description` 必填（≤ 160 字）。
 6. **圖像濾鏡分區**只用 global.css 的 `.frame--portrait / --work / --post / --event`（或 `var(--filter-*)` token）：
    創作者肖像 grayscale(0.35)、**作品縮圖全彩**、文章封面全彩（2026-11-15 起；暗色圖卡去色後會像空框）、活動封面全彩。
 7. **視覺紀律**：零圓角（≤2px）、1px 框線、不用陰影（2026-11-16 restyle 起，按鈕與卡片都是平面，回饋只換顏色或外框）、明朝體標題、字重只用 400 / 700 / 800、間距一律用 4 的倍數（4、8、12、16…）、字級角色用 token（首頁頭條 `--text-display`、內頁 h1 `--text-display-s`、段落 h2 `--text-section`）、accent 每 viewport ≤ 3 處、中英之間半形空格、中文全形標點（中文之間不留空格，含模板插值 `{name}的作品`）。列舉用頓號「、」，句中停頓用逗號；年份、類型、片長這類資訊列用全形空格「　」分隔，不用中黑點串接（Hallmark 63）。標籤一律不加字距（≤ 0.02em）、不轉大寫（Hallmark 67）；連結文字不加「→」「←」，用動詞當標籤（「看全部作品」）；外連的「↗」可保留。

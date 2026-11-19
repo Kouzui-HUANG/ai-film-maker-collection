@@ -17,7 +17,7 @@ import CreatorCard from '../../components/CreatorCard.astro';
 import WorkCard from '../../components/WorkCard.astro';
 import PostCard from '../../components/PostCard.astro';
 import { getSiteData, creatorsByTool, worksByTool, postsByTool } from '../../data/queries';
-import { TOOLS, TOOL_CATEGORY_LABEL, toolHasPage, type ToolDef } from '../../data/tools';
+import { TOOLS, TOOL_CATEGORY_LABEL, toolHasPage, toolFullName, type ToolDef } from '../../data/tools';
 import { SITE, routes, absRoutes } from '../../data/site';
 
 export async function getStaticPaths() {
@@ -41,9 +41,12 @@ const otherTools = TOOLS.filter((t) => t.slug !== tool.slug && toolHasPage(d.too
   .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 
 const categoryLabel = TOOL_CATEGORY_LABEL[tool.category];
-const title = `${tool.label} 台灣創作者與作品`;
-const seoTitle = `使用 ${tool.label} 的台灣創作者與作品`;
-const description = `使用 ${tool.label} 的台灣 AI 影視創作者 ${creators.length} 位、作品 ${works.length} 部，工具索引頁。${tool.note}`;
+/* 標題用全名（Kling（可靈）），讓搜中文名的人也對得上；全形括號收尾時後面不留空格 */
+const fullName = toolFullName(tool);
+const sp = fullName.endsWith('）') ? '' : ' ';
+const title = `${fullName}${sp}台灣創作者與作品`;
+const seoTitle = `使用 ${fullName}${sp}的台灣 AI 影片作品與創作者`;
+const description = `使用 ${fullName}${sp}的台灣 AI 影視創作者 ${creators.length} 位、作品 ${works.length} 部，工具索引頁。${tool.note}`;
 
 const metaParts = [
   tool.vendor ? `開發商 ${tool.vendor}` : null,
@@ -70,6 +73,7 @@ const collectionSchema = {
   about: {
     '@type': 'SoftwareApplication',
     name: tool.label,
+    ...(tool.labelZh ? { alternateName: tool.labelZh } : {}),
     applicationCategory: 'MultimediaApplication',
     ...(tool.vendor ? { publisher: { '@type': 'Organization', name: tool.vendor } } : {}),
   },

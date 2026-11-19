@@ -42,7 +42,22 @@ const {
 } = Astro.props;
 
 const metaTitle = seoTitle ?? title;
-const pageTitle = metaTitle ? `${metaTitle}｜${SITE.name}` : `${SITE.name}｜${SITE.tagline}`;
+
+/* 標題顯示寬度：全形（中日文、全形標點）算 1、半形算 0.5。
+   Google 搜尋結果約顯示 30 個全形字寬；本身已超過這個寬度的標題，站名後綴反正會被截掉看不到，
+   只會稀釋關鍵字，所以省略（站名另由 WebSite schema 與 og:site_name 提供） */
+const TITLE_SUFFIX_MAX_WIDTH = 30;
+const titleWidth = (s: string) =>
+  [...s].reduce((n, ch) => {
+    const cp = ch.codePointAt(0) ?? 0;
+    const halfKana = cp >= 0xff61 && cp <= 0xff9f;
+    return n + (cp >= 0x2e80 && !halfKana ? 1 : 0.5);
+  }, 0);
+const pageTitle = metaTitle
+  ? titleWidth(metaTitle) > TITLE_SUFFIX_MAX_WIDTH
+    ? metaTitle
+    : `${metaTitle}｜${SITE.name}`
+  : `${SITE.name}｜${SITE.tagline}`;
 const pageDesc = description ?? SITE.description;
 
 /* 去掉 base 之後的 path（canonical、麵包屑、nav 高亮共用） */
@@ -237,12 +252,14 @@ const navItems = PRIMARY_NAV.map((item) => ({ label: item.label, href: item.href
     <header class:list={['masthead', isFront ? 'masthead--front' : 'masthead--run']}>
       {isFront ? (
         <>
-          <!-- 頭版報頭 nameplate -->
+          <!-- 頭版報頭 nameplate：首頁的 h1 是站名（頭條作品名是 h2） -->
           <div class="nameplate container">
-            <a href={href('/')} class="nameplate__logo" aria-label={SITE.name}>
-              <span class="nameplate__logo-main">{SITE.name}</span>
-              <span class="nameplate__logo-sub">{SITE.taglineSub}</span>
-            </a>
+            <h1 class="nameplate__title">
+              <a href={href('/')} class="nameplate__logo" aria-label={SITE.name}>
+                <span class="nameplate__logo-main">{SITE.name}</span>
+                <span class="nameplate__logo-sub">{SITE.taglineSub}</span>
+              </a>
+            </h1>
             <!-- 手機選單按鈕（桌機隱藏：抽屜裡的頁面在主選單與頁尾都有） -->
             <div class="nameplate__actions">
               <button
@@ -424,7 +441,17 @@ const navItems = PRIMARY_NAV.map((item) => ({ label: item.label, href: item.href
         gap: 8px;
         padding: 20px var(--gutter) 16px;
       }
+      /* h1 只承擔語意：字型、字級、行高全部沿用報頭原本的設定，外觀不變 */
+      .nameplate__title {
+        font: inherit;
+        letter-spacing: inherit;
+        line-height: inherit;
+        color: inherit;
+        text-wrap: inherit;
+      }
+      /* display: block：包進 h1 之前它是 flex 子項、自動 block 化；不補這行，手機版的左右 padding 會在 inline 元素上撐出兩行空行框 */
       .nameplate__logo {
+        display: block;
         text-align: center;
         line-height: 1;
       }

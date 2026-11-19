@@ -15,7 +15,7 @@ import EventCard from '../../components/EventCard.astro';
 import { getSiteData } from '../../data/queries';
 import { SITE, routes, absRoutes } from '../../data/site';
 import { EVENT_KIND_LABEL } from '../../data/genres';
-import { fmtDate } from '../../data/events';
+import { fmtDate, todayTaipei } from '../../data/events';
 
 const d = await getSiteData();
 const upcoming = d.upcomingEvents;
@@ -26,7 +26,9 @@ const nOngoing = upcoming.filter((e) => e.timing.status === 'ongoing').length;
 const nPast = past.length;
 
 const title = '活動與比賽';
-const seoTitle = '活動與比賽：AI 影視比賽・工作坊・放映・講座・展覽';
+/* <title> 帶建站當下的台北年份：「2026 AI 影片比賽」是有人會打的搜尋詞，每日重建會讓年份自動跨年 */
+const buildYear = todayTaipei().slice(0, 4);
+const seoTitle = `${buildYear} AI 影片比賽與活動：台灣與海外 AI 短片徵件、工作坊、放映`;
 const lead =
   '與台灣 AI 影視創作相關的比賽徵件、工作坊、放映、講座與展覽。' +
   '即將舉行者標示開始倒數與報名截止日；已結束的活動摺疊保存，作為年鑑紀錄。';

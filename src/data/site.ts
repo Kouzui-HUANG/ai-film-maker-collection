@@ -10,7 +10,8 @@ import { SITE_ORIGIN, BASE_PATH, SITE_URL } from '../../site.config.mjs';
 export const SITE = {
   name: '台灣AI影視創作者圖鑑',
   nameEn: 'TAIWAN AI FILMMAKERS',
-  tagline: '收錄台灣 AI 影視創作者的年鑑',
+  /** 首頁 <title> 的副標（「站名｜tagline」）：放搜尋者實際會打的詞，不重複站名裡已有的字 */
+  tagline: 'AI 短片、動畫、MV 創作者與作品年鑑',
   /** 報頭副標（nameplate 下方） */
   taglineSub: '創作者、作品、專欄、教學、活動',
   /** 長版站台描述：llms.txt 開頭引言、RSS <description>、Organization schema */
