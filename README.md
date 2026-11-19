@@ -1,8 +1,17 @@
-# 台灣AI影視創作者圖鑑
+# 台灣AI影視創作者圖鑑 Taiwan AI Filmmakers
 
-**收錄台灣 AI 影視創作者的年鑑式網站｜Astro 6 static × 原生 CSS × GitHub Pages**
+**收錄台灣 AI 影視創作者、AI 短片／動畫／MV 作品，以及 AI 影片比賽資訊的年鑑式網站。**
+
+A curated directory of Taiwanese AI filmmakers: their AI short films, animations and music videos, the tools behind each work (Seedance, Kling, Veo, Midjourney, Suno…), and AI film competitions in Taiwan and abroad.
 
 🌐 **網站：<https://hallucination28.com/>**
+
+- [創作者圖鑑](https://hallucination28.com/creators/)：每位台灣 AI 影視創作者的代表作、使用工具、得獎紀錄與社群連結
+- [作品](https://hallucination28.com/works/)：AI 短片、AI 動畫、AI MV、AI 廣告與實驗片，逐部標註創作者與使用工具
+- [專欄與教學](https://hallucination28.com/posts/)：AI 短劇等產業專欄，以及 AI 影片製作教學
+- [活動與比賽](https://hallucination28.com/events/)：台灣與海外的 AI 影片比賽、徵件、工作坊與放映
+
+以下是給協作者的開發與維護文件（Astro 6 static × 原生 CSS × GitHub Pages）。
 
 ## 專案定位
 
