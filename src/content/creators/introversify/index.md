@@ -25,7 +25,7 @@ awards:
     title: "VS AI 街頭對戰"
     result: "冠軍"
 listedAt: "2026-09-14"
-updatedAt: "2026-10-27"
+updatedAt: "2026-11-23"
 ---
 
 ## 一間刻意待在幕後的實驗室
@@ -42,7 +42,7 @@ updatedAt: "2026-10-27"
 
 片中場景全部實拍，隱拓的 AI 後製集中在動物身上：動物的動態本就難以掌控，許多保育類動物更幾乎不可能在現實中拍到，AI 補上的正是攝影機到不了的那一段。
 
-這部片隨後[入圍第 63 屆金馬獎最佳視覺效果](https://www.cna.com.tw/postwrite/chi/445877)，提名人為邱維添、董妍玫、郭家宥、黃閔彬，頒獎典禮在 11 月 22 日。台北金馬影展也排了[兩場放映](https://www.goldenhorse.org.tw/film/programme/films/detail/4499?search_year=2026)：11 月 10 日（二）19:10 在台北信義威秀 11 廳，馬志翔導演將帶著演員與隱拓視效團隊出席映後座談；另一場是 11 月 13 日（五）10:40，同館 13 廳。
+這部片隨後[入圍第 63 屆金馬獎最佳視覺效果](https://www.cna.com.tw/postwrite/chi/445877)，提名人為邱維添、董妍玫、郭家宥、黃閔彬；11 月 22 日的頒獎典禮上，這個獎項由《功夫》拿下（[金馬官方得獎名單](https://www.goldenhorse.org.tw/awards/nw/?serach_type=award&sc=8&search_regist_year=2026&ins=55)）。台北金馬影展也排了[兩場放映](https://www.goldenhorse.org.tw/film/programme/films/detail/4499?search_year=2026)：11 月 10 日在台北信義威秀 11 廳，排有馬志翔導演與演員、隱拓視效團隊出席的映後座談；另一場是 11 月 13 日，同館 13 廳。
 
 ## 《緣起》：九成場景交給 AI
 
