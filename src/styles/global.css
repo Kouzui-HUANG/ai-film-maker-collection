@@ -946,6 +946,18 @@ a:hover .frame--post img {
   margin: 0 0 24px;
 }
 
+.prose figure img {
+  margin: 0;
+}
+
+.prose video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  background: #000;
+}
+
 .prose figcaption {
   font-family: var(--font-sans);
   font-size: var(--fs-xs);

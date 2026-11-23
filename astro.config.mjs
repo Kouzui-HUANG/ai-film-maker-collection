@@ -232,6 +232,55 @@ function rehypeTables() {
   return (tree) => walk(tree, null, 0);
 }
 
+// ── Markdown 圖說：獨佔一段、帶 title 的圖片 `![alt](./x.webp "圖說")` → <figure><img><figcaption> ──
+// 在 Astro 內建的 rehypeImages 之前執行；img 節點原樣保留，所以本地圖片仍會被最佳化。
+// 直式圖（滿版會高過 FIGURE_MAX_H）在 figure 上寫死 max-width，讓圖在延遲載入前就有正確尺寸、不會整欄拉長。
+const FIGURE_MAX_H = 760;
+const FIGURE_FULL_W = 720;
+function rehypeFigures() {
+  const isBlank = (n) => n.type === 'text' && !n.value.trim();
+  return async (tree, file) => {
+    const figures = [];
+    const walk = (node) => {
+      (node.children ?? []).forEach((child, i) => {
+        if (child.type !== 'element') return;
+        if (child.tagName === 'p') {
+          const kids = (child.children ?? []).filter((n) => !isBlank(n));
+          const img = kids[0];
+          const title = img?.properties?.title;
+          if (kids.length === 1 && img.type === 'element' && img.tagName === 'img' && typeof title === 'string' && title.trim()) {
+            const { title: _drop, ...rest } = img.properties;
+            img.properties = rest;
+            const figure = {
+              type: 'element',
+              tagName: 'figure',
+              properties: {},
+              children: [img, { type: 'element', tagName: 'figcaption', properties: {}, children: [{ type: 'text', value: title }] }],
+            };
+            node.children[i] = figure;
+            figures.push({ figure, src: img.properties.src });
+            return;
+          }
+        }
+        walk(child);
+      });
+    };
+    walk(tree);
+    if (!figures.length || !file.path) return;
+    const { default: sharp } = await import('sharp');
+    for (const { figure, src } of figures) {
+      if (typeof src !== 'string' || /^[a-z]+:|^\//i.test(src)) continue;
+      try {
+        const { width, height } = await sharp(join(dirname(file.path), decodeURI(src))).metadata();
+        const maxW = Math.round((FIGURE_MAX_H * width) / height);
+        if (maxW < FIGURE_FULL_W) figure.properties = { className: ['figure--narrow'], style: `max-width: ${maxW}px` };
+      } catch {
+        /* 讀不到尺寸就照滿版處理 */
+      }
+    }
+  };
+}
+
 // https://astro.build/config
 export default defineConfig({
   site: SITE_ORIGIN,
@@ -241,7 +290,7 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   markdown: {
-    rehypePlugins: [rehypeTables],
+    rehypePlugins: [rehypeTables, rehypeFigures],
   },
   integrations: [
     captureOutDir(),
