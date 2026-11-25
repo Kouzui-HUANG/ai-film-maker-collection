@@ -1,0 +1,217 @@
+---
+/**
+ * CalcField — 試算器的一個數值欄位：標籤＋數字框＋拉桿＋說明
+ * （只給 /resource/ai-video-cost-calculator/ 用）
+ *
+ *   <CalcField field="adopt" label="採用率" unit="%" params={params} hint={texts.hintAdopt} note="…" />
+ *
+ * - 數字框與拉桿由頁面上的 <script> 以 data-num / data-range 綁定；說明行是 data-out="hint-<field>"
+ * - 階梯拉桿（片長、集數、人日）的 value 是刻度索引，讀屏靠 aria-valuetext 讀實際值
+ * - 拉桿已填滿的長度走 CSS 變數 --fill（build 時先寫好，免得 JS 載入前是空的）
+ * - 數字框不加 step 限制（step="any"）：合法範圍與小數位數由 cost-calculator.ts 的 normalize() 統一處理
+ */
+import {
+  FIELDS,
+  sliderBounds,
+  sliderValue,
+  sliderFill,
+  valueText,
+  type NumField,
+  type Params,
+} from '../data/cost-calculator';
+
+interface Props {
+  field: NumField;
+  label: string;
+  unit: string;
+  params: Params;
+  /** 隨參數變動的說明（data-out） */
+  hint: string;
+  /** 固定的補充說明 */
+  note?: string;
+  inputmode?: 'numeric' | 'decimal';
+}
+
+const { field, label, unit, params, hint, note, inputmode = 'numeric' } = Astro.props;
+const spec = FIELDS[field];
+const bounds = sliderBounds(field);
+const id = `calc-${field}`;
+const describedBy = note ? `${id}-hint ${id}-note` : `${id}-hint`;
+---
+
+<div class="field" data-field={field}>
+  <div class="field__head">
+    <label class="field__label" for={id}>{label}</label>
+    <span class="field__entry">
+      <input
+        class="field__num"
+        type="number"
+        id={id}
+        inputmode={inputmode}
+        min={spec.min}
+        max={spec.max}
+        step="any"
+        value={params[field]}
+        autocomplete="off"
+        data-num={field}
+        aria-describedby={describedBy}
+      />
+      <span class="field__unit" aria-hidden="true">{unit}</span>
+    </span>
+  </div>
+  <input
+    class="field__range"
+    type="range"
+    min={bounds.min}
+    max={bounds.max}
+    step={bounds.step}
+    value={sliderValue(field, params)}
+    autocomplete="off"
+    data-range={field}
+    aria-label={`${label}拉桿`}
+    aria-valuetext={valueText(field, params)}
+    aria-describedby={describedBy}
+    style={`--fill: ${sliderFill(field, params)}`}
+  />
+  <p class="field__hint" id={`${id}-hint`} data-out={`hint-${field}`}>{hint}</p>
+  {note && <p class="field__note" id={`${id}-note`}>{note}</p>}
+</div>
+
+<style>
+  .field {
+    padding: 16px 0;
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+  .field:last-child {
+    border-bottom: 0;
+  }
+
+  .field__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .field__label {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.4;
+  }
+
+  .field__entry {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .field__num {
+    width: 7.5em;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-base);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--ink);
+    background: var(--paper-alt);
+    border: 1px solid var(--rule-strong);
+    border-radius: 0;
+    appearance: textfield;
+    -moz-appearance: textfield;
+    transition: border-color var(--dur-micro) var(--ease-out);
+  }
+  .field__num::-webkit-outer-spin-button,
+  .field__num::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .field__num:hover {
+    border-color: var(--ink-soft);
+  }
+  .field__num:focus-visible {
+    border-color: var(--ink);
+  }
+  .field__num:disabled {
+    cursor: not-allowed;
+  }
+
+  .field__unit {
+    min-width: 2em;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+
+  /* ── 拉桿：細軌＋直立的「播放頭」，填滿段用暖白（accent 名額留給結果數字） ── */
+  .field__range {
+    --fill: 0%;
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin: 4px 0 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .field__range:disabled {
+    cursor: not-allowed;
+  }
+  .field__range:focus-visible {
+    outline-offset: 0;
+  }
+  .field__range::-webkit-slider-runnable-track {
+    height: 4px;
+    background: linear-gradient(
+      to right,
+      var(--ink-soft) 0 var(--fill),
+      var(--rule-strong) var(--fill) 100%
+    );
+  }
+  .field__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 28px;
+    margin-top: -12px;
+    background: var(--ink);
+    border: 2px solid var(--paper);
+    border-radius: 0;
+  }
+  .field__range::-moz-range-track {
+    height: 4px;
+    background: var(--rule-strong);
+  }
+  .field__range::-moz-range-progress {
+    height: 4px;
+    background: var(--ink-soft);
+  }
+  .field__range::-moz-range-thumb {
+    width: 8px;
+    height: 24px;
+    background: var(--ink);
+    border: 2px solid var(--paper);
+    border-radius: 0;
+  }
+
+  .field__hint {
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .field__note {
+    margin-top: 4px;
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  @media (max-width: 640px) {
+    .field__num {
+      width: 6.5em;
+    }
+  }
+</style>

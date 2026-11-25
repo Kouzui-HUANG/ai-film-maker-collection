@@ -86,6 +86,8 @@ export const routes = {
   event: (slug: string) => href(`/event/${slug}/`),
   tool: (slug: string) => href(`/tool/${slug}/`),
   genre: (slug: string) => href(`/genre/${slug}/`),
+  resources: () => href('/resources/'),
+  resource: (slug: string) => href(`/resource/${slug}/`),
   about: () => href('/about/'),
   contact: () => href('/contact/'),
   privacy: () => href('/privacy/'),
@@ -107,6 +109,8 @@ export const absRoutes = {
   event: (slug: string) => absUrl(`/event/${slug}/`),
   tool: (slug: string) => absUrl(`/tool/${slug}/`),
   genre: (slug: string) => absUrl(`/genre/${slug}/`),
+  resources: () => absUrl('/resources/'),
+  resource: (slug: string) => absUrl(`/resource/${slug}/`),
 } as const;
 
 export type NavItem = {
@@ -123,6 +127,8 @@ export const PRIMARY_NAV: NavItem[] = [
   { label: '作品', labelEn: 'WORKS', href: '/works/', note: '全部作品，依發表時間排列' },
   { label: '專欄與教學', labelEn: 'READ', href: '/posts/', note: '編輯部專欄、創作者訪談與 AI 影視教學' },
   { label: '活動', labelEn: 'EVENTS', href: '/events/', note: '比賽、工作坊、放映與講座' },
+  /* 網址用 /resources/ 而非 /tools/：/tool/<slug>/ 已是 AI 工具索引，nav 高亮會把單複數視為同一區 */
+  { label: '工具資源', labelEn: 'RESOURCES', href: '/resources/', note: '試算器等給創作者與發案方的實用工具' },
 ];
 
 /** 手機版右上角抽屜選單 */
@@ -138,6 +144,7 @@ export const MOBILE_NAV: MobileNavItem[] = [
   { label: '全部作品', labelEn: 'Works', href: '/works/', external: false },
   { label: '專欄與教學', labelEn: 'Read', href: '/posts/', external: false },
   { label: '活動', labelEn: 'Events', href: '/events/', external: false },
+  { label: '工具資源', labelEn: 'Resources', href: '/resources/', external: false },
   { label: '關於圖鑑', labelEn: 'About', href: '/about/', external: false },
   { label: '聯絡／推薦收錄', labelEn: 'Contact', href: '/contact/', external: false },
   { label: 'Sitemap', labelEn: 'Sitemap', href: '/sitemap/', external: false },
@@ -150,6 +157,7 @@ export const FOOTER_INDEX = [
   { label: '全部作品', href: '/works/' },
   { label: '專欄與教學', href: '/posts/' },
   { label: '活動', href: '/events/' },
+  { label: '工具資源', href: '/resources/' },
 ];
 
 /** Footer 第三欄：關於 */

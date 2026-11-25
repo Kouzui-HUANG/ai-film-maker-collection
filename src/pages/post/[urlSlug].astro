@@ -20,6 +20,7 @@ import { POST_TYPE_LABEL, LEVEL_LABEL } from '../../data/genres';
 import { toolLabel, toolHasPage } from '../../data/tools';
 import { fmtDate } from '../../data/events';
 import { buildFaqSchema, extractHowToSteps } from '../../data/faq';
+import { resourcesBasedOn, RESOURCE_KIND_LABEL } from '../../data/resources.mjs';
 
 export async function getStaticPaths() {
   const d = await getSiteData();
@@ -75,6 +76,9 @@ const authorEntity = isEditorial
 
 /* ── 同類型其他文章（最新 3 篇） ── */
 const sameType = d.posts.filter((p) => p.data.type === type && p.id !== post.id).slice(0, 3);
+
+/* ── 以本文為依據的工具資源（例：試算器），放在封面下、內文前 ── */
+const relatedResources = resourcesBasedOn(urlSlug);
 
 /* ── 麵包屑（可見 UI 與 BreadcrumbList JSON-LD 一致） ── */
 const breadcrumbs = [
@@ -247,6 +251,26 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
           decoding="async"
         />
       </figure>
+
+      {relatedResources.length > 0 && (
+        <aside class="tool-callout" aria-label="相關工具">
+          {relatedResources.map((r) => (
+            <a
+              class="tool-callout__link"
+              href={routes.resource(r.slug)}
+              data-ga-cta="resource_callout"
+              data-ga-location={r.slug}
+            >
+              <span class="tool-callout__text">
+                <span class="tool-callout__kind">{RESOURCE_KIND_LABEL[r.kind] ?? r.kind}</span>
+                <span class="tool-callout__title">{r.title}</span>
+                <span class="tool-callout__note">{r.pitch ?? r.excerpt}</span>
+              </span>
+              <span class="tool-callout__cta">{r.cta}</span>
+            </a>
+          ))}
+        </aside>
+      )}
 
       <div class="prose">
         <Content />
@@ -436,6 +460,76 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     margin: 0 0 36px;
   }
 
+  /* ── 相關工具（以本文為依據的試算器等）：寬度對齊 .prose 的內文欄 ── */
+  .tool-callout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 45rem;
+    margin: 0 0 36px;
+  }
+  .tool-callout__link {
+    display: flex;
+    align-items: center;
+    gap: 16px 24px;
+    padding: 16px 20px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+    color: var(--ink);
+    transition: border-color var(--dur-micro) var(--ease-out);
+  }
+  .tool-callout__link:hover {
+    color: var(--ink);
+    border-color: var(--ink-soft);
+  }
+  .tool-callout__text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .tool-callout__kind {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .tool-callout__title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.4;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+  .tool-callout__link:hover .tool-callout__title,
+  .tool-callout__link:focus-visible .tool-callout__title {
+    color: var(--accent);
+  }
+  .tool-callout__note {
+    font-family: var(--font-serif);
+    font-size: var(--fs-sm);
+    line-height: 1.75;
+    color: var(--ink-soft);
+  }
+  /* 外觀比照 .btn；整框已是連結，這裡只是視覺上的按鈕 */
+  .tool-callout__cta {
+    flex-shrink: 0;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 20px;
+    border: 1px solid var(--ink-soft);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+    transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+  }
+  .tool-callout__link:hover .tool-callout__cta {
+    border-color: var(--ink);
+    background: var(--paper-alt);
+  }
+
   /* ── 文末 ───────────────────────────────────── */
   .article__foot {
     margin-top: 56px;
@@ -572,6 +666,18 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     }
     .article__cover {
       margin-bottom: 24px;
+    }
+    .tool-callout {
+      margin-bottom: 24px;
+    }
+    .tool-callout__link {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 16px;
+    }
+    .tool-callout__cta {
+      margin-left: 0;
+      justify-content: center;
     }
     .article__foot {
       margin-top: 40px;

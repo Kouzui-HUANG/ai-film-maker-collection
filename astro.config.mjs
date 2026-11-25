@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import { SITE_ORIGIN, BASE_PATH, SITE_URL } from './site.config.mjs';
 import { SITE_META, SECTIONS, readContentIndex } from './src/data/llms-pages.mjs';
+import { RESOURCES } from './src/data/resources.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -103,6 +104,7 @@ function llmsTxtIntegration() {
 //   - 作品頁：releasedAt，否則不填
 //   - 文章頁：updated 優先，否則 date
 //   - 活動頁：不填（時效性頁每日重建，lastmod 反而失真）
+//   - 工具資源頁：src/data/resources.mjs 的 updated（試算器的單價、情境都不在 .astro 檔裡，git 日期不準）
 //   - 首頁 / 總表 / 列表頁：對應 collection 最新日
 //   - 其他靜態頁：對應 .astro 檔的 git last-commit 日（CI 沒有 git 歷史時 fallback 到 mtime）
 
@@ -154,17 +156,27 @@ function buildLastmodMap() {
     postDates.push(d);
   }
 
+  const resourceDates = [];
+  for (const r of RESOURCES) {
+    const d = String(r.updated ?? r.published ?? '').slice(0, 10);
+    if (!d) continue;
+    map.set(`${SITE_URL}/resource/${r.slug}/`, d);
+    resourceDates.push(d);
+  }
+
   const lc = latestOf(creatorDates);
   const lw = latestOf(workDates);
   const lp = latestOf(postDates);
+  const lr = latestOf(resourceDates);
   if (lc) map.set(`${SITE_URL}/creators/`, lc);
   if (lw) map.set(`${SITE_URL}/works/`, lw);
   if (lp) map.set(`${SITE_URL}/posts/`, lp);
+  if (lr) map.set(`${SITE_URL}/resources/`, lr);
   const latestAll = latestOf([lc, lw, lp]);
-  if (latestAll) {
-    map.set(`${SITE_URL}/`, latestAll);
-    map.set(`${SITE_URL}/sitemap/`, latestAll);
-  }
+  if (latestAll) map.set(`${SITE_URL}/`, latestAll);
+  /* /sitemap/ 也列工具資源，所以多算一個 lr */
+  const latestSitemap = latestOf([latestAll, lr]);
+  if (latestSitemap) map.set(`${SITE_URL}/sitemap/`, latestSitemap);
 
   for (const [path, file] of STATIC_PAGES) {
     const abs = join(__dirname, file);

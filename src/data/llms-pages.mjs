@@ -12,6 +12,7 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 import { SITE_URL } from '../../site.config.mjs';
+import { RESOURCES } from './resources.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const CONTENT = join(__dirname, '..', 'content');
@@ -75,9 +76,20 @@ export const SECTIONS = [
       { path: '/works/', title: '全部作品', note: '所有收錄作品，依發表時間排列' },
       { path: '/posts/', title: '專欄與教學', note: '編輯部專欄、創作者訪談與 AI 影視教學文章' },
       { path: '/events/', title: '活動與比賽', note: '即將舉行與過往的比賽、工作坊、放映、講座、展覽' },
+      { path: '/resources/', title: '工具資源', note: '給 AI 影視創作者與發案方的實用工具，例如 AI 影片算力成本試算器' },
       { path: '/about/', title: '關於圖鑑・收錄準則', note: '圖鑑定位、收錄準則、資料來源、授權聲明與退出機制' },
     ],
   },
+  ...(RESOURCES.length
+    ? [{
+        heading: '工具資源',
+        pages: RESOURCES.map((r) => ({
+          path: `/resource/${r.slug}/`,
+          title: r.title,
+          note: r.excerpt,
+        })),
+      }]
+    : []),
   ...(idx.creators.length
     ? [{
         heading: '創作者',

@@ -1,0 +1,247 @@
+---
+/**
+ * /resources/ — 工具資源列表
+ *
+ * - 條目來自 src/data/resources.mjs（每筆對應 src/pages/resource/<slug>.astro）；封面 src/assets/resources/<slug>.jpg
+ * - 卡片寫法比照 PostCard 的 row 版：縮圖左、內容右，≤640px 改圖上字下；整張卡是一個連結
+ * - schema：CollectionPage + ItemList
+ * - 麵包屑由 BaseLayout 依路徑自動生成（首頁 › 工具資源），與可見 .crumbs 一致
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSiteData } from '../../data/queries';
+import { SITE, routes, absRoutes } from '../../data/site';
+import { fmtDate } from '../../data/events';
+import { RESOURCES, RESOURCE_KIND_LABEL } from '../../data/resources.mjs';
+
+const d = await getSiteData();
+const covers = import.meta.glob<{ default: ImageMetadata }>('../../assets/resources/*.jpg', { eager: true });
+
+const items = RESOURCES.map((r) => {
+  const cover = covers[`../../assets/resources/${r.slug}.jpg`]?.default;
+  if (!cover) throw new Error(`工具資源「${r.slug}」缺封面：src/assets/resources/${r.slug}.jpg`);
+  const post = r.basedOn ? d.postByUrlSlug.get(r.basedOn) : undefined;
+  return { ...r, cover, kindLabel: RESOURCE_KIND_LABEL[r.kind] ?? r.kind, post };
+});
+
+const kindCounts = new Map<string, number>();
+for (const it of items) kindCounts.set(it.kindLabel, (kindCounts.get(it.kindLabel) ?? 0) + 1);
+const kindSummary = [...kindCounts].map(([label, n]) => `${label} ${n} 項`).join('、');
+
+const title = '工具資源';
+const seoTitle = '工具資源：AI 影片成本試算器與創作實用工具';
+const description =
+  '給 AI 影視創作者與發案方的實用工具：AI 影片算力成本試算器等，' +
+  '每項工具都附上它依據的文章與資料日期，數字可以攤開檢查。';
+
+/* ── CollectionPage + ItemList ── */
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': absRoutes.resources(),
+  url: absRoutes.resources(),
+  name: `${seoTitle}｜${SITE.name}`,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: items.length,
+    itemListElement: items.map((it, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absRoutes.resource(it.slug),
+      name: it.title,
+    })),
+  },
+};
+---
+
+<BaseLayout title={title} seoTitle={seoTitle} description={description} schemas={[collectionSchema]}>
+  <div class="page">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <span aria-current="page">工具資源</span>
+      </nav>
+
+      <header class="page-head">
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">
+          給 AI 影視創作者與發案方的實用工具。每一項都寫明依據的文章、公式與資料日期，數字可以攤開檢查，也可以換成自己的。
+        </p>
+        <p class="page-meta">共 {items.length} 項：{kindSummary}</p>
+      </header>
+
+      <h2 class="visually-hidden">工具列表</h2>
+      <ul class="res-list" role="list">
+        {items.map((it, i) => (
+          <li>
+            <article class="res-card">
+              <a class="res-card__link" href={routes.resource(it.slug)}>
+                <figure class="frame frame--post res-card__figure">
+                  <Image
+                    src={it.cover}
+                    alt={it.coverAlt}
+                    width={720}
+                    height={405}
+                    widths={[480, 720, 960]}
+                    sizes="(max-width: 640px) calc(100vw - 32px), 400px"
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchpriority={i === 0 ? 'high' : undefined}
+                    decoding="async"
+                  />
+                  <span class="res-card__badge badge" aria-hidden="true">{it.kindLabel}</span>
+                </figure>
+                <div class="res-card__body">
+                  <h3 class="res-card__title">{it.title}</h3>
+                  <p class="res-card__excerpt">{it.excerpt}</p>
+                  {it.post && (
+                    <p class="res-card__basis">
+                      <span class="res-card__basis-label">依據</span>
+                      <span class="res-card__basis-title">{it.post.data.title}</span>
+                    </p>
+                  )}
+                  <p class="res-card__foot">
+                    <span class="visually-hidden">{it.kindLabel}　</span>
+                    {it.dataDate && <span class="date-chip">資料日 {fmtDate(it.dataDate)}</span>}
+                    <span class="date-chip">更新 {fmtDate(it.updated)}</span>
+                    <span class="res-card__cta">{it.cta}</span>
+                  </p>
+                </div>
+              </a>
+            </article>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .res-list {
+    border-top: 1px solid var(--rule);
+  }
+
+  .res-card {
+    padding: 32px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .res-card__link {
+    display: grid;
+    grid-template-columns: 400px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+    color: inherit;
+  }
+  .res-card__link:hover {
+    color: inherit;
+  }
+
+  .res-card__figure {
+    min-width: 0;
+  }
+  .res-card__badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .res-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .res-card__title {
+    font-size: var(--text-title);
+    line-height: 1.35;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+  .res-card__link:hover .res-card__title,
+  .res-card__link:focus-visible .res-card__title {
+    color: var(--accent);
+  }
+
+  .res-card__excerpt {
+    font-family: var(--font-serif);
+    color: var(--ink-soft);
+    font-size: var(--fs-base);
+    line-height: 1.85;
+    max-width: 40em;
+  }
+
+  .res-card__basis {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: var(--fs-sm);
+  }
+  .res-card__basis-label {
+    font-family: var(--font-caps);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .res-card__basis-title {
+    font-family: var(--font-serif);
+    color: var(--ink);
+  }
+
+  .res-card__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule-soft);
+  }
+
+  /* 外觀比照 .btn（外框次按鈕），但它在整張卡的連結裡，不能再包一層 <a> */
+  .res-card__cta {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 20px;
+    border: 1px solid var(--ink-soft);
+    background: var(--paper-raised);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    color: var(--ink);
+    white-space: nowrap;
+    transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+  }
+  .res-card__link:hover .res-card__cta {
+    border-color: var(--ink);
+    background: var(--paper-alt);
+  }
+
+  @media (max-width: 860px) {
+    .res-card__link {
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 24px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .res-card {
+      padding: 24px 0;
+    }
+    .res-card__link {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+    .res-card__cta {
+      margin-left: 0;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

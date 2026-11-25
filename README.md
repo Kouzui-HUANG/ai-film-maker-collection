@@ -10,6 +10,7 @@ A curated directory of Taiwanese AI filmmakers: their AI short films, animations
 - [作品](https://hallucination28.com/works/)：AI 短片、AI 動畫、AI MV、AI 廣告與實驗片，逐部標註創作者與使用工具
 - [專欄與教學](https://hallucination28.com/posts/)：AI 短劇等產業專欄，以及 AI 影片製作教學
 - [活動與比賽](https://hallucination28.com/events/)：台灣與海外的 AI 影片比賽、徵件、工作坊與放映
+- [工具資源](https://hallucination28.com/resources/)：AI 影片算力成本試算器等給創作者與發案方的實用工具
 
 以下是給協作者的開發與維護文件（Astro 6 static × 原生 CSS × GitHub Pages）。
 
@@ -71,12 +72,15 @@ ai-film-maker-collection/
     │   ├── works/                # <slug>.md + thumbs/<slug>.jpg（扁平單檔）
     │   ├── posts/<slug>/         # index.md + cover.jpg（訪談與教學）
     │   └── events/               # <slug>.md + covers/<slug>.jpg
+    ├── assets/resources/         # 工具資源的封面 <slug>.jpg（1600×900）
     ├── data/
     │   ├── site.ts               # 站台 meta、href() / routes.* / absRoutes.*、導覽
     │   ├── tools.ts              # 工具受控詞彙（TOOLS、MIN_TOOL_WORKS）
     │   ├── genres.ts             # 類型受控詞彙（GENRES）＋ 活動種類 / 文章類型 / 難度標籤
     │   ├── queries.ts            # 唯一的資料入口 getSiteData()：draft 過濾、排序、反查、時效性
     │   ├── events.ts             # 時效性引擎純函式（upcoming / ongoing / past、倒數文案）
+    │   ├── resources.mjs         # 「工具資源」條目登記（/resources/、sitemap、llms.txt、文章頁的相關工具共用）
+    │   ├── cost-calculator.ts    # AI 影片算力成本試算器：公式、模型單價快照、情境（頁面與前端共用）
     │   ├── listings.ts           # /works/ 捲動載入常數
     │   └── faq.ts                # FAQPage / HowTo schema 抽取器
     ├── layouts/BaseLayout.astro  # 報頭、nav、footer、Organization + WebSite + BreadcrumbList
@@ -130,6 +134,15 @@ node scripts/new-work.mjs https://www.youtube.com/watch?v=XXXXXXXXXXX --creator 
 2. `kind`：`competition` / `workshop` / `screening` / `talk` / `exhibition`；`startDate` / `endDate` / `deadline` 加引號；線上活動 `location: "線上"` 並設 `isOnline: true`；`officialUrl` 必填。
    海外活動另填 `country`（ISO 3166-1 兩碼，如 `"JP"`）；`fee` 不是新台幣時填 `currency`（ISO 4217，如 `"USD"`）。兩者省略時 Event schema 會標成 TW／TWD。
 3. upcoming / ongoing / past 由 build 時依台北日期自動判定，過期活動會自動從首頁與 `/events/` 上半區移到「已結束」——這也是為什麼要每日重建（見下節）。
+
+### 新增工具資源
+
+互動工具不走 content collection，每個工具是一個手寫頁面：
+
+1. 在 `src/data/resources.mjs` 的 `RESOURCES` 加一筆（`slug` / `kind` / `title` / `excerpt` / `coverAlt` / `published` / `updated`，依據某篇文章時填 `basedOn` 與 `pitch`）。`/resources/`、`/sitemap/`、sitemap lastmod 與 llms.txt 都會自動帶上。
+2. 建立 `src/pages/resource/<slug>.astro` 與封面 `src/assets/resources/<slug>.jpg`（1600×900）。
+3. 填了 `basedOn` 的工具，依據文章的頁面會在封面下方自動出現「相關工具」框。
+4. 改試算器的模型單價或情境時，改 `src/data/cost-calculator.ts`（`MODELS` / `PRICE_DATE` / `PRESETS`），並更新 `resources.mjs` 的 `updated` 與 `dataDate`。
 
 ## 部署到 GitHub Pages
 

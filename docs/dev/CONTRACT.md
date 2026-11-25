@@ -17,6 +17,8 @@
 | `src/data/events.ts` | 時效性引擎純函式：`fmtDate` / `fmtRange` / `countdownLabel` / `deadlineLabel` |
 | `src/data/listings.ts` | `/works/` 捲動載入常數 `MORE_INITIAL=24` / `MORE_BATCH=12` / `MORE_CHUNK=24`、`WORKS_KEY`、`getMoreLists()` / `chunkCount()` / `chunkSlice()` |
 | `src/data/faq.ts` | `buildFaqSchema(body)`（FAQPage）、`extractHowToSteps(body)`（HowTo） |
+| `src/data/resources.mjs` | 「工具資源」條目登記 `RESOURCES` / `RESOURCE_KIND_LABEL` / `resourcesBasedOn(urlSlug)`；純 Node 可讀（astro.config 的 sitemap lastmod 與 llms.txt 也讀），不可 import 圖片或 astro:* |
+| `src/data/cost-calculator.ts` | AI 影片算力成本試算器的公式 `calc()`、模型單價快照 `MODELS` / `PRICE_DATE`、情境 `PRESETS`、文字 `describe()`、網址參數 `toSearch()` / `fromSearch()`；頁面 SSR 與前端 `<script>` 共用，只能放純資料與純函式 |
 | `src/content.config.ts` | 四個 collection 的 schema（creators / works / posts / events） |
 | `src/layouts/BaseLayout.astro` | 報頭、nav、footer、Organization + WebSite + BreadcrumbList schema 引擎 |
 | `src/components/Analytics.astro` | GA4（`SITE.gaId` 空則不載） |
@@ -132,6 +134,7 @@ d.creatorById / d.workById / d.postByUrlSlug / d.eventById
 | **static** | `src/pages/about.astro`、`src/pages/contact.astro`、`src/pages/privacy.astro`、`src/pages/404.astro`、`src/pages/sitemap.astro`、`src/pages/rss.xml.js` |
 | **scripts** | `scripts/new-work.mjs`、`scripts/check-integrity.mjs`、`.github/workflows/deploy.yml`、`README.md` |
 | **home+index**（第二階段，等前四位完成） | `src/pages/index.astro`、`src/pages/tool/[slug].astro`、`src/pages/genre/[slug].astro` |
+| **resources**（2026-11-25 新增） | `src/pages/resources/index.astro`、`src/pages/resource/<slug>.astro`（每個工具一頁手寫）、`src/components/CalcField.astro`、`src/data/resources.mjs`、`src/data/cost-calculator.ts`、`src/assets/resources/<slug>.jpg`（1600×900 封面） |
 
 ## 6. Schema（JSON-LD）對照
 
@@ -144,6 +147,8 @@ d.creatorById / d.workById / d.postByUrlSlug / d.eventById
 | 訪談 | `Article`（headline / description / author(Person or Organization) / datePublished / dateModified / image / publisher / `about: [{ '@id': creatorId }]` / inLanguage zh-Hant-TW / wordCount / timeRequired）＋ FAQPage（`buildFaqSchema`）；`ogType="article"` |
 | 教學 | `extractHowToSteps(body).length >= 2` → `HowTo`（name / description / step[] HowToStep{name,text} / tool[] HowToTool{name}）否則 `Article`；FAQPage 照抽 |
 | `/event/<slug>/` | `Event`（name / description / startDate / endDate / `eventAttendanceMode`(isOnline ? Online : Offline) / `eventStatus: EventScheduled` / `location`(isOnline ? VirtualLocation{url} : Place{name, address.addressCountry = `country` ?? TW}) / `organizer`(Organization{name}) / `offers`(fee: 免費→price 0；有數字→price+priceCurrency = `currency` ?? TWD；`url: officialUrl`，`availability`；fee 缺或抓不到數字→整個不輸出 offers，避免缺價 Offer 被 Search Console 警告) / `image`） |
+| `/resources/` | `CollectionPage` + `ItemList`（url + name） |
+| `/resource/<slug>/` | `WebPage`（name / description / image / datePublished / dateModified / `isBasedOn` 依據文章的 Article{headline, url}）。**不用 `WebApplication`**：沒有 aggregateRating 或 review 時，Search Console 的「軟體應用程式」報表會列為無效項目 |
 
 ## 7. noindex 清單
 

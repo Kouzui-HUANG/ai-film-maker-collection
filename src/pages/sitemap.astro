@@ -3,7 +3,7 @@
  * /sitemap/ — 人讀的全站索引
  *
  * 分區：01 主要頁面 / 02 創作者（依編號）/ 03 作品（依年份倒序）/ 04 專欄與教學 /
- *       05 活動與比賽（upcoming / past）/ 06 工具索引（達門檻者）/ 07 類型索引 / 08 機器可讀索引
+ *       05 活動與比賽（upcoming / past）/ 06 工具資源 / 07 工具索引（達門檻者）/ 08 類型索引 / 09 機器可讀索引
  * 每項顯示中文 + 路徑小字（路徑即實際 href，含 base）。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -12,13 +12,14 @@ import { getSiteData, type Work } from '../data/queries';
 import { TOOLS, TOOL_CATEGORY_LABEL, toolHasPage, MIN_TOOL_WORKS } from '../data/tools';
 import { GENRES, genreIsIndexable, MIN_GENRE_WORKS, EVENT_KIND_LABEL, POST_TYPE_LABEL } from '../data/genres';
 import { fmtDate, fmtRange } from '../data/events';
+import { RESOURCES, RESOURCE_KIND_LABEL } from '../data/resources.mjs';
 
 const d = await getSiteData();
 
 const pageUrl = absUrl('/sitemap/');
 const title = 'Sitemap';
 const description =
-  `${SITE.name}全站索引：主要頁面、${d.creators.length} 位創作者、${d.works.length} 部作品、專欄與教學、活動與比賽、工具與類型索引一覽。`;
+  `${SITE.name}全站索引：主要頁面、${d.creators.length} 位創作者、${d.works.length} 部作品、專欄與教學、活動與比賽、工具資源、工具與類型索引一覽。`;
 
 const breadcrumbs = [{ name: 'Sitemap', item: pageUrl }];
 
@@ -259,7 +260,31 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
         </section>
       </section>
 
-      <!-- 06 工具索引 ─────────────────────── -->
+      <!-- 06 工具資源 ─────────────────────── -->
+      <section class="block" aria-labelledby="block-resources">
+        <div class="block__title">
+          <h2 id="block-resources" class="block__cn">工具資源</h2>
+          <span class="block__count">{RESOURCES.length} 項</span>
+        </div>
+        <div class="rule-hair"></div>
+        {RESOURCES.length > 0 ? (
+          <ul class="link-list">
+            {RESOURCES.map((r) => (
+              <li class="link-list__item">
+                <a class="link-list__link" href={routes.resource(r.slug)}>
+                  <span class="link-list__cn">{r.title}</span>
+                  <span class="link-list__en">{RESOURCE_KIND_LABEL[r.kind] ?? r.kind}</span>
+                  <span class="link-list__path">{routes.resource(r.slug)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="block__empty">尚無工具資源。</p>
+        )}
+      </section>
+
+      <!-- 07 工具索引 ─────────────────────── -->
       <section class="block" aria-labelledby="block-tools">
         <div class="block__title">
           <h2 id="block-tools" class="block__cn">工具索引</h2>
@@ -283,7 +308,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
         )}
       </section>
 
-      <!-- 07 類型索引 ─────────────────────── -->
+      <!-- 08 類型索引 ─────────────────────── -->
       <section class="block" aria-labelledby="block-genres">
         <div class="block__title">
           <h2 id="block-genres" class="block__cn">類型索引</h2>
@@ -309,7 +334,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
         )}
       </section>
 
-      <!-- 08 機器可讀索引 ─────────────────── -->
+      <!-- 09 機器可讀索引 ─────────────────── -->
       <section class="block" aria-labelledby="block-machine">
         <div class="block__title">
           <h2 id="block-machine" class="block__cn">機器可讀索引</h2>

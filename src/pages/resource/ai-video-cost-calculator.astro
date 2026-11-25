@@ -1,0 +1,1363 @@
+---
+/**
+ * /resource/ai-video-cost-calculator/ — AI 影片算力成本試算器
+ *
+ * - 公式、模型單價、四個情境與所有會變動的文字都在 src/data/cost-calculator.ts，
+ *   本頁 frontmatter（SSR 初值、情境表）與下方 <script>（拉桿即時試算）共用同一份，數字不會兩套
+ * - 條目資訊（標題、摘要、上線／更新日、封面 alt）在 src/data/resources.mjs；封面 src/assets/resources/<slug>.jpg
+ * - build 時先渲染預設情境（B）；沒有 JS 時情境卡、算式與「四個預設情境」表仍完整可讀
+ * - 參數同步到網址（?p=<情境> 或逐項參數），「複製連結」可分享同一組試算
+ * - schema：WebPage（isBasedOn 原文）。不用 WebApplication：沒有評分或評論時，
+ *   Search Console 的「軟體應用程式」報表會把它列為無效項目
+ * - 麵包屑：首頁 › 工具資源 › 頁名（傳給 BaseLayout，與可見 .crumbs 一致）
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CalcField from '../../components/CalcField.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getSiteData } from '../../data/queries';
+import { SITE, routes, absRoutes, absAsset } from '../../data/site';
+import { fmtDate } from '../../data/events';
+import { RESOURCES } from '../../data/resources.mjs';
+import {
+  MODELS,
+  PRESETS,
+  PRICE_DATE,
+  SOURCE_POST_SLUG,
+  CUSTOM_MODEL,
+  calc,
+  describe,
+  defaultParams,
+  fmtNum,
+  fmtPct,
+  fmtPrice,
+  fmtDuration,
+  modelLabel,
+} from '../../data/cost-calculator';
+
+const SLUG = 'ai-video-cost-calculator';
+const resource = RESOURCES.find((r) => r.slug === SLUG);
+if (!resource) throw new Error(`src/data/resources.mjs 缺少「${SLUG}」`);
+
+const covers = import.meta.glob<{ default: ImageMetadata }>('../../assets/resources/*.jpg', { eager: true });
+const cover = covers[`../../assets/resources/${SLUG}.jpg`]?.default;
+if (!cover) throw new Error(`缺封面：src/assets/resources/${SLUG}.jpg`);
+
+const d = await getSiteData();
+const sourcePost = d.postByUrlSlug.get(SOURCE_POST_SLUG);
+if (!sourcePost) throw new Error(`試算器的依據文章「${SOURCE_POST_SLUG}」不存在或是草稿`);
+const sourceTitle = sourcePost.data.title;
+/* 文章標題「AI影片製作費用怎麼估？人力、抽卡、修改與後製成本」在內文只引前半句 */
+const sourceShort = sourceTitle.split('？')[0] + '？';
+
+/* ── SSR 初值：預設情境 ── */
+const params = defaultParams();
+const texts = describe(params);
+
+const presetRows = PRESETS.map((p) => {
+  const r = calc(p.params);
+  return {
+    ...p,
+    r,
+    finalLabel:
+      p.params.eps > 1 ? `${fmtDuration(p.params.len)} × ${p.params.eps} 集` : fmtDuration(p.params.len),
+    model: modelLabel(p.params),
+    share: r.computeShare === null ? '—' : fmtPct(r.computeShare),
+    laborShare: r.computeShare === null ? '—' : fmtPct(1 - r.computeShare),
+  };
+});
+
+/* 情境 D 的原文另算了一版「加 20% 修改預備量」，表格下方註明 */
+const feature = PRESETS.find((p) => p.id === 'feature');
+if (!feature) throw new Error('cost-calculator.ts 缺少情境 feature');
+const featureRev = calc({ ...feature.params, rev: 20 });
+
+/* ── 頁面文字 ── */
+const title = resource.title;
+const seoTitle = 'AI 影片算力成本試算器：Seedance 生成費、抽卡採用率與人力一次算';
+const description =
+  '輸入片長、集數、採用率、修改預備量與模型單價，算出一支 AI 影片要準備多少新台幣的生成算力，也能加入人日估總價。' +
+  '內建 30 秒社群短片、3 分鐘品牌短劇、10 集網路短劇與 100 分鐘 AI 電影四個情境，一鍵套用再用拉桿微調。';
+
+const pageUrl = absRoutes.resource(SLUG);
+const breadcrumbs = [
+  { name: '工具資源', item: absRoutes.resources() },
+  { name: title, item: pageUrl },
+];
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': pageUrl,
+  url: pageUrl,
+  name: title,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  image: absAsset(cover.src),
+  datePublished: resource.published,
+  dateModified: resource.updated,
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  publisher: { '@id': `${SITE.url}/#organization` },
+  isBasedOn: {
+    '@type': 'Article',
+    headline: sourceTitle,
+    url: absRoutes.post(SOURCE_POST_SLUG),
+  },
+  keywords: 'AI 影片製作費用, AI 影片成本, 算力費, Seedance, 採用率, 修改預備量, 人日',
+};
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={seoTitle}
+  description={description}
+  ogImage={cover.src}
+  schemas={[pageSchema]}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="page">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <a href={routes.resources()}>工具資源</a><span aria-hidden="true">／</span>
+        <span aria-current="page">{title}</span>
+      </nav>
+
+      <header class="page-head">
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">
+          輸入片長、採用率、修改預備量與模型單價，算出這支 AI 影片要準備多少新台幣的生成算力；要估報價，再把人日加進來。公式與四個情境出自〈<a href={routes.post(SOURCE_POST_SLUG)}>{sourceShort}</a>〉，可以一鍵套用，也能用拉桿微調。
+        </p>
+        <p class="page-meta">
+          模型單價資料日 {fmtDate(PRICE_DATE)}　金額為新台幣　更新 {fmtDate(resource.updated)}
+        </p>
+      </header>
+
+      <section class="calc" data-calc data-site-name={SITE.name} aria-labelledby="calc-title">
+        <h2 id="calc-title" class="visually-hidden">試算</h2>
+
+        <!-- 預設情境 ─────────────────────────── -->
+        <div class="presets">
+          <div class="presets__head">
+            <h3 class="calc-h">預設情境</h3>
+            <p class="presets__status" data-out="presetStatus">{texts.presetStatus}</p>
+          </div>
+          <ul class="presets__list" role="list">
+            {presetRows.map((p) => (
+              <li>
+                <button
+                  type="button"
+                  class="preset"
+                  data-preset={p.id}
+                  aria-pressed={p.id === texts.presetId ? 'true' : 'false'}
+                  data-ga-cta="calc_preset"
+                  data-ga-location={p.id}
+                >
+                  <span class="preset__key">情境 {p.key}</span>
+                  <span class="preset__label">{p.label}</span>
+                  <span class="preset__summary">{p.summary}</span>
+                  <span class="preset__total">{fmtNum(p.r.total)} 元</span>
+                  <span class="preset__share">算力占 {p.share}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <noscript>
+            <p class="calc-noscript">拉桿試算需要 JavaScript。四個情境的完整參數與結果列在下方「四個預設情境」。</p>
+          </noscript>
+        </div>
+
+        <div class="calc__grid">
+          <!-- 參數 ─────────────────────────────── -->
+          <div class="calc__controls">
+            <h3 class="visually-hidden">調整參數</h3>
+
+            <fieldset class="group">
+              <legend class="group__legend">
+                <span class="group__no">01</span><span class="group__title">成片</span>
+              </legend>
+              <CalcField field="len" label="單集長度" unit="秒" params={params} hint={texts.hintLen} />
+              <CalcField field="eps" label="集數" unit="集" params={params} hint={texts.hintEps} />
+            </fieldset>
+
+            <fieldset class="group">
+              <legend class="group__legend">
+                <span class="group__no">02</span><span class="group__title">抽卡與修改</span>
+              </legend>
+              <CalcField
+                field="adopt"
+                label="採用率"
+                unit="%"
+                params={params}
+                hint={texts.hintAdopt}
+                note="最後進入成片的秒數占全部生成秒數的比例。原文的規劃起點：商用敘事 20%、社群短影音 40%。"
+              />
+              <CalcField
+                field="rev"
+                label="修改預備量"
+                unit="%"
+                params={params}
+                hint={texts.hintRev}
+                note="第一版剪完後，為客戶修改重生鏡頭預留的量。委製案原文抓 20%，自製可設 0。"
+              />
+            </fieldset>
+
+            <fieldset class="group">
+              <legend class="group__legend">
+                <span class="group__no">03</span><span class="group__title">模型與畫質</span>
+              </legend>
+              <div class="models">
+                {MODELS.map((m) => (
+                  <label class="model">
+                    <input
+                      class="model__input"
+                      type="radio"
+                      name="calc-model"
+                      value={m.id}
+                      checked={params.model === m.id}
+                      data-model
+                    />
+                    <span class="model__box">
+                      <span class="model__name">{m.name}</span>
+                      <span class="model__res">{m.res}</span>
+                      <span class="model__price">{fmtPrice(m.price)} 元／秒</span>
+                    </span>
+                  </label>
+                ))}
+                <label class="model">
+                  <input
+                    class="model__input"
+                    type="radio"
+                    name="calc-model"
+                    value={CUSTOM_MODEL}
+                    checked={params.model === CUSTOM_MODEL}
+                    data-model
+                  />
+                  <span class="model__box">
+                    <span class="model__name">自訂單價</span>
+                    <span class="model__price">在下方填每生成秒的價格</span>
+                  </span>
+                </label>
+              </div>
+              <CalcField
+                field="price"
+                label="每生成秒單價"
+                unit="元"
+                inputmode="decimal"
+                params={params}
+                hint={texts.hintPrice}
+                note={`四個 Seedance 單價是原文依 Dreamina 國際版方案換算的試算基準（${fmtDate(PRICE_DATE)}），不是平台保證價格。`}
+              />
+            </fieldset>
+
+            <fieldset class="group">
+              <legend class="group__legend">
+                <span class="group__no">04</span><span class="group__title">人力</span>
+              </legend>
+              <label class="switch">
+                <input
+                  class="switch__input"
+                  type="checkbox"
+                  role="switch"
+                  checked={params.labor}
+                  data-labor
+                />
+                <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+                <span class="switch__text">
+                  <span class="switch__label">計入人力費</span>
+                  <span class="switch__note">關掉就只看算力</span>
+                </span>
+              </label>
+              <div class="labor-fields" data-labor-fields>
+                <CalcField field="rate" label="人日單價" unit="元" params={params} hint={texts.hintRate} />
+                <CalcField
+                  field="days"
+                  label="人日數"
+                  unit="人日"
+                  inputmode="decimal"
+                  params={params}
+                  hint={texts.hintDays}
+                  note="人日不等於日曆天：450 人日交給三個人，也不能直接除以三當工期。"
+                />
+              </div>
+            </fieldset>
+
+            <!-- 手機：捲動參數時釘在畫面底部的結果摘要 -->
+            <a class="dock" href="#calc-result">
+              <span class="dock__item">
+                <span class="dock__label">算力</span>
+                <span class="dock__value"><span data-out="compute">{texts.compute}</span> 元</span>
+              </span>
+              <span class="dock__item">
+                <span class="dock__label">總價</span>
+                <span class="dock__value"><span data-out="total">{texts.total}</span> 元</span>
+              </span>
+              <span class="dock__cta">看算式</span>
+            </a>
+          </div>
+
+          <!-- 試算結果 ─────────────────────────── -->
+          <section class="result" id="calc-result" aria-labelledby="calc-result-title">
+            <h3 id="calc-result-title" class="calc-h">試算結果</h3>
+
+            <div class="result__block">
+              <p class="result__label">算力費<span class="result__label-note">要準備的生成預算</span></p>
+              <p class="result__big result__big--accent">
+                <span data-out="compute">{texts.compute}</span><span class="result__unit">元</span><span class="result__wan" data-out="computeWan" hidden={!texts.computeWan}>{texts.computeWan}</span>
+              </p>
+              <p class="result__desc" data-out="genDesc">{texts.genDesc}</p>
+            </div>
+
+            <div class="result__block">
+              <p class="result__label">試算總價<span class="result__label-note" data-out="totalNote">{texts.totalNote}</span></p>
+              <p class="result__big">
+                <span data-out="total">{texts.total}</span><span class="result__unit">元</span><span class="result__wan" data-out="totalWan" hidden={!texts.totalWan}>{texts.totalWan}</span>
+              </p>
+              <div class="share" data-share hidden={!params.labor}>
+                <div class="share__bar" role="img" aria-label={texts.shareLabel} data-share-bar>
+                  <span class="share__fill" style={`width: ${texts.shareWidth}`} data-share-fill></span>
+                </div>
+                <p class="share__legend" aria-hidden="true">
+                  <span class="share__item"><span class="share__key share__key--compute"></span>算力 <span data-out="computePct">{texts.computePct}</span></span>
+                  <span class="share__item"><span class="share__key"></span>人力 <span data-out="laborPct">{texts.laborPct}</span></span>
+                </p>
+              </div>
+            </div>
+
+            <dl class="result__rows">
+              <div class="result__row">
+                <dt>人力費</dt>
+                <dd data-out="laborRow">{texts.laborRow}</dd>
+              </div>
+              <div class="result__row">
+                <dt>每分鐘成片</dt>
+                <dd data-out="perMin">{texts.perMin}</dd>
+              </div>
+            </dl>
+
+            <div class="result__formula-wrap">
+              <p class="result__label">算式</p>
+              <pre class="result__formula" data-out="formula">{texts.formula}</pre>
+            </div>
+
+            <div class="result__actions">
+              <button type="button" class="btn" data-copy="formula" data-ga-cta="calc_copy" data-ga-location="formula">複製算式</button>
+              <button type="button" class="btn btn--ghost" data-copy="link" data-ga-cta="calc_copy" data-ga-location="link">複製連結</button>
+            </div>
+            <p class="visually-hidden" aria-live="polite" data-live></p>
+          </section>
+        </div>
+      </section>
+
+      <!-- 怎麼算的 ─────────────────────────────── -->
+      <section class="notes" aria-labelledby="method-title">
+        <div class="section-head">
+          <h2 id="method-title" class="section-eyebrow">怎麼算的</h2>
+        </div>
+        <div class="notes__body">
+          <p class="notes__lead">
+            試算器照〈<a href={routes.post(SOURCE_POST_SLUG)}>{sourceShort}</a>〉的窄版公式計算，模型費四捨五入至元：
+          </p>
+          <pre class="notes__formula">需要生成的秒數＝成片秒數 ÷ 採用率
+含修改預備量的生成秒數＝需要生成的秒數 ×（1＋修改率）
+模型費＝含修改預備量的生成秒數 × 模型每秒單價
+人力費＝人日單價 × 人日數
+試算總價＝模型費＋人力費</pre>
+
+          <dl class="glossary">
+            <div class="glossary__item">
+              <dt>採用率</dt>
+              <dd>
+                最後進入成片的秒數占全部生成秒數的比例。採用率 20% 代表成片每用 1 秒，平均要先生成 5 秒，其中 4 秒被丟棄，也就是創作者口中的「抽卡」。多人互動、精準商品、對嘴、長鏡頭與跨鏡角色一致性會拉低採用率；氣氛鏡頭、快剪與容許意外的社群內容通常較高。原文以商用敘事片 20%、社群短影音 40% 當規劃起點，這不是業界標準，最可靠的數字是團隊過去相近題材的生成紀錄。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>修改預備量</dt>
+              <dd>
+                第一版剪完之後，委託方要求調整時的重生預算。客戶要改畫面裡的一個細節，AI 流程常常得重生整顆鏡頭，所以它乘在生成秒數上，不是成片秒數的兩成。它只是預算，不是合約上的修改範圍；修改輪次與追加計價仍要另外寫進合約。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>模型單價</dt>
+              <dd>
+                四個 Seedance 單價是原文依編輯部提供的 Dreamina 國際版方案換算的試算基準，資料日 {fmtDate(PRICE_DATE)}。地區、月繳或年繳、活動折扣、參考影片輸入與匯率都會改變每秒成本，API 與第三方平台又是另一套售價。正式報價前，請用付款帳號當天的點數消耗換算，再填進「自訂單價」。先用 720p 抽卡、選定後再用 1080p 重做可以省錢，前提是模型能穩定重現同一顆鏡頭；重跑會改變人物或構圖時，高解析重生等於再抽一次卡。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>人日</dt>
+              <dd>
+                單一 AI 影像執行者的人日報價。原文的帶狀區間是初階 1,000–3,000 元、中階 3,000–5,000 元、高階 5,000 元以上，這不是薪資表，也不是行情建議；公司報價還包含企劃、製片、溝通、設備、管理、風險與利潤，不能直接拿來比。
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- 四個預設情境 ─────────────────────────── -->
+      <section class="notes" aria-labelledby="presets-title">
+        <div class="section-head">
+          <h2 id="presets-title" class="section-eyebrow">四個預設情境</h2>
+        </div>
+        <div class="table-wrap">
+          <table class="table scenario-table">
+            <caption class="visually-hidden">四個預設情境的參數與試算結果（新台幣）</caption>
+            <thead>
+              <tr>
+                <th scope="col">情境</th>
+                <th scope="col">成片</th>
+                <th scope="col" class="num">採用率</th>
+                <th scope="col" class="num">修改預備</th>
+                <th scope="col">模型與畫質</th>
+                <th scope="col" class="num">人力</th>
+                <th scope="col" class="num">算力費</th>
+                <th scope="col" class="num">試算總價</th>
+                <th scope="col" class="num">算力占比</th>
+              </tr>
+            </thead>
+            <tbody>
+              {presetRows.map((p) => (
+                <tr>
+                  <th scope="row" class="scenario-table__name">
+                    <span class="scenario-table__key">{p.key}</span>{p.label}
+                  </th>
+                  <td>{p.finalLabel}</td>
+                  <td class="num">{p.params.adopt}%</td>
+                  <td class="num">{p.params.rev}%</td>
+                  <td>{p.model}</td>
+                  <td class="num">{fmtNum(p.params.rate)} × {fmtNum(p.params.days, 1)}</td>
+                  <td class="num">{fmtNum(p.r.compute)}</td>
+                  <td class="num">{fmtNum(p.r.total)}</td>
+                  <td class="num">{p.share}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="notes__foot">
+          情境 D 照原文主算式不加修改預備量；加上 20% 時，模型費變成 {fmtNum(featureRev.compute)} 元，總價約 {fmtNum(featureRev.total / 1e4)} 萬元。
+        </p>
+      </section>
+
+      <!-- 沒有算進去的成本 ─────────────────────── -->
+      <section class="notes" aria-labelledby="excluded-title">
+        <div class="section-head">
+          <h2 id="excluded-title" class="section-eyebrow">沒有算進去的成本</h2>
+        </div>
+        <div class="notes__body">
+          <p class="notes__text">
+            試算總價只含生成與主要製作人力。編劇、配音、音樂授權、聲音後製、專案管理、法務、儲存、稅金與橫直多版等媒體版本，若另外計價，都要再加回去；長片還有劇本開發、演員或聲音表演、混音、保險、發行與行銷。比價時，也要先確認兩份報價包含的人力、版本、解析度、交付檔與修改輪次是同一件事。
+          </p>
+          <p class="notes__text notes__text--muted">
+            價格資料：<a href="https://dreamina.capcut.com/" rel="noopener" target="_blank">Dreamina 官方網站 ↗</a>；Seedance 的 API 計價另見 <a href="https://docs.byteplus.com/en/docs/modelark/1544106" rel="noopener" target="_blank">BytePlus ModelArk Pricing ↗</a>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 依據文章 ─────────────────────────────── -->
+      <section class="notes" aria-labelledby="source-title">
+        <div class="section-head">
+          <h2 id="source-title" class="section-eyebrow">依據文章</h2>
+          <a class="section-all" href={routes.posts()}>看專欄與教學</a>
+        </div>
+        <div class="source">
+          <PostCard post={sourcePost} variant="row" />
+        </div>
+      </section>
+
+      <p class="back"><a href={routes.resources()}>回工具資源</a></p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-lead a,
+  .notes__lead a,
+  .notes__text a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .page-lead a:hover,
+  .notes__lead a:hover,
+  .notes__text a:hover {
+    color: var(--accent);
+  }
+
+  .calc {
+    margin-top: 48px;
+  }
+
+  /* 試算器內的小標（h3）：比段落 h2 小一整級，屬於工具介面的欄名 */
+  .calc-h {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-lg);
+    line-height: 1.3;
+  }
+
+  /* ── 預設情境 ───────────────────────────────── */
+  .presets__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-bottom: 12px;
+  }
+  .presets__status {
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+
+  .presets__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .presets__list > li {
+    display: flex;
+  }
+
+  .preset {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+    padding: 16px;
+    text-align: left;
+    color: var(--ink);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+    border-radius: 0;
+    transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out),
+      color var(--dur-micro) var(--ease-out);
+  }
+  .preset:hover {
+    border-color: var(--ink-soft);
+  }
+  .preset[aria-pressed='true'] {
+    color: var(--paper);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .preset__key {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .preset__label {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.4;
+  }
+  .preset__summary {
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .preset__total {
+    margin-top: auto;
+    padding-top: 12px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--fs-base);
+    font-variant-numeric: tabular-nums;
+  }
+  .preset__share {
+    font-size: var(--fs-xs);
+    color: var(--ink-soft);
+  }
+  /* 反白卡上的次級文字：暖白底配深褐，對比 ≥ 7:1 */
+  .preset[aria-pressed='true'] .preset__key,
+  .preset[aria-pressed='true'] .preset__summary,
+  .preset[aria-pressed='true'] .preset__share {
+    color: var(--rule-strong);
+  }
+
+  .calc-noscript {
+    margin-top: 12px;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+
+  /* ── 參數 ＋ 結果 兩欄 ──────────────────────── */
+  .calc__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    gap: 48px;
+    align-items: start;
+    margin-top: 32px;
+  }
+
+  .calc__controls {
+    min-width: 0;
+  }
+
+  .group {
+    min-width: 0;
+    margin: 0 0 32px;
+    padding: 0;
+    border: 0;
+  }
+  .group__legend {
+    display: block;
+    width: 100%;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .group__no {
+    margin-right: 12px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .group__title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-lg);
+  }
+
+  /* 模型：整列是選項，選中的反白（同 .chip.is-active 的語彙） */
+  .models {
+    display: flex;
+    flex-direction: column;
+    margin: 16px 0 4px;
+  }
+  .model {
+    position: relative;
+    display: block;
+    cursor: pointer;
+  }
+  .model + .model {
+    margin-top: -1px;
+  }
+  .model__input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+  }
+  .model__box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 5em auto;
+    align-items: baseline;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid var(--rule-strong);
+    background: var(--paper-raised);
+    transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+  }
+  .model:hover .model__box {
+    position: relative;
+    border-color: var(--ink-soft);
+  }
+  .model__input:checked + .model__box {
+    position: relative;
+    color: var(--paper);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .model__input:focus-visible + .model__box {
+    position: relative;
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .model__name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-base);
+  }
+  .model__res {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+  .model__price {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  /* 「自訂單價」沒有畫質欄，說明文字跨兩欄 */
+  .model__box > .model__name:first-child + .model__price {
+    grid-column: 2 / -1;
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--ink-soft);
+  }
+  .model__input:checked + .model__box .model__res,
+  .model__input:checked + .model__box > .model__name:first-child + .model__price {
+    color: var(--rule-strong);
+  }
+
+  /* 人力開關：方角的 switch（零圓角體系） */
+  .switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    margin: 16px 0 4px;
+    cursor: pointer;
+    position: relative;
+  }
+  .switch__input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+  }
+  .switch__track {
+    position: relative;
+    flex-shrink: 0;
+    width: 48px;
+    height: 24px;
+    border: 1px solid var(--ink-soft);
+    background: var(--paper-alt);
+    transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+  }
+  .switch__knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: var(--ink-soft);
+    transition: transform var(--dur-short) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+  }
+  .switch__input:checked + .switch__track {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .switch__input:checked + .switch__track .switch__knob {
+    background: var(--paper);
+    transform: translateX(24px);
+  }
+  .switch__input:focus-visible + .switch__track {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .switch__text {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+  .switch__label {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+  }
+  .switch__note {
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+
+  .labor-fields {
+    transition: opacity var(--dur-short) var(--ease-out);
+  }
+  .labor-fields[data-off] {
+    opacity: 0.45;
+  }
+
+  /* 手機的結果摘要列：只在單欄版出現 */
+  .dock {
+    display: none;
+  }
+
+  /* ── 結果 ───────────────────────────────────── */
+  .result {
+    min-width: 0;
+    padding: 20px 24px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+  }
+  .result .calc-h {
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .result__block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .result__label {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-base);
+  }
+  .result__label-note {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+
+  .result__big {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(2rem, 1.2vw + 1.5rem, 2.5rem);
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    color: var(--ink);
+  }
+  .result__big--accent {
+    color: var(--accent);
+  }
+  .result__unit {
+    margin-left: 8px;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+  }
+  /* 「約 N 萬元」跟在大數字後面同一行，放不下才折到下一行 */
+  .result__wan {
+    display: inline-block;
+    margin-left: 12px;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .result__desc {
+    margin-top: 4px;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  /* 算力／人力占比：算力段用 accent，人力段只是軌道 */
+  .share {
+    margin-top: 12px;
+  }
+  .share__bar {
+    height: 12px;
+    background: var(--paper-alt);
+    border: 1px solid var(--rule-strong);
+    overflow: hidden;
+  }
+  .share__fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transition: width var(--dur-short) var(--ease-out);
+  }
+  .share__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 20px;
+    margin-top: 8px;
+    font-size: var(--fs-xs);
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .share__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .share__key {
+    width: 12px;
+    height: 12px;
+    background: var(--paper-alt);
+    border: 1px solid var(--rule-strong);
+  }
+  .share__key--compute {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .result__rows {
+    margin: 0;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .result__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  .result__row dt {
+    flex-shrink: 0;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  /* keep-all：中文詞之間不折行，窄欄時只在「，」後換行 */
+  .result__row dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    word-break: keep-all;
+  }
+
+  .result__formula-wrap {
+    padding-top: 12px;
+  }
+  .result__formula {
+    margin: 8px 0 0;
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.75;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--ink);
+    background: var(--paper-alt);
+    border: 1px solid var(--rule-soft);
+  }
+
+  .result__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .result__actions .btn {
+    flex: 1 1 0;
+  }
+
+  /* 桌機：結果欄跟著捲動；視窗比結果欄矮時，結果欄自己內捲，算式與複製鈕才不會被切掉 */
+  @media (min-width: 861px) {
+    .result {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+  }
+
+  /* ── 文末說明區 ─────────────────────────────── */
+  .notes {
+    margin-top: var(--section-gap-s);
+  }
+  .notes__body {
+    max-width: 46em;
+  }
+  .notes__lead,
+  .notes__text {
+    font-family: var(--font-serif);
+    font-size: var(--fs-md);
+    line-height: 1.9;
+    color: var(--ink);
+  }
+  .notes__text + .notes__text {
+    margin-top: 16px;
+  }
+  .notes__text--muted {
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+  .notes__formula {
+    margin: 16px 0 32px;
+    padding: 16px 20px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    line-height: 1.9;
+    white-space: pre-wrap;
+    color: var(--ink);
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+  }
+  .notes__foot {
+    margin-top: 12px;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+
+  .glossary {
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .glossary__item {
+    display: grid;
+    grid-template-columns: 8em minmax(0, 1fr);
+    gap: 8px 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .glossary__item dt {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+  }
+  .glossary__item dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--fs-base);
+    line-height: 1.95;
+    color: var(--ink-soft);
+  }
+
+  .scenario-table td,
+  .scenario-table th {
+    white-space: nowrap;
+  }
+  .scenario-table .num {
+    text-align: right;
+  }
+  .scenario-table__name {
+    padding: 12px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    text-align: left;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .scenario-table tbody tr:last-child .scenario-table__name {
+    border-bottom-color: var(--rule);
+  }
+  .scenario-table__key {
+    margin-right: 12px;
+    font-family: var(--font-mono);
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .source {
+    border-top: 1px solid var(--rule);
+  }
+
+  /* ── 中尺寸：結果欄收窄 ─────────────────────── */
+  @media (max-width: 1080px) {
+    .calc__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+      gap: 32px;
+    }
+  }
+
+  /* ── 單欄：參數在上、結果在下，捲動參數時底部釘著摘要 ── */
+  @media (max-width: 860px) {
+    .presets__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .calc__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+    }
+    .dock {
+      position: sticky;
+      bottom: 0;
+      z-index: var(--z-sticky);
+      display: flex;
+      align-items: center;
+      gap: 8px 20px;
+      margin: 0 calc(-1 * var(--gutter));
+      padding: 12px var(--gutter);
+      color: var(--ink);
+      background: var(--paper-raised);
+      border-top: 1px solid var(--rule);
+    }
+    .dock:hover {
+      color: var(--ink);
+    }
+    .dock__item {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .dock__label {
+      font-size: var(--fs-xs);
+      color: var(--muted);
+    }
+    .dock__value {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: var(--fs-base);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .dock__cta {
+      margin-left: auto;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 8px 16px;
+      border: 1px solid var(--ink-soft);
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: var(--fs-sm);
+    }
+    .glossary__item {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .calc {
+      margin-top: 32px;
+    }
+    .presets__list {
+      gap: 8px;
+    }
+    .preset {
+      padding: 12px;
+    }
+    .preset__summary {
+      display: none;
+    }
+    .result {
+      padding: 20px 16px;
+    }
+    .model__box {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 12px;
+    }
+    .model__res {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .model__price {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+    .model__box > .model__name:first-child + .model__price {
+      grid-column: 1;
+      grid-row: 2;
+      text-align: left;
+    }
+    .notes__lead,
+    .notes__text {
+      font-size: 0.9375rem;
+      line-height: 1.8;
+    }
+  }
+</style>
+
+<script>
+  import {
+    FIELDS,
+    CUSTOM_MODEL,
+    modelById,
+    presetById,
+    normalize,
+    defaultParams,
+    fromSearch,
+    toSearch,
+    describe,
+    summaryText,
+    sliderFill,
+    sliderValue,
+    valueText,
+    type NumField,
+    type Params,
+    type Texts,
+  } from '../../data/cost-calculator';
+
+  /* describe() 的欄位 → 頁面上的 data-out 名稱；空字串時要整行藏起來的另外標 */
+  const OUT: [keyof Texts, string][] = [
+    ['hintLen', 'hint-len'],
+    ['hintEps', 'hint-eps'],
+    ['hintAdopt', 'hint-adopt'],
+    ['hintRev', 'hint-rev'],
+    ['hintPrice', 'hint-price'],
+    ['hintRate', 'hint-rate'],
+    ['hintDays', 'hint-days'],
+    ['compute', 'compute'],
+    ['total', 'total'],
+    ['computeWan', 'computeWan'],
+    ['totalWan', 'totalWan'],
+    ['genDesc', 'genDesc'],
+    ['totalNote', 'totalNote'],
+    ['laborRow', 'laborRow'],
+    ['perMin', 'perMin'],
+    ['computePct', 'computePct'],
+    ['laborPct', 'laborPct'],
+    ['presetStatus', 'presetStatus'],
+    ['formula', 'formula'],
+  ];
+  const HIDE_WHEN_EMPTY = new Set(['computeWan', 'totalWan']);
+
+  const root = document.querySelector<HTMLElement>('[data-calc]');
+  if (root) setup(root);
+
+  function setup(root: HTMLElement) {
+    const siteName = root.dataset.siteName ?? '';
+    let state: Params = fromSearch(location.search) ?? defaultParams();
+
+    const nums = [...root.querySelectorAll<HTMLInputElement>('[data-num]')];
+    const ranges = [...root.querySelectorAll<HTMLInputElement>('[data-range]')];
+    const presetBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-preset]')];
+    const modelInputs = [...root.querySelectorAll<HTMLInputElement>('[data-model]')];
+    const laborInput = root.querySelector<HTMLInputElement>('[data-labor]');
+    const laborFields = root.querySelector<HTMLElement>('[data-labor-fields]');
+    const shareBlocks = [...root.querySelectorAll<HTMLElement>('[data-share]')];
+    const shareBars = [...root.querySelectorAll<HTMLElement>('[data-share-bar]')];
+    const shareFills = [...root.querySelectorAll<HTMLElement>('[data-share-fill]')];
+    const live = root.querySelector<HTMLElement>('[data-live]');
+    const outs = new Map<string, HTMLElement[]>();
+    root.querySelectorAll<HTMLElement>('[data-out]').forEach((el) => {
+      const key = el.dataset.out ?? '';
+      outs.set(key, [...(outs.get(key) ?? []), el]);
+    });
+
+    function render(source?: Element) {
+      const t = describe(state);
+      for (const [field, key] of OUT) {
+        const text = String(t[field]);
+        for (const el of outs.get(key) ?? []) {
+          if (el.textContent !== text) el.textContent = text;
+          if (HIDE_WHEN_EMPTY.has(key)) el.hidden = text === '';
+        }
+      }
+      for (const el of nums) {
+        const f = el.dataset.num as NumField;
+        /* 正在輸入的數字框不回寫，免得打到一半被改掉 */
+        if (el !== source && el !== document.activeElement) el.value = String(state[f]);
+      }
+      for (const el of ranges) {
+        const f = el.dataset.range as NumField;
+        if (el !== source) el.value = String(sliderValue(f, state));
+        el.style.setProperty('--fill', sliderFill(f, state));
+        el.setAttribute('aria-valuetext', valueText(f, state));
+      }
+      for (const el of modelInputs) el.checked = el.value === state.model;
+      if (laborInput) laborInput.checked = state.labor;
+      if (laborFields) {
+        laborFields.toggleAttribute('data-off', !state.labor);
+        laborFields.querySelectorAll('input').forEach((el) => (el.disabled = !state.labor));
+      }
+      shareBlocks.forEach((el) => (el.hidden = !state.labor));
+      shareFills.forEach((el) => (el.style.width = t.shareWidth));
+      shareBars.forEach((el) => el.setAttribute('aria-label', t.shareLabel));
+      presetBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === t.presetId)));
+    }
+
+    /* ── 網址與讀屏：停手後才更新 ── */
+    let urlTimer = 0;
+    let liveTimer = 0;
+    const shareUrl = () => `${location.origin}${location.pathname}${toSearch(state)}`;
+    function writeUrl() {
+      window.clearTimeout(urlTimer);
+      history.replaceState(history.state, '', `${location.pathname}${toSearch(state)}${location.hash}`);
+    }
+    function announce(text: string) {
+      if (live) live.textContent = text;
+    }
+
+    function update(next: Partial<Params>, source?: Element) {
+      state = { ...state, ...next };
+      render(source);
+      window.clearTimeout(urlTimer);
+      urlTimer = window.setTimeout(writeUrl, 300);
+      window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => announce(describe(state).live), 800);
+    }
+
+    /* 單價被手動改過就換成「自訂單價」；改回目前模型的原價則維持原模型 */
+    function priceChange(price: number): Partial<Params> {
+      const m = modelById(state.model);
+      return { price, model: m && m.price === price ? m.id : CUSTOM_MODEL };
+    }
+
+    function fieldChange(field: NumField, value: number): Partial<Params> {
+      return field === 'price' ? priceChange(value) : ({ [field]: value } as Partial<Params>);
+    }
+
+    for (const el of ranges) {
+      el.addEventListener('input', () => {
+        const field = el.dataset.range as NumField;
+        const steps = FIELDS[field].steps;
+        const value = normalize(field, steps ? steps[Number(el.value)] : el.value);
+        if (value !== null) update(fieldChange(field, value), el);
+      });
+    }
+
+    for (const el of nums) {
+      el.addEventListener('input', () => {
+        const field = el.dataset.num as NumField;
+        const value = normalize(field, el.value);
+        if (value !== null) update(fieldChange(field, value), el);
+      });
+      /* 離開數字框時顯示整理過的值（夾到範圍內、去掉多餘小數） */
+      el.addEventListener('change', () => {
+        el.value = String(state[el.dataset.num as NumField]);
+      });
+    }
+
+    for (const el of modelInputs) {
+      el.addEventListener('change', () => {
+        if (!el.checked) return;
+        const m = modelById(el.value);
+        update(m ? { model: m.id, price: m.price } : { model: CUSTOM_MODEL });
+      });
+    }
+
+    laborInput?.addEventListener('change', () => update({ labor: laborInput.checked }));
+
+    for (const btn of presetBtns) {
+      btn.addEventListener('click', () => {
+        const preset = presetById(btn.dataset.preset ?? '');
+        if (preset) update({ ...preset.params });
+      });
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+      const label = btn.textContent ?? '';
+      let timer = 0;
+      btn.addEventListener('click', async () => {
+        writeUrl();
+        const isLink = btn.dataset.copy === 'link';
+        const ok = await copyText(isLink ? shareUrl() : summaryText(state, shareUrl(), siteName));
+        btn.textContent = ok ? '已複製' : '無法複製';
+        announce(ok ? (isLink ? '已複製試算連結' : '已複製試算算式') : '無法複製，請手動選取算式');
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => (btn.textContent = label), 2000);
+      });
+    });
+
+    render();
+  }
+
+  async function copyText(text: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      /* 落到下面的舊式複製 */
+    }
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch {
+      ok = false;
+    }
+    ta.remove();
+    return ok;
+  }
+</script>
