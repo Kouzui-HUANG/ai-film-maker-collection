@@ -10,6 +10,7 @@
 /** @type {Record<string, string>} */
 export const RESOURCE_KIND_LABEL = {
   calculator: '試算器',
+  image: '影像工具',
 };
 
 /**
@@ -29,6 +30,18 @@ export const RESOURCE_KIND_LABEL = {
 
 /** @type {Resource[]} 新的放最前面 */
 export const RESOURCES = [
+  {
+    slug: 'ai-image-denoise',
+    kind: 'image',
+    title: 'AI 圖片色雜訊診斷與降噪',
+    excerpt:
+      '把 AI 生成的圖放進瀏覽器，用「只看顏色」找出彩色顆粒與斑駁色塊，一鍵抹平顏色的雜訊、保留亮度與細節；人像可以順便淡化膚色的斑駁。全部在你的電腦上計算，圖片不會上傳。',
+    coverAlt:
+      '深褐底上一幅「只看顏色」檢視：藍灰背景前一顆橘紅色的圓，中間一條白線分開，左半邊布滿彩色細點，右半邊顏色平滑；下方左右標著原圖與降噪後，中間是「只看顏色 × 4」',
+    published: '2026-11-25',
+    updated: '2026-11-25',
+    cta: '開啟降噪工具',
+  },
   {
     slug: 'ai-video-cost-calculator',
     kind: 'calculator',

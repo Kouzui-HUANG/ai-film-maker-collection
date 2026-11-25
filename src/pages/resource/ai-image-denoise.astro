@@ -1,0 +1,1110 @@
+---
+/**
+ * /resource/ai-image-denoise/ — AI 圖片色雜訊診斷與降噪
+ *
+ * - 計算：src/scripts/denoise/denoise-core.js（演算法）＋ denoise.worker.js（Web Worker）；
+ *   互動：src/scripts/denoise/app.ts（放圖、診斷檢視、縮放、比較、降噪、儲存）。DOM 契約是下方的 data-dn-* 屬性
+ * - 隱私：圖片只在瀏覽器分頁裡處理，整條路上沒有任何網路請求；工具操作不送 GA（不要在工具的按鈕加 data-ga-cta）
+ * - 根元素 data-state：init（JS 還沒接手）→ empty → loading → ready（已載入、還沒降噪）→ done；unsupported 是瀏覽器不支援 Worker
+ * - 條目資訊（標題、摘要、上線／更新日、封面 alt）在 src/data/resources.mjs；封面 src/assets/resources/<slug>.jpg
+ * - schema：WebPage（不用 WebApplication：沒有評分或評論時 Search Console 會列為無效項目）
+ * - 麵包屑：首頁 › 工具資源 › 頁名（傳給 BaseLayout，與可見 .crumbs 一致）
+ */
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE, routes, absRoutes, absAsset } from '../../data/site';
+import { fmtDate } from '../../data/events';
+import { RESOURCES } from '../../data/resources.mjs';
+
+const SLUG = 'ai-image-denoise';
+const resource = RESOURCES.find((r) => r.slug === SLUG);
+if (!resource) throw new Error(`src/data/resources.mjs 缺少「${SLUG}」`);
+
+const covers = import.meta.glob<{ default: ImageMetadata }>('../../assets/resources/*.jpg', { eager: true });
+const cover = covers[`../../assets/resources/${SLUG}.jpg`]?.default;
+if (!cover) throw new Error(`缺封面：src/assets/resources/${SLUG}.jpg`);
+
+/* app.ts 的上限與預設值；改了要兩邊一起改 */
+const MAX_SIDE = 4096;
+const MAX_WAN = Math.round((MAX_SIDE * MAX_SIDE) / 1e4).toLocaleString('zh-TW');
+const DEFAULT_CHROMA = 5;
+const DEFAULT_SKIN = 40;
+
+const title = resource.title;
+const seoTitle = 'AI 圖片降噪：在瀏覽器診斷色雜訊，一鍵抹平彩色顆粒與色斑';
+const description =
+  'AI 生成的圖放大常見彩色顆粒和斑駁色塊。把圖放進瀏覽器，用「只看顏色」檢視看清楚色雜訊在哪裡，一鍵抹平顏色、保留亮度與細節，人像可順便淡化膚色斑駁。' +
+  '全部在你的電腦上計算，圖片不會上傳。';
+
+const pageUrl = absRoutes.resource(SLUG);
+const breadcrumbs = [
+  { name: '工具資源', item: absRoutes.resources() },
+  { name: title, item: pageUrl },
+];
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': pageUrl,
+  url: pageUrl,
+  name: title,
+  description,
+  inLanguage: 'zh-Hant-TW',
+  image: absAsset(cover.src),
+  datePublished: resource.published,
+  dateModified: resource.updated,
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  publisher: { '@id': `${SITE.url}/#organization` },
+  keywords: 'AI 圖片降噪, 色雜訊, 彩色雜訊, 色斑, AI 生圖雜訊, guided filter, 膚色均勻',
+};
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={seoTitle}
+  description={description}
+  ogImage={cover.src}
+  schemas={[pageSchema]}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="page">
+    <div class="page-inner page-inner--wide">
+      <nav class="crumbs" aria-label="麵包屑">
+        <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+        <a href={routes.resources()}>工具資源</a><span aria-hidden="true">／</span>
+        <span aria-current="page">{title}</span>
+      </nav>
+
+      <header class="page-head">
+        <div class="rule-double"></div>
+        <h1 class="page-title">{title}</h1>
+        <p class="page-lead">
+          把 AI 生成的圖放進來，先用「只看顏色」看清楚彩色的小顆粒和斑駁的色塊在哪裡，再一鍵抹平顏色的雜訊；亮度和細節不動，人像可以順便淡化膚色的斑駁。全部在你的瀏覽器裡計算，圖片不會上傳。
+        </p>
+        <p class="page-meta">在瀏覽器裡計算　圖片不上傳　更新 {fmtDate(resource.updated)}</p>
+      </header>
+
+      <section class="dn" data-denoise data-state="init" aria-labelledby="dn-title">
+        <h2 id="dn-title" class="visually-hidden">降噪工具</h2>
+
+        <noscript>
+          <p class="dn__notice">這個工具需要 JavaScript：讀圖、計算和儲存都在你的瀏覽器裡執行。請開啟 JavaScript 後重新整理。下方的說明不需要 JavaScript 也能閱讀。</p>
+        </noscript>
+        <p class="dn__notice dn__notice--unsupported">這個瀏覽器不支援背景計算（Web Worker），沒辦法執行。請改用最新版的 Chrome、Edge、Safari 或 Firefox。</p>
+
+        <input class="visually-hidden" type="file" accept="image/*" tabindex="-1" aria-hidden="true" data-dn-file />
+
+        <div class="dn__grid">
+          <!-- 檢視區 ─────────────────────────────── -->
+          <div class="dn__stage">
+            <div class="dn__toolbar">
+              <div class="dn__bar-group" role="group" aria-label="檢視">
+                <span class="dn__bar-label" aria-hidden="true">檢視</span>
+                <button type="button" class="chip" data-dn-view="photo" aria-pressed="false">一般</button>
+                <button type="button" class="chip" data-dn-view="chroma" aria-pressed="true">只看顏色</button>
+                <button type="button" class="chip" data-dn-view="diff" aria-pressed="false" title="按「一鍵降噪」之後才能看">改變幅度</button>
+                <button type="button" class="chip" data-dn-view="mask" aria-pressed="false" title="按「一鍵降噪」之後才能看">膚色範圍</button>
+              </div>
+              <div class="dn__bar-group" role="group" aria-label="縮放">
+                <span class="dn__bar-label" aria-hidden="true">縮放</span>
+                <button type="button" class="chip" data-dn-zoom="fit" aria-pressed="true">符合</button>
+                <button type="button" class="chip" data-dn-zoom="1" aria-pressed="false">100%</button>
+                <button type="button" class="chip" data-dn-zoom="2" aria-pressed="false">200%</button>
+              </div>
+            </div>
+
+            <div class="dn__viewer">
+              <!-- 還沒放圖 -->
+              <div class="dn__drop" data-dn-drop>
+                <p class="dn__drop-title">
+                  <span class="dn__fine">把圖片拖到這裡</span><span class="dn__coarse">選一張圖片開始</span>
+                </p>
+                <p class="dn__drop-text dn__fine">或按 <kbd>⌘</kbd> <kbd>V</kbd>／<kbd>Ctrl</kbd> <kbd>V</kbd> 貼上剛複製的圖</p>
+                <button type="button" class="btn" data-dn-pick>選擇圖片</button>
+                <p class="dn__drop-note">PNG、JPEG、WebP 等瀏覽器看得懂的格式，上限 {MAX_WAN} 萬像素（{MAX_SIDE} × {MAX_SIDE}）。<br />圖片只在這個分頁裡計算，不會上傳。</p>
+              </div>
+
+              <!-- 放了圖 -->
+              <div class="dn__scroll" data-dn-scroll>
+                <div class="dn__wrap" data-dn-wrap>
+                  <canvas class="dn__canvas" data-dn-canvas="before" aria-label="原圖"></canvas>
+                  <canvas class="dn__canvas" data-dn-canvas="after" aria-label="降噪後" hidden></canvas>
+                </div>
+              </div>
+              <p class="dn__busy" aria-hidden="true"><span class="dn__spin"></span>計算中</p>
+            </div>
+
+            <div class="dn__below">
+              <div class="dn__compare" role="group" aria-label="比較原圖和降噪後" data-dn-compare-group>
+                <button type="button" class="dn__seg" data-dn-compare="before" aria-pressed="true">原圖</button>
+                <button type="button" class="dn__seg" data-dn-compare="after" aria-pressed="false">降噪後</button>
+              </div>
+              <p class="dn__zoom-now" data-dn-zoom-now></p>
+            </div>
+            <p class="dn__caption" data-dn-caption>
+              只看顏色：亮度一律拉平、顏色放大 4 倍。斑駁的色塊、彩色的小顆粒就是色雜訊。
+            </p>
+            <div class="dn__legend" data-dn-legend="diff" hidden>
+              <span class="dn__legend-scale" aria-hidden="true">
+                <span class="dn__legend-bar dn__legend-bar--heat"></span>
+                <span class="dn__legend-ticks"><span>0</span><span>3</span><span>6 以上</span></span>
+              </span>
+              <span class="dn__legend-text">ΔE：降噪前後的顏色差。大約 2 以上，肉眼才分得出來。</span>
+            </div>
+            <div class="dn__legend" data-dn-legend="mask" hidden>
+              <span class="dn__legend-key" aria-hidden="true"></span>
+              <span class="dn__legend-text">靛藍越濃，膚色均勻作用得越多；灰色的地方不受影響。</span>
+            </div>
+          </div>
+
+          <!-- 設定與儲存 ─────────────────────────── -->
+          <aside class="dn__panel" aria-label="降噪設定">
+            <div class="dn__file">
+              <p class="dn__file-name" data-dn-info-name>還沒有圖片</p>
+              <p class="dn__file-meta" data-dn-info-meta>放一張圖進來開始</p>
+              <button type="button" class="btn btn--ghost dn__file-pick" data-dn-pick>換一張</button>
+            </div>
+
+            <fieldset class="group">
+              <legend class="group__legend">
+                <span class="group__no">01</span><span class="group__title">降噪</span>
+              </legend>
+
+              <button type="button" class="btn btn--accent dn__run" data-dn-run disabled>一鍵降噪</button>
+
+              <div class="field">
+                <div class="field__head">
+                  <label class="field__label" for="dn-chroma">色雜訊</label>
+                  <output class="field__value" for="dn-chroma" data-dn-chroma-out>{DEFAULT_CHROMA}</output>
+                </div>
+                <input
+                  id="dn-chroma"
+                  class="field__range"
+                  type="range"
+                  min="0"
+                  max="20"
+                  step="1"
+                  value={DEFAULT_CHROMA}
+                  autocomplete="off"
+                  aria-describedby="dn-chroma-hint dn-chroma-note"
+                  data-dn-chroma
+                  disabled
+                  style={`--fill: ${(DEFAULT_CHROMA / 20) * 100}%`}
+                />
+                <p class="field__hint" id="dn-chroma-hint" data-dn-chroma-hint>照亮度的邊緣，把 {DEFAULT_CHROMA} 像素範圍內的顏色抹平</p>
+                <p class="field__note" id="dn-chroma-note">越大抹得越開。只動顏色，亮度和細節不動；0 是不做。</p>
+              </div>
+
+              <label class="switch">
+                <input class="switch__input" type="checkbox" role="switch" data-dn-portrait disabled />
+                <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+                <span class="switch__text">
+                  <span class="switch__label">人像</span>
+                  <span class="switch__note">順便淡化膚色的斑駁；不是人像的圖請保持關閉</span>
+                </span>
+              </label>
+
+              <div class="field dn__skin" data-dn-skin-field data-off>
+                <div class="field__head">
+                  <label class="field__label" for="dn-skin">膚色均勻</label>
+                  <output class="field__value" for="dn-skin" data-dn-skin-out>{DEFAULT_SKIN}%</output>
+                </div>
+                <input
+                  id="dn-skin"
+                  class="field__range"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={DEFAULT_SKIN}
+                  autocomplete="off"
+                  aria-describedby="dn-skin-note"
+                  data-dn-skin
+                  disabled
+                  style={`--fill: ${DEFAULT_SKIN}%`}
+                />
+                <p class="field__note" id="dn-skin-note">只在膚色範圍裡，把斑駁、不均勻的亮暗拉回周圍；毛孔、髮絲和五官的邊緣不動。</p>
+              </div>
+
+              <div class="dn__row">
+                <p class="dn__status" data-dn-status></p>
+                <button type="button" class="dn__text-btn" data-dn-reset disabled>回到預設</button>
+              </div>
+            </fieldset>
+
+            <fieldset class="group">
+              <legend class="group__legend">
+                <span class="group__no">02</span><span class="group__title">儲存</span>
+              </legend>
+              <div class="dn__actions">
+                <button type="button" class="btn btn--accent" data-dn-save disabled>儲存降噪後的圖</button>
+                <button type="button" class="btn btn--ghost" data-dn-copy disabled>複製圖片</button>
+              </div>
+              <p class="dn__save-note">
+                存成「<span data-dn-save-name>原檔名_降噪</span>」，<span data-dn-save-format>格式和原圖一樣</span>。檔案在這台電腦上產生，不經過網路。
+              </p>
+              <p class="field__note">存下的圖不含原檔的 EXIF、色彩描述檔與 C2PA 內容憑證。</p>
+            </fieldset>
+
+            <p class="dn__error" role="alert" data-dn-error hidden></p>
+          </aside>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-dn-live></p>
+      </section>
+
+      <!-- 怎麼運作 ─────────────────────────────── -->
+      <section class="notes" aria-labelledby="method-title">
+        <div class="section-head">
+          <h2 id="method-title" class="section-eyebrow">怎麼運作</h2>
+        </div>
+        <div class="notes__body">
+          <p class="notes__lead">
+            AI 生成的圖放大來看，常有兩種顏色的毛病：彩色的小顆粒，以及一塊一塊偏紅、偏綠的斑駁。它們出在顏色，不在亮度，所以這個工具把亮度和顏色拆開處理，只抹平顏色，輪廓、髮絲和紋理都留著。
+          </p>
+          <dl class="glossary">
+            <div class="glossary__item">
+              <dt>色雜訊</dt>
+              <dd>
+                把圖轉成 Lab 色彩空間：L 是亮度，a、b 是顏色。亮度完全不動，只用 guided filter（導向濾波，He 等人 2010 年提出）把 a、b 照著亮度的邊緣抹平，所以嘴唇的粉紅、頭髮的黑不會滲到皮膚上。滑桿是抹平的範圍，單位是像素，預設 {DEFAULT_CHROMA}；越大抹得越開，0 是不做。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>膚色均勻</dt>
+              <dd>
+                打開「人像」才會作用，預設 {DEFAULT_SKIN}%。它只在暖色、中等飽和、中等亮度的範圍裡，把對比低、中等大小的斑駁亮暗拉回周圍的亮度；毛孔、髮絲這種 2 像素以下的紋理，和眼睛、鼻孔、唇線、下巴這種有對比的邊緣都不動。沙灘、木頭、夕陽也可能被當成膚色而變平，所以不是人像的圖請保持關閉，或先切到「膚色範圍」看看會動到哪裡。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>只看顏色</dt>
+              <dd>
+                診斷用的檢視：亮度一律拉成同一個值，顏色放大 4 倍。原本要放大到實際像素、瞇著眼才看得到的色雜訊，在這裡會變成明顯的斑點和色塊；切到「降噪後」，就能看到哪些被抹平了。顏色本來就豐富的畫面（霓虹、花草、彩繪）在這個檢視裡也會很花，那不代表圖髒。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>改變幅度</dt>
+              <dd>
+                每個像素降噪前後的顏色差（ΔE），用暗到亮的色階畫在調暗的原圖上。平坦的地方亮成一片細點，是被抹掉的色雜訊；顏色交界亮成線，是色邊被修順。我們試過把它加總成一個「雜訊分數」，但顏色豐富的畫面分數一定高、真正髒的圖不一定高，會誤導，所以這裡只給畫面、不打分數。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>不處理的</dt>
+              <dd>
+                亮度的顆粒（像底片的粒子）、JPEG 壓縮的方塊、天空的色帶斷層，都不在這個工具的範圍。亮度顆粒故意不動：抹掉它會連細節一起抹掉，畫面就變得像塑膠。
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- 隱私 ─────────────────────────────────── -->
+      <section class="notes" aria-labelledby="privacy-title">
+        <div class="section-head">
+          <h2 id="privacy-title" class="section-eyebrow">圖片不會離開你的電腦</h2>
+        </div>
+        <div class="notes__body">
+          <p class="notes__text">
+            圖片從讀進來、計算、到存檔，全程只在這個瀏覽器分頁裡：讀檔是瀏覽器自己解碼，計算在背景執行緒（Web Worker），按「儲存」是瀏覽器在本機產生檔案。網頁裡沒有任何上傳圖片的程式，本站的伺服器也只放靜態網頁，收不到你的圖。
+          </p>
+          <p class="notes__text">
+            想自己驗證：頁面載完之後關掉 Wi-Fi 或拔掉網路線，放圖、降噪、儲存照樣能用。也可以打開瀏覽器的開發者工具，在「網路」分頁裡看，放圖和降噪都不會產生新的連線。唯一可能出現的是本站的流量統計（Google Analytics），它只記錄瀏覽和捲動，不含圖片、檔名或你調的設定。
+          </p>
+        </div>
+      </section>
+
+      <!-- 限制 ─────────────────────────────────── -->
+      <section class="notes" aria-labelledby="limits-title">
+        <div class="section-head">
+          <h2 id="limits-title" class="section-eyebrow">使用前要知道的</h2>
+        </div>
+        <div class="notes__body">
+          <ul class="dn-list">
+            <li>
+              <strong>尺寸上限 {MAX_WAN} 萬像素</strong>（{MAX_SIDE} × {MAX_SIDE}），這是 iPhone Safari 能處理的最大畫布。計算時每百萬像素大約要 0.1 GB 記憶體，手機上處理 4K 的圖可能會不夠，遇到時請先縮小。2K 的圖在一般電腦上約 0.3 秒算完。
+            </li>
+            <li>
+              <strong>存檔格式和原圖一樣</strong>：PNG 不失真；JPEG、WebP 以 95% 品質重新壓縮；AVIF、HEIC 等其他格式存成 PNG。透明背景會保留。
+            </li>
+            <li>
+              <strong>不保留中繼資料</strong>：存下的圖沒有原檔的 EXIF、色彩描述檔與 C2PA 內容憑證。改過像素的圖本來就無法沿用原本的憑證；作品要標示 AI 生成時，請照發布平台的規定另外標註。
+            </li>
+            <li>
+              <strong>以 sRGB 處理</strong>：Display P3 等廣色域的照片會先被瀏覽器轉成 sRGB，最飽和的顏色可能被壓進 sRGB 的範圍。AI 生成的圖幾乎都是 sRGB，不受影響。
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <p class="back"><a href={routes.resources()}>回工具資源</a></p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { setupDenoise } from '../../scripts/denoise/app';
+
+  const root = document.querySelector<HTMLElement>('[data-denoise]');
+  if (root) setupDenoise(root);
+</script>
+
+<style>
+  .dn {
+    margin-top: 48px;
+  }
+
+  /* ── 狀態：JS 接手前只露出 noscript；不支援 Worker 時只露出提示 ── */
+  .dn__notice {
+    padding: 16px 20px;
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+  }
+  .dn__notice--unsupported {
+    display: none;
+  }
+  .dn[data-state='unsupported'] .dn__notice--unsupported {
+    display: block;
+  }
+  .dn[data-state='init'] .dn__grid,
+  .dn[data-state='unsupported'] .dn__grid {
+    display: none;
+  }
+
+  /* ── 檢視區 ＋ 設定欄 兩欄 ─────────────────────── */
+  .dn__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+    gap: 40px;
+    align-items: start;
+  }
+  .dn__stage {
+    min-width: 0;
+  }
+
+  .dn:not([data-has-image]) .dn__toolbar {
+    display: none;
+  }
+  .dn__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-bottom: 12px;
+  }
+  .dn__bar-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .dn__bar-label {
+    margin-right: 4px;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .dn__bar-group .chip {
+    padding: 8px 12px;
+  }
+  .dn__bar-group .chip:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .dn__bar-group .chip:disabled:hover {
+    color: var(--ink-soft);
+    border-color: var(--rule);
+    background: var(--paper-alt);
+  }
+
+  /* 檢視框：放映幕的凹陷底（--paper-alt），圖置中 */
+  .dn__viewer {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    min-height: 360px;
+    background: var(--paper-alt);
+    border: 1px solid var(--rule-strong);
+  }
+  /* 放了圖之後框貼著圖，不留空白 */
+  .dn[data-has-image] .dn__viewer {
+    min-height: 0;
+    align-items: center;
+  }
+  .dn[data-drag] .dn__viewer {
+    border-color: var(--accent);
+    outline: 2px dashed var(--accent);
+    outline-offset: -8px;
+  }
+
+  .dn__drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 420px;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .dn[data-has-image] .dn__drop {
+    display: none;
+  }
+  .dn__drop-title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+    line-height: 1.3;
+  }
+  /* 觸控裝置不能拖曳、也沒有 ⌘V：換一句話 */
+  .dn__coarse {
+    display: none;
+  }
+  @media (pointer: coarse) {
+    .dn__fine {
+      display: none;
+    }
+    .dn__coarse {
+      display: inline;
+    }
+  }
+  .dn__drop-text {
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+  .dn__drop-text kbd {
+    padding: 1px 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    border: 1px solid var(--rule-strong);
+  }
+  .dn__drop .btn {
+    margin-top: 8px;
+  }
+  .dn__drop-note {
+    max-width: 30em;
+    margin-top: 8px;
+    font-size: var(--fs-xs);
+    line-height: 1.8;
+    color: var(--muted);
+  }
+
+  .dn__scroll {
+    display: none;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .dn[data-has-image] .dn__scroll {
+    display: block;
+  }
+  .dn__scroll[data-zoomed] {
+    overflow: auto;
+    cursor: grab;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) var(--paper-alt);
+  }
+  .dn__scroll[data-panning] {
+    cursor: grabbing;
+  }
+  .dn__wrap {
+    position: relative;
+    margin: 0 auto;
+  }
+  .dn__canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* 透明的地方墊棋盤格，才看得出哪裡是透明 */
+    background: repeating-conic-gradient(var(--paper-raised) 0 25%, var(--paper-alt) 0 50%) 0 0 / 16px 16px;
+  }
+  .dn__canvas[hidden] {
+    display: none;
+  }
+  /* 放大到 100% 以上：一個像素一個方塊，不要被內插糊掉，雜訊才看得清楚 */
+  .dn__wrap[data-pixelated] .dn__canvas {
+    image-rendering: pixelated;
+  }
+
+  .dn__busy {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: var(--fs-xs);
+    color: var(--ink);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+  }
+  .dn[data-busy] .dn__busy,
+  .dn[data-state='loading'] .dn__busy {
+    display: inline-flex;
+  }
+  .dn__spin {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--rule-strong);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: dn-spin 0.8s linear infinite;
+  }
+  @keyframes dn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dn__spin {
+      animation-duration: 2.4s;
+    }
+  }
+
+  .dn__below {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-top: 12px;
+  }
+  .dn:not([data-has-image]) .dn__below,
+  .dn:not([data-has-image]) .dn__caption,
+  .dn:not([data-has-image]) .dn__legend {
+    display: none;
+  }
+
+  /* 原圖｜降噪後：相連的兩格，選中的反白 */
+  .dn__compare {
+    display: inline-flex;
+  }
+  .dn__compare[data-inactive] {
+    visibility: hidden;
+  }
+  .dn__seg {
+    min-width: 6em;
+    min-height: 44px;
+    padding: 8px 16px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+    border-radius: 0;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out),
+      border-color var(--dur-micro) var(--ease-out);
+  }
+  .dn__seg + .dn__seg {
+    margin-left: -1px;
+  }
+  .dn__seg:hover:not(:disabled) {
+    color: var(--ink);
+    border-color: var(--ink-soft);
+  }
+  .dn__seg[aria-pressed='true'] {
+    position: relative;
+    color: var(--paper);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .dn__seg:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .dn__seg:focus-visible {
+    position: relative;
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .dn__zoom-now {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .dn__caption {
+    max-width: 46em;
+    margin-top: 12px;
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+    color: var(--ink-soft);
+  }
+
+  .dn__legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    margin-top: 12px;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .dn__legend[hidden] {
+    display: none;
+  }
+  .dn__legend-bar {
+    width: 160px;
+    height: 10px;
+    border: 1px solid var(--rule-strong);
+  }
+  /* 與 denoise-core.js 的 HEAT_STOPS 相同 */
+  .dn__legend-bar--heat {
+    background: linear-gradient(
+      to right,
+      rgb(0 0 4) 0%,
+      rgb(87 16 110) 25%,
+      rgb(188 55 84) 50%,
+      rgb(249 142 9) 75%,
+      rgb(252 255 164) 100%
+    );
+  }
+  .dn__legend-scale {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .dn__legend-ticks {
+    display: flex;
+    justify-content: space-between;
+    width: 160px;
+    font-family: var(--font-mono);
+  }
+  .dn__legend-key {
+    width: 24px;
+    height: 10px;
+    background: rgb(148 169 230 / 0.85);
+    border: 1px solid var(--rule-strong);
+  }
+
+  /* ── 設定欄 ─────────────────────────────────── */
+  .dn__panel {
+    min-width: 0;
+    padding: 20px 24px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+  }
+  @media (min-width: 861px) {
+    .dn__panel {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+  }
+
+  .dn__file {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2px 12px;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .dn__file-name {
+    grid-column: 1;
+    overflow: hidden;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-base);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dn__file-meta {
+    grid-column: 1;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .dn__file-pick {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .dn:not([data-has-image]) .dn__file-pick {
+    display: none;
+  }
+
+  .group {
+    min-width: 0;
+    margin: 0 0 28px;
+    padding: 0;
+    border: 0;
+  }
+  .group:last-of-type {
+    margin-bottom: 0;
+  }
+  .group__legend {
+    display: block;
+    width: 100%;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .group__no {
+    margin-right: 12px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .group__title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-lg);
+  }
+
+  /* 「一鍵降噪」與「儲存」輪流當唯一的實心主按鈕 */
+  .dn__run {
+    width: 100%;
+    margin-top: 16px;
+  }
+  .dn[data-state='done'] .dn__run {
+    display: none;
+  }
+  .dn:not([data-state='done']) [data-dn-save] {
+    color: var(--ink);
+    background: var(--paper-raised);
+    border-color: var(--ink-soft);
+  }
+
+  /* 滑桿：與 CalcField 同一套樣式（細軌＋直立的播放頭） */
+  .field {
+    padding: 16px 0;
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+  .field__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .field__label {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.4;
+  }
+  .field__value {
+    font-family: var(--font-mono);
+    font-size: var(--fs-base);
+    font-variant-numeric: tabular-nums;
+  }
+  .field__range {
+    --fill: 0%;
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin: 4px 0 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .field__range:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .field__range:focus-visible {
+    outline-offset: 0;
+  }
+  .field__range::-webkit-slider-runnable-track {
+    height: 4px;
+    background: linear-gradient(to right, var(--ink-soft) 0 var(--fill), var(--rule-strong) var(--fill) 100%);
+  }
+  .field__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 28px;
+    margin-top: -12px;
+    background: var(--ink);
+    border: 2px solid var(--paper);
+    border-radius: 0;
+  }
+  .field__range::-moz-range-track {
+    height: 4px;
+    background: var(--rule-strong);
+  }
+  .field__range::-moz-range-progress {
+    height: 4px;
+    background: var(--ink-soft);
+  }
+  .field__range::-moz-range-thumb {
+    width: 8px;
+    height: 24px;
+    background: var(--ink);
+    border: 2px solid var(--paper);
+    border-radius: 0;
+  }
+  .field__hint {
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .field__note {
+    margin-top: 4px;
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .dn__skin {
+    border-bottom: 0;
+    transition: opacity var(--dur-short) var(--ease-out);
+  }
+  .dn__skin[data-off] {
+    display: none;
+  }
+
+  /* 人像開關：與試算器的方角 switch 同一套 */
+  .switch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    margin: 16px 0 0;
+    cursor: pointer;
+  }
+  .switch__input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+  }
+  .switch__input:disabled ~ * {
+    opacity: 0.45;
+  }
+  .switch:has(.switch__input:disabled) {
+    cursor: not-allowed;
+  }
+  .switch__track {
+    position: relative;
+    flex-shrink: 0;
+    width: 48px;
+    height: 24px;
+    border: 1px solid var(--ink-soft);
+    background: var(--paper-alt);
+    transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+  }
+  .switch__knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: var(--ink-soft);
+    transition: transform var(--dur-short) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+  }
+  .switch__input:checked + .switch__track {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .switch__input:checked + .switch__track .switch__knob {
+    background: var(--paper);
+    transform: translateX(24px);
+  }
+  .switch__input:focus-visible + .switch__track {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .switch__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .switch__label {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+  }
+  .switch__note {
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .dn__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .dn__status {
+    min-height: 1.6em;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .dn__text-btn {
+    flex-shrink: 0;
+    min-height: 32px;
+    padding: 4px 0;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    background: none;
+    border: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .dn__text-btn:hover:not(:disabled) {
+    color: var(--accent);
+  }
+  .dn__text-btn:disabled {
+    visibility: hidden;
+  }
+
+  .dn__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .dn__actions [data-dn-save] {
+    flex: 1 1 auto;
+  }
+  .dn__save-note {
+    margin-top: 12px;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+
+  .dn__error {
+    margin-top: 20px;
+    padding: 12px 16px;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--ink);
+    background: var(--paper-alt);
+    border: 1px solid var(--ink-soft);
+    border-left-width: 3px;
+  }
+  .dn__error[hidden] {
+    display: none;
+  }
+
+  /* ── 文末說明區（與試算器相同） ─────────────────── */
+  .notes {
+    margin-top: var(--section-gap-s);
+  }
+  .notes__body {
+    max-width: 46em;
+  }
+  .notes__lead,
+  .notes__text {
+    font-family: var(--font-serif);
+    font-size: var(--fs-md);
+    line-height: 1.9;
+    color: var(--ink);
+  }
+  .notes__lead {
+    margin-bottom: 24px;
+  }
+  .notes__text + .notes__text {
+    margin-top: 16px;
+  }
+  .glossary {
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .glossary__item {
+    display: grid;
+    grid-template-columns: 8em minmax(0, 1fr);
+    gap: 8px 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .glossary__item dt {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+  }
+  .glossary__item dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--fs-base);
+    line-height: 1.95;
+    color: var(--ink-soft);
+  }
+
+  .dn-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--rule);
+  }
+  .dn-list li {
+    padding: 16px 0;
+    font-family: var(--font-serif);
+    font-size: var(--fs-base);
+    line-height: 1.95;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .dn-list strong {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  /* ── 中尺寸：設定欄收窄 ─────────────────────── */
+  @media (max-width: 1080px) {
+    .dn__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+      gap: 32px;
+    }
+  }
+
+  /* ── 單欄：檢視在上、設定在下 ─────────────────── */
+  @media (max-width: 860px) {
+    .dn__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+    }
+    .glossary__item {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dn {
+      margin-top: 32px;
+    }
+    .dn__toolbar {
+      flex-direction: column;
+    }
+    .dn__viewer {
+      min-height: 280px;
+    }
+    .dn__drop {
+      min-height: 300px;
+    }
+    .dn__drop-title {
+      font-size: var(--fs-lg);
+    }
+    .dn__panel {
+      padding: 20px 16px;
+    }
+    .notes__lead,
+    .notes__text {
+      font-size: 0.9375rem;
+      line-height: 1.8;
+    }
+  }
+</style>

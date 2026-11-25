@@ -30,10 +30,10 @@ for (const it of items) kindCounts.set(it.kindLabel, (kindCounts.get(it.kindLabe
 const kindSummary = [...kindCounts].map(([label, n]) => `${label} ${n} 項`).join('、');
 
 const title = '工具資源';
-const seoTitle = '工具資源：AI 影片成本試算器與創作實用工具';
+const seoTitle = '工具資源：AI 影片成本試算器、AI 圖片降噪與創作實用工具';
 const description =
-  '給 AI 影視創作者與發案方的實用工具：AI 影片算力成本試算器等，' +
-  '每項工具都附上它依據的文章與資料日期，數字可以攤開檢查。';
+  '給 AI 影視創作者與發案方的實用工具：AI 影片算力成本試算器、在瀏覽器裡執行的 AI 圖片色雜訊降噪等，' +
+  '每項工具都寫明依據與做法，數字和結果可以攤開檢查。';
 
 /* ── CollectionPage + ItemList ── */
 const collectionSchema = {
@@ -70,7 +70,7 @@ const collectionSchema = {
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
-          給 AI 影視創作者與發案方的實用工具。每一項都寫明依據的文章、公式與資料日期，數字可以攤開檢查，也可以換成自己的。
+          給 AI 影視創作者與發案方的實用工具。每一項都寫明依據、公式或演算法與資料日期，結果可以攤開檢查，也可以換成自己的數字和圖片。
         </p>
         <p class="page-meta">共 {items.length} 項：{kindSummary}</p>
       </header>

@@ -128,7 +128,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { label: '專欄與教學', labelEn: 'READ', href: '/posts/', note: '編輯部專欄、創作者訪談與 AI 影視教學' },
   { label: '活動', labelEn: 'EVENTS', href: '/events/', note: '比賽、工作坊、放映與講座' },
   /* 網址用 /resources/ 而非 /tools/：/tool/<slug>/ 已是 AI 工具索引，nav 高亮會把單複數視為同一區 */
-  { label: '工具資源', labelEn: 'RESOURCES', href: '/resources/', note: '試算器等給創作者與發案方的實用工具' },
+  { label: '工具資源', labelEn: 'RESOURCES', href: '/resources/', note: '算力成本試算器、圖片降噪等給創作者與發案方的實用工具' },
 ];
 
 /** 手機版右上角抽屜選單 */
