@@ -84,6 +84,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'gaussian-splatting', label: 'Gaussian Splatting', category: 'other', note: '由實拍影像重建可自由取景的三維場景，能作為 AI 角色合成與虛擬製作的空間底稿。' },
   { slug: 'codex', label: 'Codex', category: 'other', vendor: 'OpenAI', note: 'OpenAI 的 AI 代理工具，本業是寫程式；也有創作者拿它起草劇本、整理人物與場景設定，當成前期企劃的協作者。' },
   { slug: 'claude', label: 'Claude', category: 'other', vendor: 'Anthropic', note: 'Anthropic 的對話式 AI 助理；在影像工作流裡多半不直接產生畫面，而是協助發想故事、整理分鏡與撰寫生成提示詞。' },
+  { slug: 'chatgpt', label: 'ChatGPT', category: 'other', vendor: 'OpenAI', note: 'OpenAI 的對話式 AI 助理，內建 GPT Image 圖像生成；創作者常拿它寫歌詞與劇本、整理角色與分鏡、撰寫影片模型的提示詞，也有人直接在對話裡產出角色與場景參考圖。' },
 ];
 
 export const TOOL_BY_SLUG: Record<string, ToolDef> = Object.fromEntries(TOOLS.map((t) => [t.slug, t]));
