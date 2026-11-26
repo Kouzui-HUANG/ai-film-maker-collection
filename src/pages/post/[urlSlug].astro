@@ -60,11 +60,15 @@ const tools = (post.data.tools ?? []).map((slug) => ({
 }));
 const toolLabels = tools.map((t) => t.label);
 
-/* ── 作者實體：編輯部 → Organization；作者本人是收錄創作者 → 綁回 Person @id ── */
+/* ── 作者實體：編輯部 → Organization；外部供稿單位 → Organization；作者本人是收錄創作者 → 綁回 Person @id ── */
 const isEditorial = author === '圖鑑編輯部';
-const authorCreator = isEditorial ? null : (d.creators.find((c) => c.name === author) ?? null);
+const isOrgAuthor = !isEditorial && post.data.authorType === 'organization';
+const authorUrl = post.data.authorUrl;
+const authorCreator = isEditorial || isOrgAuthor ? null : (d.creators.find((c) => c.name === author) ?? null);
 const authorEntity = isEditorial
   ? { '@type': 'Organization', '@id': `${SITE.url}/#editorial`, name: author, parentOrganization: { '@id': `${SITE.url}/#organization` } }
+  : isOrgAuthor
+    ? { '@type': 'Organization', name: author, ...(authorUrl ? { url: authorUrl } : {}) }
   : authorCreator
     ? {
         '@type': 'Person',
@@ -159,7 +163,11 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
     ...(updated ? { modifiedTime: updated } : {}),
     section: typeDef.label,
     tags: toolLabels,
-    ...(authorCreator ? { authorUrl: absRoutes.creator(authorCreator.slug) } : {}),
+    ...(authorCreator
+      ? { authorUrl: absRoutes.creator(authorCreator.slug) }
+      : isOrgAuthor && authorUrl
+        ? { authorUrl }
+        : {}),
   }}
 >
   <div class="page">

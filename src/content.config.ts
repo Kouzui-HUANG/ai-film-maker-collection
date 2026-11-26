@@ -133,6 +133,9 @@ const posts = defineCollection({
       type: z.enum(['interview', 'tutorial', 'column']), // 訪談／教學／專欄 → Article vs HowTo schema
       urlSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'urlSlug 須為全小寫 kebab-case'),
       author: z.string(),
+      /* 外部供稿的品牌、公司署名時設 organization（JSON-LD 作者改為 Organization）；省略＝個人或圖鑑編輯部 */
+      authorType: z.enum(['person', 'organization']).optional(),
+      authorUrl: z.string().url().optional(),               // 供稿單位官網，只進 JSON-LD 與 article:author，不顯示在署名
       date: dateStr,
       updated: dateStr.optional(),
       cover: image(),
