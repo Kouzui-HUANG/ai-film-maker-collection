@@ -30,6 +30,8 @@ const MAX_SIDE = 4096;
 const MAX_WAN = Math.round((MAX_SIDE * MAX_SIDE) / 1e4).toLocaleString('zh-TW');
 const DEFAULT_CHROMA = 5;
 const DEFAULT_SKIN = 40;
+const DEFAULT_MOTTLE = 0;
+const DEFAULT_PROTECT = 70;
 
 /* 色雜訊等級的區間文字：「未滿 0.5」「0.5～1」…「4 以上」 */
 const gradeRange = (i: number) =>
@@ -38,7 +40,7 @@ const gradeRange = (i: number) =>
 const title = resource.title;
 const seoTitle = 'AI 圖片降噪：在瀏覽器判斷色雜訊等級，一鍵抹平彩色顆粒與色斑';
 const description =
-  'AI 生成的圖放大常見彩色顆粒和斑駁色塊。把圖放進瀏覽器，先看 1 到 5 級的色雜訊等級，再用「只看顏色」檢視找出雜訊在哪裡，一鍵抹平顏色、保留亮度與細節，人像可順便淡化膚色斑駁。' +
+  'AI 生成的圖放大常見彩色顆粒和斑駁色塊。把圖放進瀏覽器，先看 1 到 5 級的色雜訊等級，再用「只看顏色」檢視找出雜訊在哪裡，一鍵抹平顏色；牆面、天空的亮暗斑可用「亮度斑駁」淡化並保留木紋，人像可順便淡化膚色斑駁。' +
   '全部在你的電腦上計算，圖片不會上傳。';
 
 const pageUrl = absRoutes.resource(SLUG);
@@ -84,7 +86,7 @@ const pageSchema = {
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
-          把 AI 生成的圖放進來，先看色雜訊等級（1 到 5 級）知道彩色的小顆粒和斑駁的色塊有多嚴重，用「只看顏色」看它們在哪裡，再一鍵抹平；亮度和細節不動，人像可以順便淡化膚色的斑駁。全部在你的瀏覽器裡計算，圖片不會上傳。
+          把 AI 生成的圖放進來，先看色雜訊等級（1 到 5 級）知道彩色的小顆粒和斑駁的色塊有多嚴重，用「只看顏色」看它們在哪裡，再一鍵抹平；牆面、天空、暗部一塊一塊的亮暗斑，可以再用「亮度斑駁」淡化，木紋、布紋這種有方向的紋理會留著。人像可以順便淡化膚色的斑駁。全部在你的瀏覽器裡計算，圖片不會上傳。
         </p>
         <p class="page-meta">在瀏覽器裡計算　圖片不上傳　更新 {fmtDate(resource.updated)}</p>
       </header>
@@ -197,12 +199,11 @@ const pageSchema = {
               </div>
             </section>
 
-            <fieldset class="group">
+            <fieldset class="group dn__controls">
               <legend class="group__legend">
+                <button type="button" class="dn__text-btn dn__reset" data-dn-reset disabled>回到預設</button>
                 <span class="group__no">02</span><span class="group__title">降噪</span>
               </legend>
-
-              <button type="button" class="btn btn--accent dn__run" data-dn-run disabled>一鍵降噪</button>
 
               <div class="field">
                 <div class="field__head">
@@ -225,6 +226,51 @@ const pageSchema = {
                 />
                 <p class="field__hint" id="dn-chroma-hint" data-dn-chroma-hint>照亮度的邊緣，把 {DEFAULT_CHROMA} 像素範圍內的顏色抹平</p>
                 <p class="field__note" id="dn-chroma-note">越大抹得越開。只動顏色，亮度和細節不動；0 是不做。</p>
+              </div>
+
+              <div class="field">
+                <div class="field__head">
+                  <label class="field__label" for="dn-mottle">亮度斑駁</label>
+                  <output class="field__value" for="dn-mottle" data-dn-mottle-out>{DEFAULT_MOTTLE}%</output>
+                </div>
+                <input
+                  id="dn-mottle"
+                  class="field__range"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={DEFAULT_MOTTLE}
+                  autocomplete="off"
+                  aria-describedby="dn-mottle-hint dn-mottle-note"
+                  data-dn-mottle
+                  disabled
+                  style={`--fill: ${DEFAULT_MOTTLE}%`}
+                />
+                <p class="field__hint" id="dn-mottle-hint" data-dn-mottle-hint>不處理亮度</p>
+                <p class="field__note" id="dn-mottle-note">牆面、天空、暗部一塊一塊的亮暗斑。輪廓和明暗分布不動；0 是不做。</p>
+              </div>
+
+              <div class="field dn__sub" data-dn-protect-field data-off>
+                <div class="field__head">
+                  <label class="field__label" for="dn-protect">紋理保護</label>
+                  <output class="field__value" for="dn-protect" data-dn-protect-out>{DEFAULT_PROTECT}%</output>
+                </div>
+                <input
+                  id="dn-protect"
+                  class="field__range"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={DEFAULT_PROTECT}
+                  autocomplete="off"
+                  aria-describedby="dn-protect-note"
+                  data-dn-protect
+                  disabled
+                  style={`--fill: ${DEFAULT_PROTECT}%`}
+                />
+                <p class="field__note" id="dn-protect-note">木紋、布紋、髮絲這種朝同一方向的紋理留著不動。調高留得越多，但灰泥、石材這種沒方向的質感也可能跟著留下。</p>
               </div>
 
               <label class="switch">
@@ -258,10 +304,8 @@ const pageSchema = {
                 <p class="field__note" id="dn-skin-note">只在膚色範圍裡，把斑駁、不均勻的亮暗拉回周圍；毛孔、髮絲和五官的邊緣不動。</p>
               </div>
 
-              <div class="dn__row">
-                <p class="dn__status" data-dn-status></p>
-                <button type="button" class="dn__text-btn" data-dn-reset disabled>回到預設</button>
-              </div>
+              <button type="button" class="btn btn--accent dn__run" data-dn-run disabled>一鍵降噪</button>
+              <p class="dn__status" data-dn-status></p>
             </fieldset>
 
             <fieldset class="group">
@@ -291,7 +335,7 @@ const pageSchema = {
         </div>
         <div class="notes__body">
           <p class="notes__lead">
-            AI 生成的圖放大來看，常有兩種顏色的毛病：彩色的小顆粒，以及一塊一塊偏紅、偏綠的斑駁。它們出在顏色，不在亮度，所以這個工具把亮度和顏色拆開處理，只抹平顏色，輪廓、髮絲和紋理都留著。
+            AI 生成的圖放大來看，常有兩種毛病：顏色的（彩色的小顆粒、一塊一塊偏紅偏綠的色斑），和亮度的（牆面、天空、暗部一塊一塊、沒有方向的亮暗斑）。這個工具把亮度和顏色拆開處理：一鍵降噪預設只抹平顏色，亮度完全不動；亮度的斑駁另外用「亮度斑駁」處理，要你自己打開，因為它分不出哪些亮暗是刻意的質感。
           </p>
           <dl class="glossary">
             <div class="glossary__item">
@@ -314,14 +358,34 @@ const pageSchema = {
                   做法：先把圖縮小 4 倍，一兩個像素的細顆粒不算，肉眼本來就看不出它的顏色；再把顏色裡跟著亮度走的部分扣掉（陰影、布紋、木紋本身的顏色），只留和亮度無關的起伏，取所有平滑區域的中位數。門檻是在乾淨的圖上加入已知幅度的人工色斑，照肉眼在 100% 下看不看得出來定的。按下「一鍵降噪」後，降噪的結果會用同一把尺再量一次。
                 </p>
                 <p>
-                  它只管顏色的雜訊，不管亮度的顆粒。水彩、做舊這種筆觸本身就帶顏色紋理的畫風，指數會偏高一些；JPEG 壓縮和縮放也會讓指數小幅變動。細節很多、幾乎沒有平滑區域的畫面（全身三視圖、很暗的場景）會只依亮部判斷並標示僅供參考，或顯示無法判斷，這時請直接看「只看顏色」。
+                  它只量顏色的雜訊，亮度的顆粒和斑駁不算在內，開「亮度斑駁」之後請放大比較。水彩、做舊這種筆觸本身就帶顏色紋理的畫風，指數會偏高一些；JPEG 壓縮和縮放也會讓指數小幅變動。細節很多、幾乎沒有平滑區域的畫面（全身三視圖、很暗的場景）會只依亮部判斷並標示僅供參考，或顯示無法判斷，這時請直接看「只看顏色」。
                 </p>
               </dd>
             </div>
             <div class="glossary__item">
               <dt>色雜訊</dt>
               <dd>
-                把圖轉成 Lab 色彩空間：L 是亮度，a、b 是顏色。亮度完全不動，只用 guided filter（導向濾波，He 等人 2010 年提出）把 a、b 照著亮度的邊緣抹平，所以嘴唇的粉紅、頭髮的黑不會滲到皮膚上。滑桿是抹平的範圍，單位是像素，預設 {DEFAULT_CHROMA}；越大抹得越開，0 是不做。
+                把圖轉成 Lab 色彩空間：L 是亮度，a、b 是顏色。只用 guided filter（導向濾波，He 等人 2010 年提出）把 a、b 照著亮度的邊緣抹平，所以嘴唇的粉紅、頭髮的黑不會滲到皮膚上。滑桿是抹平的範圍，單位是像素，預設 {DEFAULT_CHROMA}；越大抹得越開，0 是不做。
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>亮度斑駁</dt>
+              <dd>
+                <p>
+                  預設 {DEFAULT_MOTTLE}%（不做）。打開後分四步處理亮度：先用保邊的平滑（domain transform 遞迴濾波，Gastal 與 Oliveira 2011 年提出）做出一張乾淨的底；再拿原圖和這張底相減，差得多的是葉子、縫隙、文字這種有對比的輪廓，留著不動，差得少的才是斑駁，壓掉；接著依「紋理保護」把有方向的紋理拉回原圖；最後把整張圖的亮度分布對回原圖，黑的一樣黑、亮的一樣亮，不會蒙上一層霧。
+                </p>
+                <p>
+                  顏色也會跟著變乾淨：AI 圖的冷暖色斑常常跟著亮斑走，原本會被當成「跟著亮度的顏色」留下來；亮度乾淨之後，色雜訊改照新的亮度抹平，這些色斑就一起淡掉了。
+                </p>
+                <p>
+                  它分不出哪些亮暗是刻意的：微水泥、石材、做舊牆面的雲紋，也會被當成斑駁淡化，這時請調低或關掉。很暗的地方輪廓的亮度差本來就小，細小的暗部輪廓（暗處的葉子）可能會變淡一些，記得放大比較。
+                </p>
+              </dd>
+            </div>
+            <div class="glossary__item">
+              <dt>紋理保護</dt>
+              <dd>
+                亮度斑駁打開時才會出現，預設 {DEFAULT_PROTECT}%。木紋、布紋、髮絲、拉絲金屬這種紋理朝同一個方向延伸，AI 的斑駁則是沒有方向的團塊，兩者的明暗起伏差不多大，靠方向才分得開。工具用結構張量量每個地方紋理的方向有多一致（量之前先扣掉大範圍的明暗漸層，天空的漸層才不會被當成方向），越一致就越接近原圖。調高，木紋留得越完整；但灰泥這類質感有一部分也有方向，會跟著留下來，斑駁就淡得比較少。每張圖的取捨不同，請放大比較。
               </dd>
             </div>
             <div class="glossary__item">
@@ -345,7 +409,7 @@ const pageSchema = {
             <div class="glossary__item">
               <dt>不處理的</dt>
               <dd>
-                亮度的顆粒（像底片的粒子）、JPEG 壓縮的方塊、天空的色帶斷層，都不在這個工具的範圍。亮度顆粒故意不動：抹掉它會連細節一起抹掉，畫面就變得像塑膠。
+                一兩個像素的亮度顆粒（像底片的粒子）、過度銳化的光暈、JPEG 壓縮的方塊、天空的色帶斷層，都不在這個工具的範圍。細顆粒故意不動：抹掉它會連細節一起抹掉，畫面就變得像塑膠；「亮度斑駁」處理的是比它大、一塊一塊的亮暗斑。
               </dd>
             </div>
           </dl>
@@ -375,7 +439,7 @@ const pageSchema = {
         <div class="notes__body">
           <ul class="dn-list">
             <li>
-              <strong>尺寸上限 {MAX_WAN} 萬像素</strong>（{MAX_SIDE} × {MAX_SIDE}），這是 iPhone Safari 能處理的最大畫布。計算時每百萬像素大約要 0.1 GB 記憶體，手機上處理 4K 的圖可能會不夠，遇到時請先縮小。2K 的圖在一般電腦上約 0.3 秒算完。
+              <strong>尺寸上限 {MAX_WAN} 萬像素</strong>（{MAX_SIDE} × {MAX_SIDE}），這是 iPhone Safari 能處理的最大畫布。計算時每百萬像素大約要 0.1 GB 記憶體，手機上處理 4K 的圖可能會不夠，遇到時請先縮小。2K 的圖在一般電腦上約 0.3 秒算完，打開亮度斑駁約 1 秒；4K 的圖要再久幾倍。
             </li>
             <li>
               <strong>存檔格式和原圖一樣</strong>：PNG 不失真；JPEG、WebP 以 95% 品質重新壓縮；AVIF、HEIC 等其他格式存成 PNG。透明背景會保留。
@@ -938,10 +1002,11 @@ const pageSchema = {
     color: var(--ink);
   }
 
-  /* 「一鍵降噪」與「儲存」輪流當唯一的實心主按鈕 */
+  /* 「一鍵降噪」在所有控制項下面：先調、再按。和「儲存」輪流當唯一的實心主按鈕；
+     降噪過一次之後拉滑桿就直接重算，按鈕收起來，下面的狀態列接著報結果 */
   .dn__run {
     width: 100%;
-    margin-top: 16px;
+    margin-top: 20px;
   }
   .dn[data-state='done'] .dn__run {
     display: none;
@@ -1033,11 +1098,22 @@ const pageSchema = {
     color: var(--muted);
   }
 
+  /* 附屬控制項（紋理保護跟著亮度斑駁、膚色均勻跟著人像）：左邊一條線縮排，看得出是誰的 */
+  .dn__sub,
   .dn__skin {
-    border-bottom: 0;
-    transition: opacity var(--dur-short) var(--ease-out);
+    padding: 12px 0 14px 14px;
+    border-left: 2px solid var(--rule);
   }
-  .dn__skin[data-off] {
+  .dn__skin {
+    margin-top: 8px;
+    border-bottom: 0;
+  }
+  .field:has(+ .dn__sub:not([data-off])) {
+    border-bottom: 0;
+    padding-bottom: 8px;
+  }
+  .dn__skin[data-off],
+  .dn__sub[data-off] {
     display: none;
   }
 
@@ -1110,15 +1186,15 @@ const pageSchema = {
     color: var(--muted);
   }
 
-  .dn__row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 16px;
+  /* 「回到預設」放在「02 降噪」標題列的右端（legend 裡用 float，各瀏覽器都一致） */
+  .dn__reset {
+    float: right;
+    min-height: 0;
+    margin-top: 6px;
   }
   .dn__status {
     min-height: 1.6em;
+    margin-top: 12px;
     font-size: var(--fs-sm);
     line-height: 1.6;
     color: var(--ink-soft);

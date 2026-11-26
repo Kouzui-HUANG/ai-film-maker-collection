@@ -19,9 +19,9 @@
 | `src/data/faq.ts` | `buildFaqSchema(body)`（FAQPage）、`extractHowToSteps(body)`（HowTo） |
 | `src/data/resources.mjs` | 「工具資源」條目登記 `RESOURCES` / `RESOURCE_KIND_LABEL` / `resourcesBasedOn(urlSlug)`；純 Node 可讀（astro.config 的 sitemap lastmod 與 llms.txt 也讀），不可 import 圖片或 astro:* |
 | `src/data/cost-calculator.ts` | AI 影片算力成本試算器的公式 `calc()`、模型單價快照 `MODELS` / `PRICE_DATE`、情境 `PRESETS`、文字 `describe()`、網址參數 `toSearch()` / `fromSearch()`；頁面 SSR 與前端 `<script>` 共用，只能放純資料與純函式 |
-| `src/scripts/denoise/denoise-core.js` | AI 圖片降噪的演算法：`createDenoiser(rgba, w, h)` 回傳 `{ run(radius, blotch), layer(name) }`；Lab 空間 guided filter 只抹 a/b、膚色均勻、診斷檢視（`chroma-before` / `chroma-after` / `diff` / `mask`）；`measureNoise(rgba, w, h)` 回傳色雜訊指數 `{ score, coverage, basis }`（score 為 null 是無法判斷）。純函式，無 DOM、無網路，Node 可 import |
+| `src/scripts/denoise/denoise-core.js` | AI 圖片降噪的演算法：`createDenoiser(rgba, w, h)` 回傳 `{ run(radius, blotch, mottle?, protect?), layer(name) }`（`mottle`、`protect` 是 0..1；`mottle` 為 0 時輸出和只有色雜訊時逐位元相同）；Lab 空間 guided filter 抹 a/b、亮度斑駁（domain transform 保邊平滑＋保留輪廓＋依方向一致性保護紋理＋亮度分位數對回原圖，顏色改以新亮度為導引）、膚色均勻、診斷檢視（`chroma-before` / `chroma-after` / `diff` / `mask`）；`measureNoise(rgba, w, h)` 回傳色雜訊指數 `{ score, coverage, basis }`（score 為 null 是無法判斷）。純函式，無 DOM、無網路，Node 可 import |
 | `src/scripts/denoise/grades.js` | 色雜訊等級：門檻 `GRADE_STEPS`、1～5 級的名稱與說明 `GRADES`、`gradeLevel(score)`。工具與頁面說明共用，純資料 |
-| `src/scripts/denoise/denoise.worker.js` | 在 Web Worker 裡跑 denoise-core（訊息 `load` / `run` / `layer` / `clear`；`load` 回原圖、`run` 回降噪結果的 `noise`）；頁面載入時建立、不 terminate，所以載完頁面後離線也能用 |
+| `src/scripts/denoise/denoise.worker.js` | 在 Web Worker 裡跑 denoise-core（訊息 `load` / `run` / `layer` / `clear`；`run` 帶 `radius`、`blotch`、`mottle`、`protect`；`load` 回原圖、`run` 回降噪結果的 `noise`）；頁面載入時建立、不 terminate，所以載完頁面後離線也能用 |
 | `src/scripts/denoise/app.ts` | `/resource/ai-image-denoise/` 的互動 `setupDenoise(root)`：讀圖（選檔／拖曳／貼上）、色雜訊等級（原圖與降噪後）、檢視、縮放、比較、降噪、儲存與複製；DOM 契約是頁面上的 `data-dn-*`，上限 `MAX_PIXELS`、預設值 `DEFAULTS`。**不得有任何網路請求，也不送工具操作給 GA** |
 | `src/content.config.ts` | 四個 collection 的 schema（creators / works / posts / events） |
 | `src/layouts/BaseLayout.astro` | 報頭、nav、footer、Organization + WebSite + BreadcrumbList schema 引擎 |

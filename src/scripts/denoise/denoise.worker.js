@@ -5,7 +5,7 @@
  * 這個檔案和 denoise-core.js 都不碰網路：沒有 fetch、XHR、WebSocket，也不 importScripts 外部網址。
  *
  * 收：{ id, type: 'load', width, height, buffer }  換一張圖（buffer 是 RGBA 的 ArrayBuffer，會被留著當透明度來源）
- *     { id, type: 'run', radius, blotch }          降噪
+ *     { id, type: 'run', radius, blotch, mottle, protect }  降噪（mottle、protect 是 0..1，可省略）
  *     { id, type: 'layer', name }                  診斷檢視（照最近一次 run 的設定）
  *     { id, type: 'clear' }                        放掉整張圖的計算結果
  * 回：{ id, ok: true, buffer?, ms?, noise? } 或 { id, ok: false, error }
@@ -34,7 +34,7 @@ self.onmessage = (e) => {
     if (!current) throw new Error('還沒有收到圖片');
     const t0 = performance.now();
     let out, noise;
-    if (type === 'run') out = current.run(msg.radius, msg.blotch);
+    if (type === 'run') out = current.run(msg.radius, msg.blotch, msg.mottle, msg.protect);
     else if (type === 'layer') out = current.layer(msg.name);
     else throw new Error('不認得的指令：' + type);
     const ms = Math.round(performance.now() - t0);

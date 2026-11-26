@@ -12,7 +12,7 @@ import { GRADES, gradeLevel } from './grades.js';
 
 /** iPhone Safari 的 canvas 面積上限約 4096×4096；桌機也用同一個上限，記憶體才不會爆 */
 export const MAX_PIXELS = 4096 * 4096;
-export const DEFAULTS = { chroma: 5, skin: 40 } as const;
+export const DEFAULTS = { chroma: 5, skin: 40, mottle: 0, protect: 70 } as const;
 
 type View = 'photo' | 'chroma' | 'diff' | 'mask';
 type Side = 'before' | 'after';
@@ -21,7 +21,7 @@ type Phase = 'empty' | 'loading' | 'ready' | 'done';
 type Layer = 'chroma-before' | 'chroma-after' | 'diff' | 'mask';
 type Noise = { score: number | null; coverage: number; basis: 'mid' | 'wide' | null };
 type Reply = { id: number; ok: boolean; buffer?: ArrayBuffer; ms?: number; noise?: Noise; error?: string };
-type Params = { chroma: number; skin: number };
+type Params = { chroma: number; skin: number; mottle: number; protect: number };
 
 const CAPTION: Record<View, string> = {
   photo:
@@ -29,7 +29,7 @@ const CAPTION: Record<View, string> = {
   chroma:
     '只看顏色：亮度一律拉平、顏色放大 4 倍。斑駁的色塊、彩色的小顆粒就是色雜訊；顏色本來就豐富的地方（霓虹、花草、彩繪）也會很花，不代表髒。',
   diff:
-    '改變幅度：這次降噪讓每個像素變了多少（ΔE）。平坦的地方亮成一片細點，是被抹掉的色雜訊；顏色交界也會亮成線，那是色邊被修順，不是雜訊。',
+    '改變幅度：這次降噪讓每個像素變了多少（ΔE）。平坦的地方亮成一片細點，是被抹掉的色雜訊；顏色交界也會亮成線，那是色邊被修順，不是雜訊。開了亮度斑駁，被淡化的亮暗斑會亮成一塊一塊。',
   mask:
     '膚色範圍：開啟「人像」時，膚色均勻只作用在染成靛藍的地方。沙灘、木頭、夕陽也可能被算成膚色，這種圖請關掉人像。',
 };
@@ -79,6 +79,8 @@ export function setupDenoise(root: HTMLElement) {
   };
   const chromaRange = $<HTMLInputElement>('[data-dn-chroma]');
   const skinRange = $<HTMLInputElement>('[data-dn-skin]');
+  const mottleRange = $<HTMLInputElement>('[data-dn-mottle]');
+  const protectRange = $<HTMLInputElement>('[data-dn-protect]');
   const portrait = $<HTMLInputElement>('[data-dn-portrait]');
   const runBtn = $<HTMLButtonElement>('[data-dn-run]');
   const saveBtn = $<HTMLButtonElement>('[data-dn-save]');
@@ -126,8 +128,12 @@ export function setupDenoise(root: HTMLElement) {
   const params = (): Params => ({
     chroma: Number(chromaRange.value),
     skin: portrait.checked ? Number(skinRange.value) : 0,
+    mottle: Number(mottleRange.value),
+    protect: Number(protectRange.value),
   });
-  const sameParams = (a: Params | null, b: Params) => !!a && a.chroma === b.chroma && a.skin === b.skin;
+  // 亮度斑駁是 0 時，紋理保護不影響結果
+  const sameParams = (a: Params | null, b: Params) =>
+    !!a && a.chroma === b.chroma && a.skin === b.skin && a.mottle === b.mottle && (b.mottle === 0 || a.protect === b.protect);
   const fmtSec = (ms: number) => (ms < 1000 ? `${(ms / 1000).toFixed(2)}` : `${(ms / 1000).toFixed(1)}`);
   const fmtNum = (n: number) => n.toLocaleString('zh-TW');
 
@@ -194,13 +200,24 @@ export function setupDenoise(root: HTMLElement) {
   /* ── 滑桿的數字、填滿段、說明 ─────────────────────────── */
   function syncSliders() {
     const c = Number(chromaRange.value), s = Number(skinRange.value);
+    const m = Number(mottleRange.value), pr = Number(protectRange.value);
     $('[data-dn-chroma-out]').textContent = String(c);
     $('[data-dn-skin-out]').textContent = `${s}%`;
+    $('[data-dn-mottle-out]').textContent = `${m}%`;
+    $('[data-dn-protect-out]').textContent = `${pr}%`;
     $('[data-dn-chroma-hint]').textContent = c === 0 ? '不做色彩降噪' : `照亮度的邊緣，把 ${c} 像素範圍內的顏色抹平`;
+    $('[data-dn-mottle-hint]').textContent =
+      m === 0 ? '不處理亮度' : m <= 30 ? '輕：只淡化最明顯的斑塊' : m <= 70 ? '中：牆面、天空明顯變乾淨' : '強：抹得最開，細看可能有塗抹感';
     chromaRange.style.setProperty('--fill', `${(c / Number(chromaRange.max)) * 100}%`);
     skinRange.style.setProperty('--fill', `${s}%`);
+    mottleRange.style.setProperty('--fill', `${m}%`);
+    protectRange.style.setProperty('--fill', `${pr}%`);
     chromaRange.setAttribute('aria-valuetext', c === 0 ? '0，不做' : `${c} 像素`);
     skinRange.setAttribute('aria-valuetext', `${s}%`);
+    mottleRange.setAttribute('aria-valuetext', m === 0 ? '0%，不做' : `${m}%`);
+    protectRange.setAttribute('aria-valuetext', `${pr}%`);
+    $('[data-dn-protect-field]').toggleAttribute('data-off', m === 0);
+    protectRange.disabled = m === 0 || st.phase === 'empty' || st.phase === 'loading';
     $('[data-dn-skin-field]').toggleAttribute('data-off', !portrait.checked);
     skinRange.disabled = !portrait.checked || st.phase === 'empty' || st.phase === 'loading';
   }
@@ -211,9 +228,11 @@ export function setupDenoise(root: HTMLElement) {
     const done = st.phase === 'done';
     const stale = st.running || st.pending || !sameParams(st.applied, params());
     chromaRange.disabled = !has;
+    mottleRange.disabled = !has;
     portrait.disabled = !has;
     resetBtn.disabled = !has;
     runBtn.disabled = !has || st.running;
+    runBtn.textContent = st.running ? '計算中…' : '一鍵降噪';
     saveBtn.disabled = !done || stale;
     copyBtn.disabled = !done || stale;
     root.toggleAttribute('data-busy', st.running);
@@ -480,7 +499,13 @@ export function setupDenoise(root: HTMLElement) {
     say('計算中…');
     syncControls();
     try {
-      const res = await worker.call({ type: 'run', radius: p.chroma, blotch: p.skin / 100 });
+      const res = await worker.call({
+        type: 'run',
+        radius: p.chroma,
+        blotch: p.skin / 100,
+        mottle: p.mottle / 100,
+        protect: p.protect / 100,
+      });
       if (gen !== st.gen || !res.buffer) return;
       st.out = new ImageData(new Uint8ClampedArray(res.buffer), st.w, st.h);
       st.noiseAfter = res.noise ?? null;
@@ -495,9 +520,10 @@ export function setupDenoise(root: HTMLElement) {
       }
       renderGrade();
       await render();
+      const lum = p.mottle ? `亮度斑駁 ${p.mottle}%（紋理保護 ${p.protect}%）` : '亮度斑駁 0';
       say(
-        `已套用：色雜訊 ${p.chroma}、膚色均勻 ${p.skin}%（計算 ${fmtSec(res.ms ?? 0)} 秒），` +
-          `降噪後${gradeText(st.noiseAfter)}。按住「原圖」可以比較。`,
+        `已套用：色雜訊 ${p.chroma}、${lum}、膚色均勻 ${p.skin}%（計算 ${fmtSec(res.ms ?? 0)} 秒），` +
+          `降噪後${gradeText(st.noiseAfter)}。按住「原圖」可以比較；再拉滑桿會直接重算。`,
       );
     } catch (e) {
       say('');
@@ -571,6 +597,8 @@ export function setupDenoise(root: HTMLElement) {
   function reset() {
     chromaRange.value = String(DEFAULTS.chroma);
     skinRange.value = String(DEFAULTS.skin);
+    mottleRange.value = String(DEFAULTS.mottle);
+    protectRange.value = String(DEFAULTS.protect);
     portrait.checked = false;
     onParamInput();
   }
@@ -676,6 +704,8 @@ export function setupDenoise(root: HTMLElement) {
 
   chromaRange.addEventListener('input', onParamInput);
   skinRange.addEventListener('input', onParamInput);
+  mottleRange.addEventListener('input', onParamInput);
+  protectRange.addEventListener('input', onParamInput);
   portrait.addEventListener('change', onParamInput);
   runBtn.addEventListener('click', run);
   saveBtn.addEventListener('click', save);

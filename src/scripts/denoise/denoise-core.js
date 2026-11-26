@@ -3,13 +3,15 @@
  *
  * denoise.worker.js 在 Web Worker 裡呼叫，畫面不會卡住；Node 也能 import（驗證用）。
  *
- * 1. 色雜訊（radius > 0）：轉成 Lab，亮度 L 不動，只把顏色 a、b 用 guided filter（He et al., 2010）
+ * 1. 色雜訊（radius > 0）：轉成 Lab，只把顏色 a、b 用 guided filter（He et al., 2010）
  *    照著 L 的邊緣抹平，嘴唇的粉紅、頭髮的黑不會滲到皮膚。
  * 2. 膚色均勻（blotch > 0）：亮度先輕微模糊（毛孔、髮絲這種 2 像素以下的細節留在原圖，不動），再用 guided filter
  *    只把對比低、中等大小的不均勻拉回周圍的亮度；有真正對比的五官（眼睛、鼻孔、唇線、下巴）保留，
  *    膚色遮罩（暖色、中等飽和、中等亮度）讓頭髮、衣服、背景不受影響。
  * 3. 診斷檢視（layer）：只看顏色（亮度拉平、顏色放大）、改變幅度（ΔE 熱圖）、膚色範圍（遮罩）。
  * 4. 色雜訊指數（measureNoise）：平滑區域裡和亮度無關的顏色起伏，換成 1～5 級的門檻在 grades.js。
+ * 5. 亮度斑駁（mottle > 0）：保邊平滑 → 保留大幅度的輪廓 → 方向一致的紋理（木紋、布紋）拉回原圖 → 亮度分布對回原圖；
+ *    顏色改用新的亮度當導引。演算法說明在下方「亮度斑駁」一節。
  *
  * 邊界、Lab 常數、高斯核心大小都照 OpenCV（boxFilter BORDER_REFLECT、GaussianBlur BORDER_REFLECT_101），
  * 和 OpenCV＋numpy 寫的同一套演算法逐像素對照過：8 位元的像素幾乎都相同或差 1。
@@ -185,6 +187,151 @@ function skinMask(L, A, B, out, w, h, s) {
   return gauss(out, out, w, h, 4, s);
 }
 
+/* ── 亮度斑駁 ─────────────────────────────────────────────── */
+// AI 圖常見的「髒」多半在亮度：牆面、天空、暗部裡一塊一塊、沒有方向的中等大小亮暗斑。
+// 1. 平滑底：domain transform 遞迴濾波（Gastal & Oliveira 2011，線性時間的保邊平滑）跑兩次，再 G(1.2)。
+// 2. 保留結構：殘差 r = 原圖 − 平滑底，|r| 大的是輪廓（葉子、縫、字）留著，|r| 小的是斑駁壓掉。
+// 3. 紋理保護：結構張量量「方向一致性」，木紋、布紋、髮絲這種朝同一方向的紋理拉回原圖。
+// 4. 亮度分位數對回原圖：黑位、高光、整體明暗不變，不會蒙上一層霧。
+// 顏色接著用新的亮度當導引做 guided filter，跟著亮斑走的冷暖色斑也一起抹掉。
+
+const MOTTLE_SS = 6;          // 平滑底的空間範圍（像素）
+const COH_EPS = 0.002;        // 方向一致性：梯度太弱的地方不算有方向
+const COH_BP = 6;             // 量方向前先減掉 G(6)，大範圍的明暗漸層（天空、打光）不算方向
+const QM_BINS = 1024, QM_LO = -1, QM_HI = 101;
+
+/** 強度 0..1 → 平滑底的 σr（L 單位）、保留結構的門檻 T、壓掉的比例 */
+const mottleParams = (s) => ({ sigmaR: 4 + 10 * s, core: 1 + 4 * s, depth: 0.85 * Math.min(1, 2 * s) });
+/** 紋理保護 0..1 → 方向一致性的保護區間 [c0, c1] 和拉回原圖的上限 */
+const protectParams = (p) => ({ c0: 0.3 - 0.18 * p, c1: 0.55 - 0.23 * p, keep: Math.min(1, 2 * p) });
+
+// 3 次方框平均近似高斯（Kovesi 的半徑組合，誤差很小），和 σ 大小無關都是線性時間
+function fastGauss(src, dst, w, h, sigma, s) {
+  const wIdeal = Math.sqrt(12 * sigma * sigma / 3 + 1);
+  let wl = Math.floor(wIdeal);
+  if (wl % 2 === 0) wl--;
+  const m = Math.round((12 * sigma * sigma - 3 * wl * wl - 12 * wl - 9) / (-4 * wl - 4));
+  let cur = src;
+  for (let k = 0; k < 3; k++) {
+    const r = ((k < m ? wl : wl + 2) - 1) / 2;
+    if (r > 0) { box(cur, dst, w, h, r, s); cur = dst; }
+  }
+  if (cur !== dst) dst.set(cur);
+  return dst;
+}
+
+// domain transform 遞迴濾波（RF），導引 = 輸入本身；src 和 dst 不能是同一個
+function domainTransform(src, dst, w, h, sigmaS, sigmaR, iters = 3) {
+  dst.set(src);
+  const ratio = sigmaS / sigmaR, Q = 32, NQ = 100 * Q + 1, lut = new Float32Array(NQ);
+  for (let k = 0; k < iters; k++) {
+    const sH = sigmaS * Math.sqrt(3) * Math.pow(2, iters - k - 1) / Math.sqrt(Math.pow(4, iters) - 1);
+    const a = Math.exp(-Math.SQRT2 / sH), la = Math.log(a);
+    for (let q = 0; q < NQ; q++) lut[q] = a * Math.exp(la * ratio * q / Q);  // a^(1 + σs/σr·|ΔI|)
+    const wt = (d) => lut[Math.min(NQ - 1, (d < 0 ? -d : d) * Q | 0)];
+    for (let y = 0; y < h; y++) {
+      const o = y * w;
+      for (let x = 1; x < w; x++) { const i = o + x; dst[i] += wt(src[i] - src[i - 1]) * (dst[i - 1] - dst[i]); }
+      for (let x = w - 2; x >= 0; x--) { const i = o + x; dst[i] += wt(src[i + 1] - src[i]) * (dst[i + 1] - dst[i]); }
+    }
+    for (let y = 1; y < h; y++) {
+      const o = y * w;
+      for (let x = 0; x < w; x++) { const i = o + x; dst[i] += wt(src[i] - src[i - w]) * (dst[i - w] - dst[i]); }
+    }
+    for (let y = h - 2; y >= 0; y--) {
+      const o = y * w;
+      for (let x = 0; x < w; x++) { const i = o + x; dst[i] += wt(src[i + w] - src[i]) * (dst[i + w] - dst[i]); }
+    }
+  }
+  return dst;
+}
+
+// 方向一致性（0 是沒有方向的團塊，1 是同一方向的線），在半解析度算、存半解析度
+// 小窗：梯度 σ1、積分 σ8 的結構張量；大範圍：小窗的方向向量（雙倍角 × 一致性）再平均 σ12，兩者取大。
+// 小窗先正規化，牆柱的邊緣不會壓過一整片木頭。
+function coherenceMap(L, w, h, s) {
+  const n = w * h, g = gauss(L, s.get(0), w, h, 1.0, s), lo = fastGauss(L, s.get(1), w, h, COH_BP, s);
+  for (let i = 0; i < n; i++) g[i] -= lo[i];
+  const W = (w + 1) >> 1, H = (h + 1) >> 1, m = W * H;
+  const xx = new Float32Array(m), yy = new Float32Array(m), xy = new Float32Array(m), cnt = new Float32Array(m);
+  for (let y = 0; y < h; y++) {
+    const ym = y > 0 ? y - 1 : 0, yp = y < h - 1 ? y + 1 : h - 1, row = (y >> 1) * W;
+    for (let x = 0; x < w; x++) {
+      const gx = 0.5 * (g[y * w + (x < w - 1 ? x + 1 : x)] - g[y * w + (x > 0 ? x - 1 : 0)]);
+      const gy = 0.5 * (g[yp * w + x] - g[ym * w + x]);
+      const j = row + (x >> 1);
+      xx[j] += gx * gx; yy[j] += gy * gy; xy[j] += gx * gy; cnt[j]++;
+    }
+  }
+  for (let j = 0; j < m; j++) { const c = 1 / cnt[j]; xx[j] *= c; yy[j] *= c; xy[j] *= c; }
+  const hs = { tmp: new Float32Array(m), acc: new Float64Array(W) };
+  fastGauss(xx, xx, W, H, 4, hs);
+  fastGauss(yy, yy, W, H, 4, hs);
+  fastGauss(xy, xy, W, H, 4, hs);
+  const coh = cnt;  // 重用
+  for (let j = 0; j < m; j++) {
+    const tr = xx[j] + yy[j] + COH_EPS, dxy = xx[j] - yy[j], d = Math.sqrt(dxy * dxy + 4 * xy[j] * xy[j]) / tr;
+    coh[j] = d * d;
+    xx[j] = dxy / tr; yy[j] = 2 * xy[j] / tr;  // 方向向量（雙倍角），長度 = √一致性
+  }
+  fastGauss(xx, xx, W, H, 6, hs);
+  fastGauss(yy, yy, W, H, 6, hs);
+  for (let j = 0; j < m; j++) { const r = xx[j] * xx[j] + yy[j] * yy[j]; if (r > coh[j]) coh[j] = r; }
+  return { coh, W, H };
+}
+
+// 亮度累積分布（QM_BINS 格），給分位數對應用
+function lumCdf(L) {
+  const c = new Float64Array(QM_BINS), sc = QM_BINS / (QM_HI - QM_LO);
+  for (let i = 0; i < L.length; i++) c[Math.min(QM_BINS - 1, Math.max(0, Math.floor((L[i] - QM_LO) * sc)))]++;
+  for (let i = 1; i < QM_BINS; i++) c[i] += c[i - 1];
+  for (let i = 0; i < QM_BINS; i++) c[i] /= L.length;
+  return c;
+}
+// 把 X 的分布對回參考分布（原地改寫）
+function quantileMatch(X, refCdf) {
+  const sc = QM_BINS / (QM_HI - QM_LO), cs = lumCdf(X), map = new Float32Array(QM_BINS);
+  for (let i = 0, j = 0; i < QM_BINS; i++) {
+    while (j < QM_BINS - 1 && refCdf[j] < cs[i]) j++;
+    map[i] = QM_LO + (j + 0.5) / sc;
+  }
+  for (let i = 0; i < X.length; i++) {
+    const t = (X[i] - QM_LO) * sc, b = Math.min(QM_BINS - 2, Math.max(0, Math.floor(t))), f = Math.min(1, Math.max(0, t - b));
+    X[i] = map[b] * (1 - f) + map[b + 1] * f;
+  }
+  return X;
+}
+
+// 平滑底 + 保留結構（照強度），結果寫進 out
+function mottleBase(L, out, w, h, strength, s) {
+  const n = w * h, { sigmaR, core, depth } = mottleParams(strength), t = s.get(0);
+  domainTransform(L, t, w, h, MOTTLE_SS, sigmaR);
+  domainTransform(t, out, w, h, MOTTLE_SS, sigmaR);
+  gauss(out, t, w, h, 1.2, s);
+  const k = -1 / (2 * core * core);
+  for (let i = 0; i < n; i++) { const r = L[i] - t[i]; out[i] = t[i] + r * (1 - depth * Math.exp(r * r * k)); }
+  return out;
+}
+
+// 紋理保護：方向一致的地方把 base 拉回原圖，寫進 out，再把亮度分布對回原圖
+function protectBlend(L, base, out, cohMap, w, h, protect, refCdf) {
+  const { c0, c1, keep } = protectParams(protect);
+  if (keep <= 0) { out.set(base); return quantileMatch(out, refCdf); }
+  const { coh, W, H } = cohMap, m = W * H, P = new Float32Array(m), hs = { tmp: new Float32Array(m), acc: new Float64Array(W) };
+  for (let j = 0; j < m; j++) P[j] = keep * smooth(c0, c1, coh[j]);
+  fastGauss(P, P, W, H, 2, hs);  // 讓保護在整片木頭裡連成一片
+  for (let y = 0; y < h; y++) {   // 半解析度 → 原尺寸：雙線性
+    const fy = Math.min(H - 1, Math.max(0, (y - 0.5) / 2)), y0 = Math.floor(fy), y1 = Math.min(H - 1, y0 + 1), ty = fy - y0;
+    for (let x = 0; x < w; x++) {
+      const fx = Math.min(W - 1, Math.max(0, (x - 0.5) / 2)), x0 = Math.floor(fx), x1 = Math.min(W - 1, x0 + 1), tx = fx - x0;
+      const p = (P[y0 * W + x0] * (1 - tx) + P[y0 * W + x1] * tx) * (1 - ty) + (P[y1 * W + x0] * (1 - tx) + P[y1 * W + x1] * tx) * ty;
+      const i = y * w + x;
+      out[i] = base[i] + p * (L[i] - base[i]);
+    }
+  }
+  return quantileMatch(out, refCdf);
+}
+
 /* ── 診斷檢視 ─────────────────────────────────────────────── */
 
 export const CHROMA_GAIN = 4;     // 「只看顏色」：顏色放大的倍數
@@ -339,7 +486,8 @@ export function measureNoise(rgba, w, h) {
 }
 
 /**
- * 一張圖的降噪器：Lab、色彩降噪的結果（照半徑）、膚色均勻的細節和遮罩都留著，拉滑桿重算時只算變了的部分。
+ * 一張圖的降噪器：Lab、色彩降噪的結果（照半徑與導引）、亮度斑駁的中間結果、膚色均勻的細節和遮罩都留著，
+ * 拉滑桿重算時只算變了的部分。亮度斑駁是 0 時，輸出和沒有這個功能之前逐位元相同。
  * @param {Uint8ClampedArray} rgba  原圖的 RGBA（會被留著當透明度的來源，不要再改它）
  * @param {number} w
  * @param {number} h
@@ -349,13 +497,15 @@ export function createDenoiser(rgba, w, h) {
   const s = { tmp: f(), acc: new Float64Array(w), get: i => scratch[i] || (scratch[i] = f()) };
   const L = f(), A = f(), B = f();
   toLab(rgba, L, A, B);
-  let radius = -1, A2 = A, B2 = B, mid = null, mask = null, maskRadius = -1, Lb = null, Lout = L;
+  let chromaKey = null, A2 = A, B2 = B, mid = null, mask = null, maskKey = null, Lb = null, Lout = L;
+  // 亮度斑駁：平滑底照強度快取，方向一致性和原圖的亮度分布只算一次，保護後的亮度照（強度, 保護）快取
+  let mBase = null, mBaseS = -1, coh = null, cdf = null, Lm = null, lmKey = null;
 
-  // 膚色遮罩照目前半徑的顏色算；半徑變了才重算
+  // 膚色遮罩照目前的顏色算；顏色變了才重算
   function ensureMask() {
-    if (maskRadius !== radius) {
+    if (maskKey !== chromaKey) {
       skinMask(L, A2, B2, mask = mask || f(), w, h, s);
-      maskRadius = radius;
+      maskKey = chromaKey;
     }
     return mask;
   }
@@ -363,26 +513,49 @@ export function createDenoiser(rgba, w, h) {
   return {
     width: w, height: h,
     /**
-     * @param {number} r       色彩平滑半徑（像素，0 是不做）
-     * @param {number} blotch  膚色均勻 0..1（0 是不做）
+     * @param {number} r        色彩平滑半徑（像素，0 是不做）
+     * @param {number} blotch   膚色均勻 0..1（0 是不做）
+     * @param {number} [mottle] 亮度斑駁 0..1（0 是不做）
+     * @param {number} [protect] 紋理保護 0..1（亮度斑駁開著才有作用）
      * @returns {Uint8ClampedArray} RGBA
      */
-    run(r, blotch) {
+    run(r, blotch, mottle = 0, protect = 0) {
       r = Math.max(0, Math.round(r) || 0);
       blotch = Math.min(1, Math.max(0, Number(blotch) || 0));
-      if (r !== radius) {
+      mottle = Math.min(1, Math.max(0, Number(mottle) || 0));
+      protect = Math.min(1, Math.max(0, Number(protect) || 0));
+
+      // 1. 亮度斑駁：Lg 是之後顏色導引和膚色均勻的底
+      let Lg = L, gKey = '';
+      if (mottle > 0) {
+        if (mBaseS !== mottle) { mottleBase(L, mBase = mBase || f(), w, h, mottle, s); mBaseS = mottle; }
+        gKey = mottle + ':' + protect;
+        if (lmKey !== gKey) {
+          if (!cdf) cdf = lumCdf(L);
+          if (!coh && protectParams(protect).keep > 0) coh = coherenceMap(L, w, h, s);
+          protectBlend(L, mBase, Lm = Lm || f(), coh, w, h, protect, cdf);
+          lmKey = gKey;
+        }
+        Lg = Lm;
+      }
+
+      // 2. 色雜訊：照 Lg 的邊緣抹平 a/b
+      const key = r + '|' + gKey;
+      if (key !== chromaKey) {
         if (r === 0) { A2 = A; B2 = B; } else {
           if (A2 === A) { A2 = f(); B2 = f(); }
-          guidedChroma(L, [A, B], [A2, B2], w, h, r, EPS, s);
+          guidedChroma(Lg, [A, B], [A2, B2], w, h, r, EPS, s);
         }
-        radius = r;
+        chromaKey = key;
       }
-      Lout = L;
+
+      // 3. 膚色均勻
+      Lout = Lg;
       if (blotch > 0) {
         if (!mid) blotchDetail(L, mid = f(), w, h, s);
         ensureMask();
         Lout = Lb = Lb || f();
-        for (let i = 0; i < n; i++) Lout[i] = L[i] - blotch * mid[i] * mask[i];
+        for (let i = 0; i < n; i++) Lout[i] = Lg[i] - blotch * mid[i] * mask[i];
       }
       const out = new Uint8ClampedArray(n * 4);
       fromLab(Lout, A2, B2, rgba, out);
@@ -399,7 +572,7 @@ export function createDenoiser(rgba, w, h) {
       else if (name === 'chroma-after') chromaView(A2, B2, rgba, out);
       else if (name === 'diff') diffView(L, A, B, Lout, A2, B2, rgba, out);
       else if (name === 'mask') {
-        if (radius < 0) radius = 0;  // 還沒 run 過：照原圖的顏色算
+        if (chromaKey === null) chromaKey = '0|';  // 還沒 run 過：照原圖的顏色算
         maskView(L, ensureMask(), rgba, out);
       } else throw new Error('不認得的檢視：' + name);
       return out;
