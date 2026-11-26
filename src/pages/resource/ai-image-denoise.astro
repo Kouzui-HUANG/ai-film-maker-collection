@@ -15,6 +15,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE, routes, absRoutes, absAsset } from '../../data/site';
 import { fmtDate } from '../../data/events';
 import { RESOURCES } from '../../data/resources.mjs';
+import { GRADES, GRADE_STEPS } from '../../scripts/denoise/grades.js';
 
 const SLUG = 'ai-image-denoise';
 const resource = RESOURCES.find((r) => r.slug === SLUG);
@@ -30,10 +31,14 @@ const MAX_WAN = Math.round((MAX_SIDE * MAX_SIDE) / 1e4).toLocaleString('zh-TW');
 const DEFAULT_CHROMA = 5;
 const DEFAULT_SKIN = 40;
 
+/* 色雜訊等級的區間文字：「未滿 0.5」「0.5～1」…「4 以上」 */
+const gradeRange = (i: number) =>
+  i === 0 ? `未滿 ${GRADE_STEPS[0]}` : i === GRADE_STEPS.length ? `${GRADE_STEPS[i - 1]} 以上` : `${GRADE_STEPS[i - 1]}～${GRADE_STEPS[i]}`;
+
 const title = resource.title;
-const seoTitle = 'AI 圖片降噪：在瀏覽器診斷色雜訊，一鍵抹平彩色顆粒與色斑';
+const seoTitle = 'AI 圖片降噪：在瀏覽器判斷色雜訊等級，一鍵抹平彩色顆粒與色斑';
 const description =
-  'AI 生成的圖放大常見彩色顆粒和斑駁色塊。把圖放進瀏覽器，用「只看顏色」檢視看清楚色雜訊在哪裡，一鍵抹平顏色、保留亮度與細節，人像可順便淡化膚色斑駁。' +
+  'AI 生成的圖放大常見彩色顆粒和斑駁色塊。把圖放進瀏覽器，先看 1 到 5 級的色雜訊等級，再用「只看顏色」檢視找出雜訊在哪裡，一鍵抹平顏色、保留亮度與細節，人像可順便淡化膚色斑駁。' +
   '全部在你的電腦上計算，圖片不會上傳。';
 
 const pageUrl = absRoutes.resource(SLUG);
@@ -55,7 +60,7 @@ const pageSchema = {
   dateModified: resource.updated,
   isPartOf: { '@id': `${SITE.url}/#website` },
   publisher: { '@id': `${SITE.url}/#organization` },
-  keywords: 'AI 圖片降噪, 色雜訊, 彩色雜訊, 色斑, AI 生圖雜訊, guided filter, 膚色均勻',
+  keywords: 'AI 圖片降噪, 色雜訊, 色雜訊等級, 彩色雜訊, 色斑, AI 生圖雜訊, guided filter, 膚色均勻',
 };
 ---
 
@@ -79,7 +84,7 @@ const pageSchema = {
         <div class="rule-double"></div>
         <h1 class="page-title">{title}</h1>
         <p class="page-lead">
-          把 AI 生成的圖放進來，先用「只看顏色」看清楚彩色的小顆粒和斑駁的色塊在哪裡，再一鍵抹平顏色的雜訊；亮度和細節不動，人像可以順便淡化膚色的斑駁。全部在你的瀏覽器裡計算，圖片不會上傳。
+          把 AI 生成的圖放進來，先看色雜訊等級（1 到 5 級）知道彩色的小顆粒和斑駁的色塊有多嚴重，用「只看顏色」看它們在哪裡，再一鍵抹平；亮度和細節不動，人像可以順便淡化膚色的斑駁。全部在你的瀏覽器裡計算，圖片不會上傳。
         </p>
         <p class="page-meta">在瀏覽器裡計算　圖片不上傳　更新 {fmtDate(resource.updated)}</p>
       </header>
@@ -165,9 +170,36 @@ const pageSchema = {
               <button type="button" class="btn btn--ghost dn__file-pick" data-dn-pick>換一張</button>
             </div>
 
+            <section class="group grade" aria-labelledby="dn-grade-title" data-dn-grade data-level="">
+              <h3 class="group__legend" id="dn-grade-title">
+                <span class="group__no">01</span><span class="group__title">色雜訊等級</span>
+              </h3>
+              <p class="grade__head">
+                <span class="grade__num" data-dn-grade-num>–</span><span class="grade__of">／5</span>
+                <span class="grade__name" data-dn-grade-name>放圖之後自動判斷</span>
+              </p>
+              <div class="grade__meter" aria-hidden="true">
+                <span class="grade__track" data-dn-grade-track>
+                  {GRADES.map(() => <span class="grade__seg" />)}
+                </span>
+                <span class="grade__names">{GRADES.map((g) => <span>{g.name}</span>)}</span>
+              </div>
+              <p class="grade__desc" data-dn-grade-desc>
+                在亮度平滑的地方（皮膚、天空、牆面）量彩色顆粒和色斑的幅度：1 是乾淨，5 是非常嚴重。
+              </p>
+              <p class="grade__meta" data-dn-grade-meta></p>
+              <div class="grade__after" data-dn-grade-after hidden>
+                <span class="grade__after-label">降噪後</span>
+                <span class="grade__track grade__track--mini" data-dn-grade-after-track aria-hidden="true">
+                  {GRADES.map(() => <span class="grade__seg" />)}
+                </span>
+                <span class="grade__after-text" data-dn-grade-after-text></span>
+              </div>
+            </section>
+
             <fieldset class="group">
               <legend class="group__legend">
-                <span class="group__no">01</span><span class="group__title">降噪</span>
+                <span class="group__no">02</span><span class="group__title">降噪</span>
               </legend>
 
               <button type="button" class="btn btn--accent dn__run" data-dn-run disabled>一鍵降噪</button>
@@ -234,7 +266,7 @@ const pageSchema = {
 
             <fieldset class="group">
               <legend class="group__legend">
-                <span class="group__no">02</span><span class="group__title">儲存</span>
+                <span class="group__no">03</span><span class="group__title">儲存</span>
               </legend>
               <div class="dn__actions">
                 <button type="button" class="btn btn--accent" data-dn-save disabled>儲存降噪後的圖</button>
@@ -263,6 +295,30 @@ const pageSchema = {
           </p>
           <dl class="glossary">
             <div class="glossary__item">
+              <dt>色雜訊等級</dt>
+              <dd>
+                <p>
+                  在亮度平滑的地方（皮膚、天空、牆面）量彩色顆粒和色斑的典型幅度，換成 1 到 5 級。指數大約等於顏色起伏的色差（ΔE），每升一級，幅度大約加倍：
+                </p>
+                <ol class="levels">
+                  {GRADES.map((g, i) => (
+                    <li>
+                      <span class="levels__no">{i + 1}</span>
+                      <span class="levels__name">{g.name}</span>
+                      <span class="levels__range">指數 {gradeRange(i)}</span>
+                      <span class="levels__desc">{g.desc}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p>
+                  做法：先把圖縮小 4 倍，一兩個像素的細顆粒不算，肉眼本來就看不出它的顏色；再把顏色裡跟著亮度走的部分扣掉（陰影、布紋、木紋本身的顏色），只留和亮度無關的起伏，取所有平滑區域的中位數。門檻是在乾淨的圖上加入已知幅度的人工色斑，照肉眼在 100% 下看不看得出來定的。按下「一鍵降噪」後，降噪的結果會用同一把尺再量一次。
+                </p>
+                <p>
+                  它只管顏色的雜訊，不管亮度的顆粒。水彩、做舊這種筆觸本身就帶顏色紋理的畫風，指數會偏高一些；JPEG 壓縮和縮放也會讓指數小幅變動。細節很多、幾乎沒有平滑區域的畫面（全身三視圖、很暗的場景）會只依亮部判斷並標示僅供參考，或顯示無法判斷，這時請直接看「只看顏色」。
+                </p>
+              </dd>
+            </div>
+            <div class="glossary__item">
               <dt>色雜訊</dt>
               <dd>
                 把圖轉成 Lab 色彩空間：L 是亮度，a、b 是顏色。亮度完全不動，只用 guided filter（導向濾波，He 等人 2010 年提出）把 a、b 照著亮度的邊緣抹平，所以嘴唇的粉紅、頭髮的黑不會滲到皮膚上。滑桿是抹平的範圍，單位是像素，預設 {DEFAULT_CHROMA}；越大抹得越開，0 是不做。
@@ -283,7 +339,7 @@ const pageSchema = {
             <div class="glossary__item">
               <dt>改變幅度</dt>
               <dd>
-                每個像素降噪前後的顏色差（ΔE），用暗到亮的色階畫在調暗的原圖上。平坦的地方亮成一片細點，是被抹掉的色雜訊；顏色交界亮成線，是色邊被修順。我們試過把它加總成一個「雜訊分數」，但顏色豐富的畫面分數一定高、真正髒的圖不一定高，會誤導，所以這裡只給畫面、不打分數。
+                每個像素降噪前後的顏色差（ΔE），用暗到亮的色階畫在調暗的原圖上。平坦的地方亮成一片細點，是被抹掉的色雜訊；顏色交界亮成線，是色邊被修順。它畫的是「這次降噪改了什麼」，不是髒的程度：顏色豐富的畫面交界多，整張都會亮。要判斷髒不髒，請看色雜訊等級，它刻意只量平滑的地方。
               </dd>
             </div>
             <div class="glossary__item">
@@ -762,6 +818,126 @@ const pageSchema = {
     font-size: var(--fs-lg);
   }
 
+  /* ── 01 色雜訊等級 ─────────────────────────────── */
+  .group.grade {
+    margin-bottom: 28px;
+  }
+  h3.group__legend {
+    margin: 0;
+  }
+  .grade__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 12px;
+    margin-top: 16px;
+  }
+  .grade__num {
+    font-family: var(--font-mono);
+    font-size: 2.75rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .grade__of {
+    margin-left: -10px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .grade__name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-lg);
+    line-height: 1.3;
+  }
+  .grade[data-level=''] .grade__name,
+  .grade[data-level='0'] .grade__name {
+    font-size: var(--fs-base);
+    color: var(--ink-soft);
+  }
+
+  /* 五格的刻度：到目前等級為止填滿，目前這一格是 accent */
+  .grade__meter {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 14px;
+  }
+  .grade__track {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .grade__seg {
+    height: 10px;
+    background: var(--rule-strong);
+    transition: background-color var(--dur-short) var(--ease-out);
+  }
+  .grade__track[data-level='1'] .grade__seg:nth-child(-n + 1),
+  .grade__track[data-level='2'] .grade__seg:nth-child(-n + 2),
+  .grade__track[data-level='3'] .grade__seg:nth-child(-n + 3),
+  .grade__track[data-level='4'] .grade__seg:nth-child(-n + 4),
+  .grade__track[data-level='5'] .grade__seg:nth-child(-n + 5) {
+    background: var(--ink-soft);
+  }
+  .grade__track[data-level='1'] .grade__seg:nth-child(1),
+  .grade__track[data-level='2'] .grade__seg:nth-child(2),
+  .grade__track[data-level='3'] .grade__seg:nth-child(3),
+  .grade__track[data-level='4'] .grade__seg:nth-child(4),
+  .grade__track[data-level='5'] .grade__seg:nth-child(5) {
+    background: var(--accent);
+  }
+  .grade__names {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    font-size: 0.6875rem;
+    line-height: 1.3;
+    color: var(--muted);
+  }
+  .grade__desc {
+    margin-top: 12px;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .grade__meta {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .grade__meta:empty {
+    display: none;
+  }
+  .grade__after {
+    display: grid;
+    grid-template-columns: auto minmax(64px, 96px) minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule-soft);
+  }
+  .grade__after[hidden] {
+    display: none;
+  }
+  .grade__after-label {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+  }
+  .grade__track--mini .grade__seg {
+    height: 6px;
+  }
+  .grade__after-text {
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
   /* 「一鍵降噪」與「儲存」輪流當唯一的實心主按鈕 */
   .dn__run {
     width: 100%;
@@ -1041,6 +1217,50 @@ const pageSchema = {
     font-size: var(--fs-base);
     line-height: 1.95;
     color: var(--ink-soft);
+  }
+  .glossary__item dd > * + * {
+    margin-top: 12px;
+  }
+
+  /* 色雜訊等級的五級對照 */
+  .levels {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .levels li {
+    display: grid;
+    grid-template-columns: 1.5em 5.5em 7em minmax(0, 1fr);
+    gap: 4px 12px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .levels__no {
+    font-family: var(--font-mono);
+    color: var(--ink);
+  }
+  .levels__name {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .levels__range {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .levels__desc {
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+  }
+  @media (max-width: 640px) {
+    .levels li {
+      grid-template-columns: 1.5em minmax(0, 1fr) auto;
+    }
+    .levels__desc {
+      grid-column: 2 / -1;
+    }
   }
 
   .dn-list {

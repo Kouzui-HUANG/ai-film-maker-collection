@@ -8,9 +8,10 @@
  *     { id, type: 'run', radius, blotch }          降噪
  *     { id, type: 'layer', name }                  診斷檢視（照最近一次 run 的設定）
  *     { id, type: 'clear' }                        放掉整張圖的計算結果
- * 回：{ id, ok: true, buffer?, ms? } 或 { id, ok: false, error }
+ * 回：{ id, ok: true, buffer?, ms?, noise? } 或 { id, ok: false, error }
+ *     noise 是 measureNoise 的結果：load 回原圖的，run 回降噪後（8 位元、和存檔一樣）的
  */
-import { createDenoiser } from './denoise-core.js';
+import { createDenoiser, measureNoise } from './denoise-core.js';
 
 let current = null;
 
@@ -25,17 +26,20 @@ self.onmessage = (e) => {
     }
     if (type === 'load') {
       current = null;  // 先放掉上一張，記憶體才夠
-      current = createDenoiser(new Uint8ClampedArray(msg.buffer), msg.width, msg.height);
-      self.postMessage({ id, ok: true });
+      const rgba = new Uint8ClampedArray(msg.buffer);
+      current = createDenoiser(rgba, msg.width, msg.height);
+      self.postMessage({ id, ok: true, noise: measureNoise(rgba, msg.width, msg.height) });
       return;
     }
     if (!current) throw new Error('還沒有收到圖片');
     const t0 = performance.now();
-    let out;
+    let out, noise;
     if (type === 'run') out = current.run(msg.radius, msg.blotch);
     else if (type === 'layer') out = current.layer(msg.name);
     else throw new Error('不認得的指令：' + type);
-    self.postMessage({ id, ok: true, buffer: out.buffer, ms: Math.round(performance.now() - t0) }, [out.buffer]);
+    const ms = Math.round(performance.now() - t0);
+    if (type === 'run') noise = measureNoise(out, current.width, current.height);
+    self.postMessage({ id, ok: true, buffer: out.buffer, ms, noise }, [out.buffer]);
   } catch (err) {
     const text = (err && err.message) || String(err);
     self.postMessage({

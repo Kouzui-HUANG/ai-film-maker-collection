@@ -86,7 +86,7 @@ ai-film-maker-collection/
     ├── layouts/BaseLayout.astro  # 報頭、nav、footer、Organization + WebSite + BreadcrumbList
     ├── components/               # CreatorCard / WorkCard / PostCard / EventCard / VideoFacade / MoreList / ShareLike
     ├── pages/                    # 路由（見設計文件 §3）
-    ├── scripts/denoise/          # AI 圖片降噪：denoise-core.js（演算法）、denoise.worker.js（Web Worker）、app.ts（頁面互動）
+    ├── scripts/denoise/          # AI 圖片降噪：denoise-core.js（演算法、色雜訊指數）、denoise.worker.js（Web Worker）、grades.js（等級門檻與文字）、app.ts（頁面互動）
     └── styles/global.css         # design tokens + 共用 class
 ```
 
@@ -145,7 +145,7 @@ node scripts/new-work.mjs https://www.youtube.com/watch?v=XXXXXXXXXXX --creator 
 2. 建立 `src/pages/resource/<slug>.astro` 與封面 `src/assets/resources/<slug>.jpg`（1600×900）。
 3. 填了 `basedOn` 的工具，依據文章的頁面會在封面下方自動出現「相關工具」框。
 4. 改試算器的模型單價或情境時，改 `src/data/cost-calculator.ts`（`MODELS` / `PRICE_DATE` / `PRESETS`），並更新 `resources.mjs` 的 `updated` 與 `dataDate`。
-5. **AI 圖片降噪**（`/resource/ai-image-denoise/`）完全在瀏覽器裡執行：演算法在 `src/scripts/denoise/denoise-core.js`，由 `denoise.worker.js` 在 Web Worker 裡跑，頁面互動在 `app.ts`。這三個檔案都不能出現 `fetch`、XHR、`sendBeacon` 或外部網址，工具的按鈕也不要加 `data-ga-cta`——頁面上寫著「圖片不會上傳、工具操作不送統計」，改動時要守住。上限與預設值在 `app.ts` 的 `MAX_PIXELS` / `DEFAULTS`，頁面說明文字裡也寫了同樣的數字，兩邊一起改。
+5. **AI 圖片降噪**（`/resource/ai-image-denoise/`）完全在瀏覽器裡執行：演算法在 `src/scripts/denoise/denoise-core.js`，由 `denoise.worker.js` 在 Web Worker 裡跑，頁面互動在 `app.ts`。這三個檔案都不能出現 `fetch`、XHR、`sendBeacon` 或外部網址，工具的按鈕也不要加 `data-ga-cta`——頁面上寫著「圖片不會上傳、工具操作不送統計」，改動時要守住。上限與預設值在 `app.ts` 的 `MAX_PIXELS` / `DEFAULTS`，頁面說明文字裡也寫了同樣的數字，兩邊一起改。色雜訊等級的門檻與每級文字只在 `grades.js`（頁面說明和工具都讀它）；量法在 `denoise-core.js` 的 `measureNoise`，改了量法要重新校準門檻。
 
 ## 部署到 GitHub Pages
 

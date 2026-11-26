@@ -6,7 +6,9 @@
  * worker 在頁面載入時就建立，放圖之前程式碼已經下載好，所以載完頁面後斷網也能用。
  *
  * DOM 契約見頁面上的 data-dn-* 屬性；根元素的 data-state 是 empty / loading / ready（還沒降噪）/ done。
+ * 色雜訊等級：worker 在讀圖和每次降噪後回傳 measureNoise 的指數，換成等級的門檻和文字在 grades.js。
  */
+import { GRADES, gradeLevel } from './grades.js';
 
 /** iPhone Safari 的 canvas 面積上限約 4096×4096；桌機也用同一個上限，記憶體才不會爆 */
 export const MAX_PIXELS = 4096 * 4096;
@@ -17,7 +19,8 @@ type Side = 'before' | 'after';
 type Zoom = 'fit' | 1 | 2;
 type Phase = 'empty' | 'loading' | 'ready' | 'done';
 type Layer = 'chroma-before' | 'chroma-after' | 'diff' | 'mask';
-type Reply = { id: number; ok: boolean; buffer?: ArrayBuffer; ms?: number; error?: string };
+type Noise = { score: number | null; coverage: number; basis: 'mid' | 'wide' | null };
+type Reply = { id: number; ok: boolean; buffer?: ArrayBuffer; ms?: number; noise?: Noise; error?: string };
 type Params = { chroma: number; skin: number };
 
 const CAPTION: Record<View, string> = {
@@ -115,6 +118,8 @@ export function setupDenoise(root: HTMLElement) {
     pending: false,
     applied: null as Params | null,
     drawn: { before: '', after: '' } as Record<Side, string>,
+    noise: null as Noise | null,       // 原圖的色雜訊指數
+    noiseAfter: null as Noise | null,  // 最近一次降噪結果的
   };
 
   /* ── 小工具 ─────────────────────────────────────────── */
@@ -139,6 +144,51 @@ export function setupDenoise(root: HTMLElement) {
     root.dataset.state = p;
     root.toggleAttribute('data-has-image', !!st.orig);
     syncControls();
+    renderGrade();
+  }
+
+  /* ── 色雜訊等級 ─────────────────────────────────────── */
+  const gradeBox = $('[data-dn-grade]');
+  const fmtScore = (v: number) => v.toFixed(2);
+  const levelOf = (n: Noise | null) => (n && n.score !== null ? gradeLevel(n.score) : 0);
+  function gradeText(n: Noise | null) {
+    const lv = levelOf(n);
+    return lv ? `色雜訊等級 ${lv}（${GRADES[lv - 1].name}）` : '色雜訊等級無法判斷';
+  }
+  function renderGrade() {
+    const loading = st.phase === 'loading', n = loading ? null : st.noise, lv = levelOf(n);
+    const set = (sel: string, text: string) => ($(sel).textContent = text);
+    gradeBox.dataset.level = n ? String(lv) : '';
+    $('[data-dn-grade-track]').dataset.level = String(lv);
+    if (loading) {
+      set('[data-dn-grade-num]', '…');
+      set('[data-dn-grade-name]', '判斷中');
+    } else if (!n) {
+      set('[data-dn-grade-num]', '–');
+      set('[data-dn-grade-name]', '放圖之後自動判斷');
+    } else {
+      set('[data-dn-grade-num]', lv ? String(lv) : '–');
+      set('[data-dn-grade-name]', lv ? GRADES[lv - 1].name : '無法判斷');
+    }
+    set(
+      '[data-dn-grade-desc]',
+      !n
+        ? '在亮度平滑的地方（皮膚、天空、牆面）量彩色顆粒和色斑的幅度：1 是乾淨，5 是非常嚴重。'
+        : lv
+          ? GRADES[lv - 1].desc
+          : '畫面裡大片平滑的地方太少（細節很多的場景、全身三視圖、很暗的畫面），量不準。請直接切到「只看顏色」判斷。',
+    );
+    const pct = n ? Math.max(1, Math.round(n.coverage * 100)) : 0;
+    set(
+      '[data-dn-grade-meta]',
+      !n || !lv
+        ? ''
+        : `指數 ${fmtScore(n.score!)}　依據畫面約 ${pct}% 的平滑區域` + (n.basis === 'wide' ? '（中間調不多，含亮部與暗部，僅供參考）' : ''),
+    );
+    const a = st.phase === 'done' ? st.noiseAfter : null, alv = levelOf(a);
+    $('[data-dn-grade-after]').hidden = !a;
+    $('[data-dn-grade-after-track]').dataset.level = String(alv);
+    set('[data-dn-grade-after-text]', !a ? '' : alv ? `${alv} ${GRADES[alv - 1].name}　指數 ${fmtScore(a.score!)}` : '無法判斷');
   }
 
   /* ── 滑桿的數字、填滿段、說明 ─────────────────────────── */
@@ -379,6 +429,8 @@ export function setupDenoise(root: HTMLElement) {
     st.applied = null;
     st.layers.clear();
     st.drawn = { before: '', after: '' };
+    st.noise = null;
+    st.noiseAfter = null;
     st.side = 'before';
     st.view = 'chroma';
     st.zoom = 'fit';
@@ -397,7 +449,8 @@ export function setupDenoise(root: HTMLElement) {
 
     try {
       const copy = new Uint8ClampedArray(orig.data);
-      await worker.call({ type: 'load', width: w, height: h, buffer: copy.buffer }, [copy.buffer]);
+      const res = await worker.call({ type: 'load', width: w, height: h, buffer: copy.buffer }, [copy.buffer]);
+      st.noise = res.noise ?? null;
     } catch (e) {
       st.orig = null;
       setPhase('empty');
@@ -409,7 +462,7 @@ export function setupDenoise(root: HTMLElement) {
     setPhase('ready');
     applyZoom();
     await render();
-    say(`圖已載入：${fmtNum(w)} × ${fmtNum(h)}。先看診斷，再按「一鍵降噪」。`);
+    say(`圖已載入：${fmtNum(w)} × ${fmtNum(h)}，${gradeText(st.noise)}。先看診斷，再按「一鍵降噪」。`);
   }
 
   /* ── 降噪：拉滑桿就重算；算的時候又拉了，算完用最新的值再算一次 ── */
@@ -430,6 +483,7 @@ export function setupDenoise(root: HTMLElement) {
       const res = await worker.call({ type: 'run', radius: p.chroma, blotch: p.skin / 100 });
       if (gen !== st.gen || !res.buffer) return;
       st.out = new ImageData(new Uint8ClampedArray(res.buffer), st.w, st.h);
+      st.noiseAfter = res.noise ?? null;
       st.version++;
       st.applied = p;
       st.layers.delete('chroma-after');
@@ -439,10 +493,11 @@ export function setupDenoise(root: HTMLElement) {
         st.side = 'after';
         setPhase('done');
       }
+      renderGrade();
       await render();
       say(
-        `已套用：色雜訊 ${p.chroma}、膚色均勻 ${p.skin}%（計算 ${fmtSec(res.ms ?? 0)} 秒）。` +
-          '按住「原圖」可以比較。',
+        `已套用：色雜訊 ${p.chroma}、膚色均勻 ${p.skin}%（計算 ${fmtSec(res.ms ?? 0)} 秒），` +
+          `降噪後${gradeText(st.noiseAfter)}。按住「原圖」可以比較。`,
       );
     } catch (e) {
       say('');

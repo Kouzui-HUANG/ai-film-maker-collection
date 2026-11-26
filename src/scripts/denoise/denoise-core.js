@@ -9,6 +9,7 @@
  *    只把對比低、中等大小的不均勻拉回周圍的亮度；有真正對比的五官（眼睛、鼻孔、唇線、下巴）保留，
  *    膚色遮罩（暖色、中等飽和、中等亮度）讓頭髮、衣服、背景不受影響。
  * 3. 診斷檢視（layer）：只看顏色（亮度拉平、顏色放大）、改變幅度（ΔE 熱圖）、膚色範圍（遮罩）。
+ * 4. 色雜訊指數（measureNoise）：平滑區域裡和亮度無關的顏色起伏，換成 1～5 級的門檻在 grades.js。
  *
  * 邊界、Lab 常數、高斯核心大小都照 OpenCV（boxFilter BORDER_REFLECT、GaussianBlur BORDER_REFLECT_101），
  * 和 OpenCV＋numpy 寫的同一套演算法逐像素對照過：8 位元的像素幾乎都相同或差 1。
@@ -250,6 +251,91 @@ function maskView(L, mask, rgba, out) {
     out[p + 2] = base + (TINT[2] - base) * m;
     out[p + 3] = rgba[p + 3];
   }
+}
+
+/* ── 色雜訊等級 ───────────────────────────────────────────── */
+
+const GRADE_F = 4;            // 先縮小 4 倍（4×4 平均）：一兩個像素的細顆粒肉眼看不出顏色，留下 4 像素以上的色斑
+const GRADE_SIGMA = 2.5;      // 帶通：減掉 σ 2.5 的模糊（原圖約 10 像素），漸層和大面積的顏色變化不算
+const GRADE_R = 3;            // 視窗 7×7（原圖約 28 像素）
+const GRADE_FLAT = 1.5;       // 視窗裡亮度的起伏超過這個值就不算：有紋理或邊緣，顏色變化多半是畫面本身
+const GRADE_MIN = 0.003;      // 平滑的視窗至少要占 0.3%（而且至少 12 個），不夠就放寬亮度範圍，再不夠就無法判斷
+const GRADE_GAIN = 1.25;      // 中位數 → 色差幅度：在乾淨的圖上加已知幅度的人工色斑，量出來約是 0.8 倍
+const GRADE_RANGES = [[30, 97], [20, 99]];  // 先只看中間調；太暗、太亮的地方色雜訊不明顯，不夠時才放寬
+
+/**
+ * 色雜訊指數：在亮度平滑的地方（皮膚、天空、牆面），量「和亮度無關的顏色起伏」的典型大小，單位大約是 ΔE。
+ * 1. 轉 Lab 並縮小 4 倍；帶通去掉漸層。
+ * 2. 每個 7×7 視窗把顏色對亮度做線性回歸，扣掉跟著亮度走的部分（陰影、紋理本身的顏色），剩下的就是色雜訊。
+ * 3. 只留亮度平滑、不透明、亮度在中間調的視窗，取中位數再乘校準係數。
+ * 水彩、做舊的筆觸本身就有和亮度無關的顏色紋理，分數會偏高一些。
+ * @param {Uint8ClampedArray} rgba
+ * @param {number} w
+ * @param {number} h
+ * @returns {{ score: number | null, coverage: number, basis: 'mid' | 'wide' | null }}  score 是 null 表示無法判斷
+ */
+export function measureNoise(rgba, w, h) {
+  const F = GRADE_F, W = Math.floor(w / F), H = Math.floor(h / F), m = W * H, R = GRADE_R;
+  const margin = R + Math.ceil(GRADE_SIGMA * 2);
+  const none = { score: null, coverage: 0, basis: null };
+  if (W < margin * 2 + 8 || H < margin * 2 + 8) return none;
+
+  // Lab 的 4×4 平均；有任何一點不完全不透明的格子記下來，含它的視窗不算
+  const L = new Float32Array(m), A = new Float32Array(m), B = new Float32Array(m), solid = new Float32Array(m);
+  const inv = 1 / (F * F);
+  for (let Y = 0; Y < H; Y++) {
+    for (let X = 0; X < W; X++) {
+      let sl = 0, sa = 0, sb = 0, op = 1;
+      for (let j = 0; j < F; j++) {
+        let p = ((Y * F + j) * w + X * F) * 4;
+        for (let i = 0; i < F; i++, p += 4) {
+          const r = LIN[rgba[p]], g = LIN[rgba[p + 1]], b = LIN[rgba[p + 2]];
+          const fx = fLab((0.412453 * r + 0.357580 * g + 0.180423 * b) / 0.950456);
+          const yy = 0.212671 * r + 0.715160 * g + 0.072169 * b, fy = fLab(yy);
+          const fz = fLab((0.019334 * r + 0.119193 * g + 0.950227 * b) / 1.088754);
+          sl += yy > T ? 116 * fy - 16 : 903.3 * yy;
+          sa += 500 * (fx - fy);
+          sb += 200 * (fy - fz);
+          if (rgba[p + 3] < 255) op = 0;
+        }
+      }
+      const k = Y * W + X;
+      L[k] = sl * inv; A[k] = sa * inv; B[k] = sb * inv; solid[k] = op;
+    }
+  }
+
+  const s = { tmp: new Float32Array(m), acc: new Float64Array(W) };
+  const f = () => new Float32Array(m);
+  const dL = gauss(L, f(), W, H, GRADE_SIGMA, s), dA = gauss(A, f(), W, H, GRADE_SIGMA, s), dB = gauss(B, f(), W, H, GRADE_SIGMA, s);
+  for (let i = 0; i < m; i++) { dL[i] = L[i] - dL[i]; dA[i] = A[i] - dA[i]; dB[i] = B[i] - dB[i]; }
+  const mean = (src) => box(src, f(), W, H, R, s);
+  const meanOf = (x, y) => { const o = f(); for (let i = 0; i < m; i++) o[i] = x[i] * y[i]; return box(o, o, W, H, R, s); };
+  const mL = mean(dL), mA = mean(dA), mB = mean(dB), mLum = mean(L), mSolid = mean(solid);
+  const mLL = meanOf(dL, dL), mAA = meanOf(dA, dA), mBB = meanOf(dB, dB), mLA = meanOf(dL, dA), mLB = meanOf(dL, dB);
+
+  const picks = GRADE_RANGES.map(() => []);
+  let total = 0;
+  for (let y = margin; y < H - margin; y += 2) {
+    for (let x = margin; x < W - margin; x += 2) {
+      total++;
+      const i = y * W + x, vL = mLL[i] - mL[i] * mL[i];
+      if (mSolid[i] < 0.999 || vL < 1e-4 || vL > GRADE_FLAT * GRADE_FLAT) continue;
+      const lum = mLum[i];
+      if (lum < GRADE_RANGES[GRADE_RANGES.length - 1][0] || lum > GRADE_RANGES[GRADE_RANGES.length - 1][1]) continue;
+      const cA = mLA[i] - mL[i] * mA[i], cB = mLB[i] - mL[i] * mB[i], d = vL + 0.01;
+      const rA = Math.max(0, mAA[i] - mA[i] * mA[i] - cA * cA / d), rB = Math.max(0, mBB[i] - mB[i] * mB[i] - cB * cB / d);
+      const v = Math.sqrt(rA + rB);
+      for (let k = 0; k < GRADE_RANGES.length; k++) if (lum >= GRADE_RANGES[k][0] && lum <= GRADE_RANGES[k][1]) picks[k].push(v);
+    }
+  }
+  const need = Math.max(12, total * GRADE_MIN);
+  for (let k = 0; k < picks.length; k++) {
+    const vals = picks[k];
+    if (vals.length < need) continue;
+    vals.sort((a, b) => a - b);
+    return { score: vals[vals.length >> 1] * GRADE_GAIN, coverage: vals.length / total, basis: k === 0 ? 'mid' : 'wide' };
+  }
+  return { ...none, coverage: picks[picks.length - 1].length / total };
 }
 
 /**
