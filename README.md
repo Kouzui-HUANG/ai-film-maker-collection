@@ -127,7 +127,7 @@ node scripts/new-work.mjs https://www.youtube.com/watch?v=XXXXXXXXXXX --creator 
 1. 建立 `src/content/posts/<urlSlug>/`，放 `index.md` 與 `cover.jpg`（建議 1600×900）。必填欄位：`title` / `excerpt` / `type` / `urlSlug` / `author` / `date` / `cover` / `coverAlt` / `readMin`（閱讀分鐘，驅動「閱讀 N 分鐘」與 timeRequired）。
 2. `type: "interview"`（Article schema，`about` 指回受訪創作者的 Person）或 `type: "tutorial"`（有 `## 操作步驟` + `### Step 1：…` 時自動產 HowTo schema，否則 Article）。
 3. `excerpt` 硬上限 180 字；`date` / `updated` 加引號；訪談對象填 `creators`，教學涉及的工具填 `tools`，難度填 `level`。
-   品牌或公司供稿、以對方署名時，加 `authorType: "organization"` 與 `authorUrl`（對方官網），JSON-LD 作者才會是 Organization；內文開頭放一則 `> **供稿說明**：` 寫明由誰提供、本站是否收費、內容以官方為準。
+   品牌或公司供稿、以對方署名時，加 `authorType: "organization"` 與 `authorUrl`（對方官網），JSON-LD 作者才會是 Organization。
 4. FAQ 段落照版式寫（`## 常見問題` 之下 `**問句？**` 接 `**答**：答覆`——冒號放在粗體**外面**；`**答：**答覆` 在 Markdown 裡結尾星號緊接中文不會變粗體，`npm run check` 會擋），會自動抽成 FAQPage schema。
 
 ### 新增活動
