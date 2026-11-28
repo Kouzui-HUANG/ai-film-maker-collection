@@ -8,6 +8,7 @@
  *   主 CTA：進行中／即將舉行 → .btn--accent「前往官方網站」；已結束 → .btn--ghost「查看官方紀錄」
  *   頁尾：其他即將舉行（最多 3，compact）→ ShareLike → 回活動與比賽
  */
+import PhraseText from '../../components/PhraseText.astro';
 import { render } from 'astro:content';
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -153,7 +154,7 @@ const seoTitle = `${title}｜${kindLabel}・${fmtDate(startDate)}`;
       </nav>
 
       <header class="page-head event__head">
-        <h1 class="page-title">{title}</h1>
+        <h1 class="page-title"><PhraseText text={title} /></h1>
         <p class="event__kicker">
           <span class="badge">{kindLabel}</span>
           <span class:list={['event__status', `event__status--${t.status}`]}>{statusText}</span>

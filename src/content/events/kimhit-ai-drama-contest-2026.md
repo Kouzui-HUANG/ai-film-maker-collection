@@ -1,5 +1,5 @@
 ---
-title: "金魚AI短劇大獎賽：交三集直式短劇，首獎 15 萬，報名就同意買斷條件"
+title: "金魚AI短劇大獎賽：首獎 15 萬，報名即同意買斷"
 slug: "kimhit-ai-drama-contest-2026"
 kind: "competition"
 startDate: "2026-12-01"

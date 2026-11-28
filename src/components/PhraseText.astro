@@ -1,0 +1,32 @@
+---
+/**
+ * 長標題的斷行：只在標點後與半形空格處換行，數字跟前後的字黏在一起。
+ *
+ * 為什麼：標題用 text-wrap: balance，中文又可以在任兩字之間斷行，
+ * 長標題會被平均切成幾行短行，斷在詞中間（「交｜三集」「15｜萬」），右側留下一大塊空白。
+ * 這裡改成：
+ * - word-break: keep-all，中文字之間不再是斷行點；
+ * - 每個標點（：，、；？！）後補一個 <wbr>，保證那裡可以斷；
+ * - 數字旁的半形空格換成不斷行空格（「首獎 15 萬」不會拆開）。
+ * 一段沒有斷點的字比整行還寬時（手機），由 overflow-wrap: break-word 照常折行。
+ */
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const segments = text
+  .replace(/(?<=\d) | (?=\d)/g, ' ')
+  .split(/(?<=[：，、；？！])/u)
+  .filter(Boolean);
+---
+<span class="phrase-text">{segments.map((s, i) => (
+  <Fragment>{s}{i < segments.length - 1 && <wbr />}</Fragment>
+))}</span>
+
+<style>
+  .phrase-text {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+</style>

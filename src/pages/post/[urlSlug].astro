@@ -9,6 +9,7 @@
  * - 麵包屑：首頁 › 專欄與教學 › 標題（傳給 BaseLayout，與可見 .crumbs 一致）
  * - 內文交給 global 的 .prose，本頁 scoped style 只寫頁首、受訪者列、文末區塊
  */
+import PhraseText from '../../components/PhraseText.astro';
 import type { InferGetStaticPropsType } from 'astro';
 import { render } from 'astro:content';
 import { Image } from 'astro:assets';
@@ -186,7 +187,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0');
           {levelLabel && <span class="badge badge--outline">{levelLabel}</span>}
         </div>
 
-        <h1 class="article__title">{title}</h1>
+        <h1 class="article__title"><PhraseText text={title} /></h1>
         <p class="article__lede">{excerpt}</p>
 
         <div class="article__byline">
